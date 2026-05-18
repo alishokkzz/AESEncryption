@@ -332,6 +332,11 @@ const COURSE_STAGES=[
 let activeCourseStage=0;
 let renderGen=0;
 const solvedChallenges=new Set();
+let encryptionComplete=false;
+
+function hexCompact(bytes){
+  return bytes.map(H).join('').toLowerCase();
+}
 
 function createResultSection(){
   if(document.getElementById('result-sec'))return;
@@ -387,12 +392,16 @@ function createSideTools(){
     <div class="tool-card"><label>ASCII to Hex</label><input id="tool-ascii" maxlength="16" value="Hello"><div class="tool-result" id="tool-ascii-res">48 65 6C 6C 6F</div></div>
     <div class="tool-card"><label>XOR bytes</label><input id="tool-xor-a" maxlength="2" value="48"><input id="tool-xor-b" maxlength="2" value="49"><div class="tool-result" id="tool-xor-res">01</div></div>
     <div class="tool-card"><label>S-Box lookup</label><input id="tool-sbox" maxlength="2" value="53"><div class="tool-result" id="tool-sbox-res">ED</div></div>
-    <div class="tool-card"><label>GF multiply</label><input id="tool-gf-a" maxlength="2" value="02"><input id="tool-gf-b" maxlength="2" value="87"><div class="tool-result" id="tool-gf-res">15</div></div>`;
+    <div class="tool-card"><label>GF multiply</label><input id="tool-gf-a" maxlength="2" value="02"><input id="tool-gf-b" maxlength="2" value="87"><div class="tool-result" id="tool-gf-res">15</div></div>
+    <div class="tool-card"><label>ASCII table</label><div class="mini-ref" id="tool-ascii-table"></div></div>
+    <div class="tool-card"><label>Full S-Box</label><div class="mini-ref sbox-ref" id="tool-sbox-table"></div></div>`;
   const right=document.createElement('aside');
   right.className='stage-tools right';
   right.id='tool-right';
   right.innerHTML=`<div class="tool-title">Current AES Step</div>
     <p class="tool-note" id="stage-note">Use Next to move through the AES course.</p>
+    <div class="tool-card"><label>Theory card</label><p class="tool-note">AES-256 uses a 128-bit block, a 256-bit key, ECB mode here, PKCS#7 padding, and HEX output.</p></div>
+    <div class="tool-card"><label>Practice rule</label><p class="tool-note">Tools on the left only help calculate. The encrypted result is produced by the AES practice flow after all checks are finished.</p></div>
     <ol class="tool-list">
       <li>Text becomes bytes.</li>
       <li>Bytes fill a 4x4 state matrix.</li>
@@ -405,6 +414,7 @@ function createSideTools(){
     const el=document.getElementById(id);if(el)el.addEventListener('input',updateSideTools);
   });
   updateSideTools();
+  buildToolReferenceTables();
 }
 
 function updateSideTools(){
@@ -421,6 +431,30 @@ function updateSideTools(){
   const ga=parseInt((gfA?gfA.value:'0'),16)&255;
   const gb=parseInt((gfB?gfB.value:'0'),16)&255;
   const gr=document.getElementById('tool-gf-res');if(gr)gr.textContent=H(gm(ga,gb));
+}
+
+function buildToolReferenceTables(){
+  const ascii=document.getElementById('tool-ascii-table');
+  if(ascii){
+    ascii.innerHTML='';
+    for(let i=32;i<=126;i++){
+      const d=document.createElement('div');
+      d.className='mini-cell';
+      d.textContent=`${String.fromCharCode(i)} ${H(i)}`;
+      ascii.appendChild(d);
+    }
+  }
+  const sbox=document.getElementById('tool-sbox-table');
+  if(sbox){
+    sbox.innerHTML='';
+    for(let i=0;i<256;i++){
+      const d=document.createElement('div');
+      d.className='mini-cell';
+      d.textContent=H(SB[i]);
+      d.title=`${H(i)} -> ${H(SB[i])}`;
+      sbox.appendChild(d);
+    }
+  }
 }
 
 function createAesMapModal(){
@@ -454,6 +488,11 @@ function updateAesMap(pos){
 function navigateToStage(stageId){
   const idx=typeof stageId==='number'?stageId:COURSE_STAGES.findIndex(s=>s.id===stageId);
   if(idx<0)return;
+  if(COURSE_STAGES[idx].id==='result'&&!encryptionComplete){
+    alert('Finish the AES Practice encryption first. Result opens after the final ciphertext step.');
+    closeStageMenu();
+    return;
+  }
   activeCourseStage=idx;
   const active=COURSE_STAGES[idx];
   const visible=new Set(active.sections);
@@ -485,7 +524,7 @@ document.addEventListener('click',e=>{
 
 function syncResultPanel(){
   const out=document.getElementById('result-cipher');
-  if(out)out.textContent=lastCipher?hA(lastCipher):'No ciphertext yet. Run Practice first.';
+  if(out)out.textContent=lastCipher?hexCompact(lastCipher):'No ciphertext yet. Run Practice first.';
   const src=document.getElementById('dec-txt'),dst=document.getElementById('result-dec-txt'),box=document.getElementById('result-dec-box');
   if(src&&dst&&box&&src.textContent&&src.textContent!=='-'&&src.textContent!=='-'){dst.textContent=src.textContent;box.style.display='block';}
 }
@@ -506,6 +545,7 @@ function startEnc(){
   if(key.length!==32){alert(`AES-256 needs exactly 32 key characters = 256 bits. Current key length: ${key.length}/32.`);return;}
   const kb=getKey();
   solvedChallenges.clear();
+  encryptionComplete=false;
   steps=buildSteps(plain,kb);
   lastCipher=encFull(plain,kb);
   curIdx=0;isPlaying=false;clearTimeout(playTimer);clearTimeout(animT);
@@ -525,7 +565,8 @@ function buildTrack(){
 function goTo(i){
   stopPlay();
   if(i<=curIdx){curIdx=i;renderStep(i);return;}
-  if(canLeaveCurrentStep()){curIdx=i;renderStep(i);}
+  if(i===curIdx+1&&canLeaveCurrentStep()){curIdx=i;renderStep(i);return;}
+  alert('Answer each Student Check before moving further.');
 }
 
 function renderStep(idx){
@@ -548,7 +589,12 @@ function renderStep(idx){
   document.getElementById('btnnxt').textContent=idx===steps.length-1?'Finish':'Next';
   document.getElementById('btnnxt').disabled=false;
   document.getElementById('pbf').style.width=`${steps.length>1?(idx/(steps.length-1))*100:100}%`;
-  if(idx===steps.length-1&&lastCipher){document.getElementById('out-blk').classList.add('show');document.getElementById('out-val').textContent=hA(lastCipher);syncResultPanel();}
+  if(idx===steps.length-1&&lastCipher){
+    encryptionComplete=true;
+    document.getElementById('out-blk').classList.add('show');
+    document.getElementById('out-val').textContent=hexCompact(lastCipher);
+    syncResultPanel();
+  }
   updateAesMap(s.mapPos);
 }
 
@@ -614,6 +660,19 @@ function stopPlay(){
   if(play)play.textContent='Play';if(stop)stop.disabled=true;
 }
 
+function clrAll(){
+  stopPlay();
+  ['pIn','kIn'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('player').style.display='none';
+  document.getElementById('out-blk').classList.remove('show');
+  document.getElementById('dec-box').style.display='none';
+  document.getElementById('ftrack').innerHTML='';
+  document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';
+  const result=document.getElementById('result-cipher');if(result)result.textContent='No ciphertext yet. Run Practice first.';
+  const resultBox=document.getElementById('result-dec-box');if(resultBox)resultBox.style.display='none';
+  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;
+}
+
 function buildSteps(plain,kb){
   const out=[],pb=plain.split('').map(c=>c.charCodeAt(0)),padded=pad16([...pb]),block=padded.slice(0,16),w=kx(kb);
   const add=(o)=>out.push(Object.assign({bc:'st',sc:'sct',dc:'dnt',mapPos:0},o));
@@ -659,7 +718,7 @@ function buildSteps(plain,kb){
   add({badge:'Scheme',bc:'sk',sc:'scp',dc:'dnp',title:'AES Scheme Continues',why:'This site teaches one full AES round in detail. AES-256 then repeats the same scheme for Rounds 2-13 and uses a final Round 14 without MixColumns.',glbl:'State after one full round',before:after,after:after,et:'Remaining AES-256 scheme',fm:'Rounds 2-13: SubBytes -> ShiftRows -> MixColumns -> AddRoundKey<br>Round 14: SubBytes -> ShiftRows -> AddRoundKey',mapPos:6,
     challenge:{prompt:'Which AES step is skipped in the final round? Type its first byte-like abbreviation: MC',answer:'MC',hint:'Final round has no MixColumns.'}});
 
-  add({badge:'Output',title:'Final Ciphertext',why:'The real AES-256 result is calculated by the full algorithm, while the student walkthrough focuses on one complete round scheme.',glbl:'Ciphertext bytes',before:cipher,after:cipher,et:'Final result',fm:`Ciphertext: <span class="vout">${hA(cipher)}</span>`,mapPos:7});
+  add({badge:'Output',title:'Final Ciphertext',why:'The real AES-256 result is calculated by the full algorithm, while the student walkthrough focuses on one complete round scheme.',glbl:'Ciphertext bytes',before:cipher,after:cipher,et:'Final result',fm:`Ciphertext: <span class="vout">${hexCompact(cipher)}</span>`,mapPos:7});
   return out;
 }
 

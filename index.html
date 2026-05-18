@@ -285,10 +285,13 @@
     <div class="flow-inp fi">
       <div class="fi-title">Your Input</div>
       <div class="fi-sub">Enter once. The walkthrough teaches the AES scheme step by step.</div>
+      <div class="tool-note" style="margin-bottom:12px">
+        Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>
+      </div>
       <div class="fi-row">
         <div class="fg">
           <label>Message (max 15 chars)</label>
-          <input type="text" id="pIn" maxlength="15" value="Hello, Narxoz!" placeholder="Your message">
+          <input type="text" id="pIn" maxlength="15" value="ali chort" placeholder="Your message">
           <div style="position:relative">
             <div class="ascii-hint" id="ah-m" onclick="toggleAscii('ap-m','ah-m')">> ASCII Table</div>
             <div class="ascii-pop" id="ap-m"><h4>ASCII Reference</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = number. AES works on these numbers.</p><div class="ascii-grid" id="ag-m"></div></div>
@@ -296,7 +299,7 @@
         </div>
         <div class="fg">
           <label>Key (32 chars = 256-bit)</label>
-          <input type="text" id="kIn" maxlength="32" value="MySecretAES256KeyForNarxoz12345!" placeholder="Exactly 32 characters">
+          <input type="text" id="kIn" maxlength="32" value="nurmukhametalidurenuly2007072119" placeholder="Exactly 32 characters">
         </div>
         <div>
           <button class="btn-p" onclick="startEnc()">Encrypt</button>
