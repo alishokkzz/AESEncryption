@@ -370,12 +370,8 @@ body.stage-app{padding-bottom:86px;}
 .tool-note{font-size:.74rem;color:var(--muted);line-height:1.55;margin-bottom:9px;}
 .tool-list{font-size:.73rem;color:var(--muted);line-height:1.65;padding-left:16px;}
 .tool-list li::marker{color:var(--teal);}
-.side-card-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:8px;}
-.side-card-tabs button{border:1px solid var(--bdr);background:var(--bg);color:var(--muted);border-radius:7px;padding:7px 4px;font-size:.62rem;font-weight:800;cursor:pointer;}
-.side-card-tabs button.active{background:var(--teal);border-color:var(--teal);color:white;}
 .aes-remind-card{border-color:var(--gold);background:#fef8e4;cursor:pointer;transition:transform .16s,box-shadow .16s;}
 .aes-remind-card:hover{transform:translateY(-1px);box-shadow:0 8px 22px rgba(145,103,8,.14);}
-.aes-remind-card small{display:block;margin-top:7px;color:var(--gold);font-size:.62rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;}
 .mini-ref{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;max-height:150px;overflow:auto;background:white;border-radius:8px;padding:5px;}
 .sbox-ref{grid-template-columns:repeat(4,1fr);max-height:190px;}
 .mini-cell{font-family:'DM Mono',monospace;font-size:.58rem;color:var(--muted);background:var(--bg2);border-radius:4px;padding:3px 2px;text-align:center;}

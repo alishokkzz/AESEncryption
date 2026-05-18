@@ -376,8 +376,6 @@ const AES_SIDE_CARDS={
     'For the final round question, remember: no MixColumns.'
   ]
 };
-let aesSideType='interesting';
-const aesSideIndex={interesting:0,theory:0,hint:0};
 
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
@@ -504,12 +502,7 @@ function createSideTools(){
   right.id='tool-right';
   right.innerHTML=`<div class="tool-title">Current AES Step</div>
     <p class="tool-note" id="stage-note">Use Next to move through the AES course.</p>
-    <div class="side-card-tabs">
-      <button class="active" data-side-card="interesting" onclick="setAesSideCard('interesting')">Interesting</button>
-      <button data-side-card="theory" onclick="setAesSideCard('theory')">Theory</button>
-      <button data-side-card="hint" onclick="setAesSideCard('hint')">Hint</button>
-    </div>
-    <div class="tool-card aes-remind-card" onclick="nextAesSideCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p><small id="aes-side-count">1 / 10 - click card</small></div>
+    <div class="tool-card aes-remind-card" onclick="showRandomAesCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>
     <div class="tool-card"><label>Practice rule</label><p class="tool-note">Tools on the left only help calculate. The encrypted result is produced by the AES practice flow after all checks are finished.</p></div>
     <ol class="tool-list">
       <li>Text becomes bytes.</li>
@@ -522,25 +515,19 @@ function createSideTools(){
   ['pIn','kIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',syncAesCalculator);});
   syncAesCalculator();
   updateCalcDisplay();
-  setAesSideCard('interesting');
+  showRandomAesCard();
   renderCalcHistory();
   buildToolReferenceTables();
 }
 
-function setAesSideCard(type){
-  aesSideType=type;
-  const list=AES_SIDE_CARDS[type]||AES_SIDE_CARDS.interesting;
-  const bodyText=list[aesSideIndex[type]||0];
+function showRandomAesCard(){
+  const types=Object.keys(AES_SIDE_CARDS);
+  const type=types[Math.floor(Math.random()*types.length)];
+  const list=AES_SIDE_CARDS[type];
+  const bodyText=list[Math.floor(Math.random()*list.length)];
   const title=document.getElementById('aes-side-title'),body=document.getElementById('aes-side-body');
   if(title)title.textContent=`${type.charAt(0).toUpperCase()+type.slice(1)} card`;
   if(body)body.textContent=bodyText;
-  const count=document.getElementById('aes-side-count');if(count)count.textContent=`${(aesSideIndex[type]||0)+1} / ${list.length} - click card`;
-  document.querySelectorAll('[data-side-card]').forEach(btn=>btn.classList.toggle('active',btn.dataset.sideCard===type));
-}
-function nextAesSideCard(){
-  const list=AES_SIDE_CARDS[aesSideType]||AES_SIDE_CARDS.interesting;
-  aesSideIndex[aesSideType]=((aesSideIndex[aesSideType]||0)+1)%list.length;
-  setAesSideCard(aesSideType);
 }
 
 function formatCalc(n){
