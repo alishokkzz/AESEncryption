@@ -381,6 +381,9 @@ const AES_SIDE_CARDS={
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
 }
+function bytesToBase64(bytes){
+  return btoa(String.fromCharCode(...bytes));
+}
 
 function createResultSection(){
   if(document.getElementById('result-sec'))return;
@@ -394,6 +397,15 @@ function createResultSection(){
     <div class="flow-inp fi">
       <div class="fi-title">Latest AES-256 Output</div>
       <div class="fi-sub">The result updates after you run encryption in the Practice stage.</div>
+      <div class="result-options">
+        <label>Mode <select id="result-mode" onchange="syncResultPanel()"><option value="ECB">ECB</option><option value="CBC">CBC</option></select></label>
+        <label>Format <select id="result-format" onchange="syncResultPanel()"><option value="HEX">HEX</option><option value="BASE64">BASE64</option></select></label>
+      </div>
+      <div class="result-meta">
+        <div><span>Key</span><strong id="result-key">-</strong></div>
+        <div><span>Mode</span><strong id="result-mode-label">ECB</strong></div>
+        <div><span>Format</span><strong id="result-format-label">HEX</strong></div>
+      </div>
       <div class="out-val" id="result-cipher">No ciphertext yet.</div>
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-p" onclick="navigateToStage('encrypt')">Back to Practice</button>
@@ -421,6 +433,7 @@ function createStageControls(){
       </div>
     </div>
     <button class="stage-map-btn" onclick="openAesMap()">AES Map</button>
+    <button class="stage-map-btn team-open-btn" onclick="openTeamPanel()">Team</button>
     <button class="stage-arrow" onclick="nextStage()">Next</button>
     <div class="ai-helper-wrap" id="ai-helper-wrap">
       <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
@@ -438,6 +451,10 @@ function toggleStageMenu(){const bar=document.getElementById('stagebar');if(bar)
 function closeStageMenu(){const bar=document.getElementById('stagebar');if(bar)bar.classList.remove('open');}
 function toggleAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.toggle('open');}
 function closeAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.remove('open');}
+function parseHexByteToken(token){
+  const clean=String(token||'').replace(/^0x/i,'').toUpperCase();
+  return /^[0-9A-F]{2}$/.test(clean)?parseInt(clean,16):null;
+}
 function askAiHelper(kind){
   const stage=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0];
   const current=steps[curIdx];
@@ -462,6 +479,12 @@ function sendAiQuestion(){
 }
 function answerAiQuestion(q){
   const low=q.toLowerCase(),current=steps[curIdx];
+  const xor=q.match(/(?:0x)?([0-9a-fA-F]{2})\s*(?:xor|\^)\s*(?:0x)?([0-9a-fA-F]{2})/);
+  if(xor){const a=parseInt(xor[1],16),b=parseInt(xor[2],16);return `0x${H(a)} XOR 0x${H(b)} = 0x${H(a^b)}. Bits: ${B8(a)} xor ${B8(b)} = ${B8(a^b)}.`;}
+  const ascii=q.match(/ascii\s+(0x[0-9a-fA-F]{2}|.)/i);
+  if(ascii){const raw=ascii[1],n=raw.toLowerCase().startsWith('0x')?parseInt(raw,16):raw.charCodeAt(0);return `ASCII value: "${raw}" = decimal ${n} = hex 0x${H(n)} = bits ${B8(n)}.`;}
+  const sbox=q.match(/s-?box\s*(?:of)?\s*(?:0x)?([0-9a-fA-F]{2})/i);
+  if(sbox){const n=parseInt(sbox[1],16);return `S-Box[0x${H(n)}]: row ${H(n)[0]}, column ${H(n)[1]} gives 0x${H(SB[n])}.`;}
   if(low.includes('key')||low.includes('256'))return 'For AES-256, the key must be 32 bytes. This site accepts 32 characters, then each character becomes one key byte.';
   if(low.includes('history')||low.includes('who made')||low.includes('when'))return 'AES was selected by NIST after a public competition and standardized in 2001. The winning algorithm was Rijndael, designed by Joan Daemen and Vincent Rijmen.';
   if(low.includes('ascii')||low.includes('character')||low.includes('text'))return 'ASCII maps a character to a number. Example: A is decimal 65, which is 0x41 in hex. AES encrypts those byte values, not letters directly.';
@@ -478,6 +501,19 @@ function answerAiQuestion(q){
   if(low.includes('current')||low.includes('step'))return current?`${current.badge}: ${current.why}`:'Open Practice and I can explain the active AES step.';
   return 'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.';
 }
+
+function createTeamPanel(){
+  if(document.getElementById('team-panel'))return;
+  const panel=document.createElement('div');
+  panel.className='team-panel';
+  panel.id='team-panel';
+  const team=document.querySelector('#team .tgrid');
+  panel.innerHTML=`<div class="team-panel-card"><div class="aes-map-head"><h3>Project Team</h3><button onclick="closeTeamPanel()">Close</button></div><div class="team-panel-grid">${team?team.innerHTML:''}</div></div>`;
+  panel.addEventListener('click',e=>{if(e.target===panel)closeTeamPanel();});
+  document.body.appendChild(panel);
+}
+function openTeamPanel(){createTeamPanel();const p=document.getElementById('team-panel');if(p)p.classList.add('open');}
+function closeTeamPanel(){const p=document.getElementById('team-panel');if(p)p.classList.remove('open');}
 
 function createSideTools(){
   if(document.getElementById('tool-left'))return;
@@ -508,15 +544,7 @@ function createSideTools(){
   right.id='tool-right';
   right.innerHTML=`<div class="tool-title">Current AES Step</div>
     <p class="tool-note" id="stage-note">Use Next to move through the AES course.</p>
-    <div class="tool-card aes-remind-card" onclick="showRandomAesCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>
-    <div class="tool-card"><label>Practice rule</label><p class="tool-note">Tools on the left only help calculate. The encrypted result is produced by the AES practice flow after all checks are finished.</p></div>
-    <ol class="tool-list">
-      <li>Text becomes bytes.</li>
-      <li>Bytes fill a 4x4 state matrix.</li>
-      <li>Round keys come from the 32-byte key.</li>
-      <li>Rounds repeat SubBytes, ShiftRows, MixColumns, AddRoundKey.</li>
-      <li>Final round skips MixColumns.</li>
-    </ol>`;
+    <div class="tool-card aes-remind-card" onclick="showRandomAesCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>`;
   document.body.append(left,right);
   ['pIn','kIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',syncAesCalculator);});
   syncAesCalculator();
@@ -691,7 +719,15 @@ document.addEventListener('click',e=>{
 
 function syncResultPanel(){
   const out=document.getElementById('result-cipher');
-  if(out)out.textContent=lastCipher?hexCompact(lastCipher):'No ciphertext yet. Run Practice first.';
+  const fmtElInput=document.getElementById('result-format'),modeElInput=document.getElementById('result-mode'),keyInput=document.getElementById('kIn');
+  const fmt=fmtElInput?fmtElInput.value:'HEX';
+  const mode=modeElInput?modeElInput.value:'ECB';
+  const key=keyInput?keyInput.value:'-';
+  if(out)out.textContent=lastCipher?(fmt==='BASE64'?bytesToBase64(lastCipher):hexCompact(lastCipher)):'No ciphertext yet. Run Practice first.';
+  const keyEl=document.getElementById('result-key'),modeEl=document.getElementById('result-mode-label'),fmtEl=document.getElementById('result-format-label');
+  if(keyEl)keyEl.textContent=key||'-';
+  if(modeEl)modeEl.textContent=mode==='CBC'?'CBC needs IV; walkthrough output is ECB':'ECB';
+  if(fmtEl)fmtEl.textContent=fmt;
   const src=document.getElementById('dec-txt'),dst=document.getElementById('result-dec-txt'),box=document.getElementById('result-dec-box');
   if(src&&dst&&box&&src.textContent&&src.textContent!=='-'&&src.textContent!=='-'){dst.textContent=src.textContent;box.style.display='block';}
 }
@@ -778,9 +814,10 @@ function renderRoundDetail(s){
   const afterRow=after.slice(0,16).map((b,i)=>`<span data-rd-after="${i}">${H(b)}</span>`).join('');
   const rule=s.isARK?'State byte XOR round-key byte':s.isSUB?'High nibble selects S-Box row, low nibble selects column':s.isSH?'Rows rotate left by row number':s.isMX?'Column bytes multiply in GF(2^8)':'Values move through this AES stage';
   return `<div class="round-detail">
-    <div class="rd-head"><strong>Step-by-step AES round detail</strong><small>DES-style explainer table</small></div>
+    <div class="rd-head"><strong>Step-by-step AES round detail</strong><small>live byte movement</small></div>
     <div class="rd-lane"><label>Before</label><div class="rd-bytes">${beforeRow}</div></div>
     <div class="rd-rule">${rule}</div>
+    <div class="rd-bitflow" id="rd-bitflow"></div>
     <div class="rd-lane"><label>After</label><div class="rd-bytes">${afterRow}</div></div>
     <div class="rd-active" id="rd-active">Active byte [0]: ${H(before[0]||0)} -> ${H(after[0]||0)}</div>
   </div>`;
@@ -792,6 +829,13 @@ function updateRoundDetail(s,idx){
   if(before)before.classList.add('active');if(after)after.classList.add('active');
   const active=document.getElementById('rd-active');
   if(active)active.textContent=`Active byte [${idx}]: ${H(s.before[idx])} -> ${H(s.after[idx])}`;
+  const flow=document.getElementById('rd-bitflow');
+  if(flow){
+    const bv=s.before[idx],av=s.after[idx],kv=bv^av;
+    const bits=n=>B8(n).split('').map(bit=>`<span>${bit}</span>`).join('');
+    if(s.isARK)flow.innerHTML=`<div><b>State</b><div class="bit-row">${bits(bv)}</div></div><strong>xor</strong><div><b>Key</b><div class="bit-row keybits">${bits(kv)}</div></div><strong>=</strong><div><b>Result</b><div class="bit-row outbits">${bits(av)}</div></div>`;
+    else flow.innerHTML=`<div><b>Input</b><div class="bit-row">${bits(bv)}</div></div><strong>-></strong><div><b>Output</b><div class="bit-row outbits">${bits(av)}</div></div>`;
+  }
 }
 
 function checkStepAnswer(){
@@ -885,42 +929,44 @@ function buildSteps(plain,kb){
   const add=(o)=>out.push(Object.assign({bc:'st',sc:'sct',dc:'dnt',mapPos:0},o));
   const roundKey=(r)=>[...Array(4)].flatMap((_,c)=>[...Array(4)].map((_,row)=>w[r*4+c][row]));
   const cipher=encFull(plain,kb).slice(0,16);
+  const q=(salt,max)=>(cipher[salt%16]^kb[(salt*7)%kb.length]^block[(salt*3)%16])%max;
+  const qPlain=Math.min(q(2,Math.max(1,pb.length)),15),qKey=q(3,16),qArk=q(4,16),qSub=q(5,16),qShift=4+q(6,4),qMix=q(7,4),qArk1=q(8,16);
 
   add({badge:'Input',title:'Plaintext -> Bytes',why:'AES encrypts bytes. First the text becomes hexadecimal byte values in a 4x4 state matrix.',glbl:'Plaintext block',before:block,after:block,et:'Character conversion',fm:plain.split('').slice(0,16).map((c,i)=>`[${i}] '${c}' = ${c.charCodeAt(0)} = 0x${H(c.charCodeAt(0))}`).join('<br>'),showAscii:true,mapPos:0,
-    challenge:{kind:'text',prompt:'Write the rule for converting plaintext into AES bytes.',contains:['ascii','hex'],placeholder:'Example: character -> ASCII -> hex byte',hint:'Mention ASCII and hex bytes.'}});
+    challenge:{prompt:`For this message, what is plaintext byte [${qPlain}] '${plain[qPlain]}' in hex?`,answer:H(block[qPlain]),hint:'Use ASCII: character -> decimal -> hex byte.'}});
 
   const pv=16-pb.length||16;
   add({badge:'Padding',title:'PKCS#7 Padding',why:'AES works on 16-byte blocks. The demo uses one padded block so students can follow every byte.',glbl:'Block after padding',before:block,after:block,et:'Padding detail',fm:`Message length: ${pb.length} bytes<br>Padding value: 0x${H(pv)} repeated ${pv} time(s).`,mapPos:0,
     challenge:{prompt:'What is the padding byte value in hex?',answer:H(pv),hint:'Padding value equals the number of missing bytes.'}});
 
   add({badge:'Key',bc:'sd2',sc:'scd',dc:'dnd',title:'AES-256 Key Bytes',why:'AES-256 uses exactly 32 key bytes. The first 16 bytes form Round Key 0.',glbl:'First 16 key bytes',before:kb.slice(0,16),after:kb.slice(0,16),et:'Key detail',fm:kb.map((b,i)=>`K[${String(i).padStart(2,'0')}] = 0x${H(b)}`).join('<br>'),mapPos:1,
-    challenge:{kind:'choice',prompt:'Which key size is this practice using?',options:['128 bits','192 bits','256 bits','512 bits'],answer:'256 bits',hint:'The entered key is 32 bytes, so AES-256 uses 256 bits.'}});
+    challenge:{prompt:`This key is unique. What is K[${String(qKey).padStart(2,'0')}] in hex?`,answer:H(kb[qKey]),hint:'Look at the key detail list for the matching K index.'}});
 
   let state=block.slice();
   let rk=roundKey(0),before=state.slice();state=state.map((b,i)=>b^rk[i]);
   add({badge:'ARK 0',title:'Round 0 - AddRoundKey',why:'Before Round 1, each state byte is XORed with Round Key 0.',glbl:'State after Round 0 key',before,after:state.slice(),isARK:true,et:'XOR each byte - click a cell',fm:`Byte 0: 0x${H(before[0])} XOR 0x${H(rk[0])} = 0x${H(state[0])}`,mapPos:1,
-    challenge:{prompt:`Calculate byte 0: ${H(before[0])} XOR ${H(rk[0])} = ?`,answer:H(state[0]),hint:'Use the XOR tool on the left.'}});
+    challenge:{prompt:`Calculate byte ${qArk}: ${H(before[qArk])} XOR ${H(rk[qArk])} = ?`,answer:H(state[qArk]),hint:'Use XOR: same bits are 0, different bits are 1.'}});
 
   let st=ts(state);
   before=fs(cS(st));for(let r=0;r<4;r++)for(let c=0;c<4;c++)st[r][c]=SB[st[r][c]];
   let after=fs(cS(st));
   add({badge:'SubBytes',bc:'so',sc:'sco',dc:'dno',title:'Round 1 - SubBytes',why:'Each byte is replaced through the AES S-Box. This is the substitution part of the AES scheme.',glbl:'After SubBytes',before,after,isSUB:true,et:'S-Box lookup - click a byte',fm:`Byte 0: S-Box[0x${H(before[0])}] = 0x${H(after[0])}`,showSboxHint:true,mapPos:2,
-    challenge:{prompt:`Use the S-Box: S-Box[${H(before[0])}] = ?`,answer:H(after[0]),hint:'High hex digit is row, low hex digit is column.'}});
+    challenge:{prompt:`Use the S-Box for byte ${qSub}: S-Box[${H(before[qSub])}] = ?`,answer:H(after[qSub]),hint:'High hex digit is row, low hex digit is column.'}});
 
   before=rowMajorFromState(st);for(let r=1;r<4;r++){const row=st[r].slice();for(let c=0;c<4;c++)st[r][c]=row[(c+r)%4];}
   after=rowMajorFromState(st);
   add({badge:'ShiftRows',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 - ShiftRows',why:'Rows rotate left by 0, 1, 2, and 3. This moves bytes between columns before MixColumns.',glbl:'After ShiftRows',before,after,isSH:true,et:'Row movement - click a byte',fm:[0,1,2,3].map(r=>`Row ${r}: ${[0,1,2,3].map(c=>H(before[r*4+c])).join(' ')} -> ${[0,1,2,3].map(c=>H(after[r*4+c])).join(' ')}`).join('<br>'),mapPos:3,
-    challenge:{prompt:'After shifting row 1 left, what is the first byte of row 1?',answer:H(after[4]),hint:'Row 1 shifts left by one position.'}});
+    challenge:{prompt:`After ShiftRows, what is byte [${qShift}] in row 1?`,answer:H(after[qShift]),hint:'Row 1 shifts left by one position.'}});
 
   before=fs(cS(st));for(let c=0;c<4;c++){const[a,b,d,e]=[st[0][c],st[1][c],st[2][c],st[3][c]];st[0][c]=gm(2,a)^gm(3,b)^d^e;st[1][c]=a^gm(2,b)^gm(3,d)^e;st[2][c]=a^b^gm(2,d)^gm(3,e);st[3][c]=gm(3,a)^b^d^gm(2,e);}
   after=fs(cS(st));
   add({badge:'MixColumns',bc:'sp',sc:'scp',dc:'dnp',title:'Round 1 - MixColumns',why:'Each column is mixed in GF(2^8). This is the diffusion part of the AES scheme.',glbl:'After MixColumns',before,after,isMX:true,et:'GF(2^8) calculation - click a byte',fm:`Column 0 output byte 0 = 0x${H(after[0])}`,mapPos:4,
-    challenge:{prompt:'Calculate MixColumns output byte 0 for column 0. What hex value appears?',answer:H(after[0]),hint:'Click byte 0 to see the GF(2^8) multiplication details.'}});
+    challenge:{prompt:`Calculate MixColumns output byte ${qMix} in column 0. What hex value appears?`,answer:H(after[qMix]),hint:'Click that byte to see the GF(2^8) multiplication details.'}});
 
   before=fs(cS(st));rk=roundKey(1);for(let c=0;c<4;c++)for(let r=0;r<4;r++)st[r][c]^=w[4+c][r];
   after=fs(cS(st));
   add({badge:'ARK 1',title:'Round 1 - AddRoundKey',why:'Round 1 finishes by XORing the mixed state with Round Key 1.',glbl:'After Round Key 1',before,after,isARK:true,et:'XOR with round key - click a byte',fm:`Round key 1: ${hA(rk)}`,mapPos:5,
-    challenge:{prompt:`Calculate byte 0: ${H(before[0])} XOR ${H(rk[0])} = ?`,answer:H(after[0]),hint:'Use the XOR tool or click byte 0 for bit detail.'}});
+    challenge:{prompt:`Calculate byte ${qArk1}: ${H(before[qArk1])} XOR ${H(rk[qArk1])} = ?`,answer:H(after[qArk1]),hint:'Use XOR or click that byte for bit detail.'}});
 
   add({badge:'Scheme',bc:'sk',sc:'scp',dc:'dnp',title:'AES Scheme Continues',why:'This site teaches one full AES round in detail. AES-256 then repeats the same scheme for Rounds 2-13 and uses a final Round 14 without MixColumns.',glbl:'State after one full round',before:after,after:after,et:'Remaining AES-256 scheme',fm:'Rounds 2-13: SubBytes -> ShiftRows -> MixColumns -> AddRoundKey<br>Round 14: SubBytes -> ShiftRows -> AddRoundKey',mapPos:6,
     challenge:{kind:'text',prompt:'Write which step the final AES round skips.',contains:['mix'],placeholder:'The final round skips...',hint:'Final round has no MixColumns.'}});
