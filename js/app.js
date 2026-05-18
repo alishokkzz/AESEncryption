@@ -250,7 +250,7 @@ function buildGrid(s){
     c.onclick=()=>{clearTimeout(animT);highlightCell(s,i);showCellDetail(s,i);};
     grid.appendChild(c);
   });
-  showCellDetail(s,0);
+  showCellDetail(s,0);updateRoundDetail(s,0);
   let i=0;
   function nx(){
     if(i>0){const pc=document.getElementById(`sc${i-1}`);if(pc){pc.className=`scell ${s.dc}`;pc.innerHTML=`<span>${H(s.after[i-1])}</span><small>[${i-1}]</small>`;}}
@@ -265,6 +265,7 @@ function buildGrid(s){
 
 function highlightCell(s,idx){
   for(let i=0;i<16;i++){const c=document.getElementById(`sc${i}`);if(!c)continue;if(i<idx){c.className=`scell ${s.dc}`;c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}else if(i===idx){c.className=`scell ${s.sc}`;if(s.before[i]!==s.after[i])c.innerHTML=`<span class="cf">${H(s.before[i])}</span><span class="ca"> ${H(s.after[i])}</span>`;else c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}else{c.className='scell dim';c.innerHTML=`<span>${H(s.before[i])}</span><small>[${i}]</small>`;}}
+  updateRoundDetail(s,idx);
 }
 
 function showCellDetail(s,idx){
@@ -462,15 +463,20 @@ function sendAiQuestion(){
 function answerAiQuestion(q){
   const low=q.toLowerCase(),current=steps[curIdx];
   if(low.includes('key')||low.includes('256'))return 'For AES-256, the key must be 32 bytes. This site accepts 32 characters, then each character becomes one key byte.';
+  if(low.includes('history')||low.includes('who made')||low.includes('when'))return 'AES was selected by NIST after a public competition and standardized in 2001. The winning algorithm was Rijndael, designed by Joan Daemen and Vincent Rijmen.';
+  if(low.includes('ascii')||low.includes('character')||low.includes('text'))return 'ASCII maps a character to a number. Example: A is decimal 65, which is 0x41 in hex. AES encrypts those byte values, not letters directly.';
+  if(low.includes('byte')||low.includes('bit'))return 'One byte is 8 bits. In hex, one byte is two hex digits: 0x00 through 0xFF.';
   if(low.includes('sbox')||low.includes('s-box')||low.includes('subbyte'))return 'S-Box means substitution. Take a byte like 0x53: row is 5, column is 3, and the table gives the replacement byte.';
   if(low.includes('xor')||low.includes('addround'))return 'XOR compares bits: same gives 0, different gives 1. AddRoundKey is just state byte XOR round-key byte.';
+  if(low.includes('ecb')||low.includes('mode'))return 'ECB encrypts each block independently. It is easy for teaching, but real systems usually prefer modes like CBC, CTR, or GCM.';
+  if(low.includes('gf')||low.includes('field'))return 'GF(2^8) is AES finite-field math. MixColumns uses it so column bytes blend without leaving the 0x00-0xFF byte range.';
   if(low.includes('shift'))return 'ShiftRows rotates rows left. Row 0 stays, row 1 moves left 1, row 2 moves left 2, row 3 moves left 3.';
   if(low.includes('mix'))return 'MixColumns mixes each column using GF(2^8), so each output byte depends on all four bytes of that column.';
   if(low.includes('padding')||low.includes('pkcs'))return 'PKCS#7 padding adds N bytes with value N. If 4 bytes are missing, AES adds 04 04 04 04.';
   if(low.includes('round'))return 'AES-256 has 14 rounds: Round 0 AddRoundKey, rounds 1-13 full steps, and round 14 without MixColumns.';
   if(low.includes('result')||low.includes('cipher'))return 'The ciphertext is shown only after you finish the Practice checks. Then you can compare it on the Result page.';
   if(low.includes('current')||low.includes('step'))return current?`${current.badge}: ${current.why}`:'Open Practice and I can explain the active AES step.';
-  return 'Good question. Try naming the AES part you mean: key, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, or result.';
+  return 'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.';
 }
 
 function createSideTools(){
@@ -596,23 +602,24 @@ function renderCalcHistory(){
 function buildToolReferenceTables(){
   const ascii=document.getElementById('tool-ascii-table');
   if(ascii){
-    ascii.innerHTML='';
+    ascii.classList.add('ascii-ref');
+    ascii.innerHTML='<table><thead><tr><th>Char</th><th>Dec</th><th>Hex</th></tr></thead><tbody></tbody></table>';
+    const body=ascii.querySelector('tbody');
     for(let i=32;i<=126;i++){
-      const d=document.createElement('div');
-      d.className='mini-cell';
-      d.textContent=`${String.fromCharCode(i)} ${H(i)}`;
-      ascii.appendChild(d);
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td>${escHtml(String.fromCharCode(i))}</td><td>${i}</td><td>${H(i)}</td>`;
+      body.appendChild(tr);
     }
   }
   const sbox=document.getElementById('tool-sbox-table');
   if(sbox){
-    sbox.innerHTML='';
-    for(let i=0;i<256;i++){
-      const d=document.createElement('div');
-      d.className='mini-cell';
-      d.textContent=H(SB[i]);
-      d.title=`${H(i)} -> ${H(SB[i])}`;
-      sbox.appendChild(d);
+    sbox.innerHTML='<table><thead></thead><tbody></tbody></table>';
+    const head=sbox.querySelector('thead'),body=sbox.querySelector('tbody');
+    head.innerHTML='<tr><th></th>'+Array.from({length:16},(_,i)=>`<th>${i.toString(16).toUpperCase()}</th>`).join('')+'</tr>';
+    for(let r=0;r<16;r++){
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<th>${r.toString(16).toUpperCase()}</th>`+Array.from({length:16},(_,c)=>`<td title="${H(r*16+c)} -> ${H(SB[r*16+c])}">${H(SB[r*16+c])}</td>`).join('');
+      body.appendChild(tr);
     }
   }
 }
@@ -739,7 +746,7 @@ function renderStep(idx){
   let html=`<div class="sbadge ${s.bc}">${s.badge}</div><div class="stitle">${s.title}</div><div class="swhy">${s.why}</div>`;
   if(s.showAscii)html+=`<div style="position:relative;display:inline-block;margin-bottom:14px"><div class="ascii-hint" onclick="toggleAscii('ap-s','ah-s')">ASCII Table - character reference</div><div class="ascii-pop" id="ap-s"><h4>ASCII Reference</h4><div class="ascii-grid" id="ag-s"></div></div></div>`;
   if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> high nibble is row, low nibble is column.</div>`;
-  html+=`<div class="sbody"><div><div class="sg-lbl" id="sc-lbl">${s.glbl}</div><div class="sgrid" id="sc-grid"></div></div><div class="sexpl"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm}</div></div></div>`;
+  html+=`<div class="sbody"><div><div class="sg-lbl" id="sc-lbl">${s.glbl}</div><div class="sgrid" id="sc-grid"></div></div><div class="sexpl"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm}</div></div></div>${renderRoundDetail(s)}`;
   if(s.challenge)html+=renderChallenge(s.challenge);
   card.innerHTML=html;
   if(s.showAscii)buildAsciiGrid('ag-s');
@@ -763,6 +770,28 @@ function renderChallenge(ch){
   if(ch.kind==='text')control=`<textarea id="step-answer" placeholder="${ch.placeholder||'Write your answer'}"></textarea>`;
   if(ch.kind==='choice')control=`<select id="step-answer" class="challenge-select"><option value="">Choose answer</option>${(ch.options||[]).map(o=>`<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}</select>`;
   return `<div class="step-challenge"><h4>Student Check</h4><p>${ch.prompt}</p><div class="challenge-row">${control}<button class="chk-btn" onclick="checkStepAnswer()">Check</button></div><span class="challenge-feedback" id="challenge-feedback">${ch.hint}</span></div>`;
+}
+
+function renderRoundDetail(s){
+  const before=s.before||[],after=s.after||[];
+  const beforeRow=before.slice(0,16).map((b,i)=>`<span data-rd-before="${i}">${H(b)}</span>`).join('');
+  const afterRow=after.slice(0,16).map((b,i)=>`<span data-rd-after="${i}">${H(b)}</span>`).join('');
+  const rule=s.isARK?'State byte XOR round-key byte':s.isSUB?'High nibble selects S-Box row, low nibble selects column':s.isSH?'Rows rotate left by row number':s.isMX?'Column bytes multiply in GF(2^8)':'Values move through this AES stage';
+  return `<div class="round-detail">
+    <div class="rd-head"><strong>Step-by-step AES round detail</strong><small>DES-style explainer table</small></div>
+    <div class="rd-lane"><label>Before</label><div class="rd-bytes">${beforeRow}</div></div>
+    <div class="rd-rule">${rule}</div>
+    <div class="rd-lane"><label>After</label><div class="rd-bytes">${afterRow}</div></div>
+    <div class="rd-active" id="rd-active">Active byte [0]: ${H(before[0]||0)} -> ${H(after[0]||0)}</div>
+  </div>`;
+}
+
+function updateRoundDetail(s,idx){
+  document.querySelectorAll('[data-rd-before],[data-rd-after]').forEach(el=>el.classList.remove('active'));
+  const before=document.querySelector(`[data-rd-before="${idx}"]`),after=document.querySelector(`[data-rd-after="${idx}"]`);
+  if(before)before.classList.add('active');if(after)after.classList.add('active');
+  const active=document.getElementById('rd-active');
+  if(active)active.textContent=`Active byte [${idx}]: ${H(s.before[idx])} -> ${H(s.after[idx])}`;
 }
 
 function checkStepAnswer(){
@@ -809,7 +838,7 @@ function buildGrid(s,gen=renderGen){
     if(i<16){
       const c=document.getElementById(`sc${i}`);
       if(c){c.className=`scell ${s.sc}`;if(s.before[i]!==s.after[i])c.innerHTML=`<span class="cf">${H(s.before[i])}</span><span class="ca"> ${H(s.after[i])}</span>`;else c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}
-      showCellDetail(s,i);i++;animT=setTimeout(nx,120);
+      showCellDetail(s,i);updateRoundDetail(s,i);i++;animT=setTimeout(nx,120);
     }else{const fm=document.getElementById('sc-fm');if(fm&&s.fm)fm.innerHTML=s.fm;const et=document.getElementById('sc-et');if(et)et.textContent='All 16 bytes processed';}
   }
   animT=setTimeout(nx,80);
