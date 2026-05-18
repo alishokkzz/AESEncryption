@@ -306,7 +306,7 @@ function stopPlay(){isPlaying=false;clearTimeout(playTimer);document.getElementB
 function setSp(ms,el){playSp=ms;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
 function runDec(){if(!lastCipher){alert('Encrypt first.');return;}const kb=getKey();const r=decFull(lastCipher,kb);document.getElementById('dec-box').style.display='block';document.getElementById('dec-txt').textContent=`"${r}"`;}
 function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';lastCipher=null;steps=[];}
-function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;}
+function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;syncAesCalculator();}
 
 // SCROLL + INIT
 // ------------------------------------------
@@ -337,6 +337,7 @@ let renderGen=0;
 const solvedChallenges=new Set();
 let encryptionComplete=false;
 const calcHistory=[];
+let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
 
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
@@ -392,21 +393,22 @@ function createSideTools(){
   const left=document.createElement('aside');
   left.className='stage-tools left';
   left.id='tool-left';
-  left.innerHTML=`<div class="tool-title">Calculator</div>
-    <div class="tool-card"><label>Rule: normal calculation</label><p class="tool-note">Use this for quick arithmetic while solving practice tasks. Type two numbers, choose +, -, *, or /, then press Calculate.</p></div>
-    <div class="tool-card">
-      <label>Operation</label>
-      <select id="calc-mode" class="calc-select">
-        <option value="add">+</option>
-        <option value="sub">-</option>
-        <option value="mul">*</option>
-        <option value="div">/</option>
-      </select>
-      <input id="calc-a" type="number" value="12" placeholder="First number">
-      <input id="calc-b" type="number" value="4" placeholder="Second number">
-      <button class="chk-btn calc-run" onclick="runCalculator()">Calculate</button>
-      <div class="tool-result" id="calc-result">16</div>
+  left.innerHTML=`<div class="tool-title">AES Calculator</div>
+    <div class="aes-calc">
+      <div class="calc-top"><span>Standard</span><button type="button" onclick="syncAesCalculator()">AES</button></div>
+      <div class="calc-sub" id="calc-mini">Ready for AES byte math</div>
+      <div class="calc-screen" id="calc-result">0</div>
+      <div class="calc-memory"><span>MC</span><span>MR</span><span>M+</span><span>M-</span><span>MS</span></div>
+      <div class="calc-pad">
+        <button onclick="calcPercent()">%</button><button onclick="calcClear()">CE</button><button onclick="calcClear()">C</button><button onclick="calcBackspace()">Back</button>
+        <button onclick="calcUnary('recip')">1/x</button><button onclick="calcUnary('square')">x^2</button><button onclick="calcUnary('sqrt')">sqrt</button><button onclick="calcChooseOp('/')">/</button>
+        <button onclick="calcPress('7')">7</button><button onclick="calcPress('8')">8</button><button onclick="calcPress('9')">9</button><button onclick="calcChooseOp('*')">*</button>
+        <button onclick="calcPress('4')">4</button><button onclick="calcPress('5')">5</button><button onclick="calcPress('6')">6</button><button onclick="calcChooseOp('-')">-</button>
+        <button onclick="calcPress('1')">1</button><button onclick="calcPress('2')">2</button><button onclick="calcPress('3')">3</button><button onclick="calcChooseOp('+')">+</button>
+        <button onclick="calcToggleSign()">+/-</button><button onclick="calcPress('0')">0</button><button onclick="calcPress('.')">.</button><button class="equals" onclick="runCalculator()">=</button>
+      </div>
     </div>
+    <div class="tool-card"><label>AES quick values</label><div class="tool-result" id="aes-calc-info">Key: 32 chars = 256 bits</div></div>
     <div class="tool-card"><label>History</label><div class="calc-history" id="calc-history"></div></div>
     <div class="tool-card"><label>ASCII table</label><div class="mini-ref" id="tool-ascii-table"></div></div>
     <div class="tool-card"><label>Full S-Box</label><div class="mini-ref sbox-ref" id="tool-sbox-table"></div></div>`;
@@ -425,29 +427,69 @@ function createSideTools(){
       <li>Final round skips MixColumns.</li>
     </ol>`;
   document.body.append(left,right);
-  ['calc-mode','calc-a','calc-b'].forEach(id=>{
-    const el=document.getElementById(id);if(el){el.addEventListener('input',()=>runCalculator(false));el.addEventListener('change',()=>runCalculator(false));}
-  });
-  runCalculator(false);
+  ['pIn','kIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',syncAesCalculator);});
+  syncAesCalculator();
+  updateCalcDisplay();
   renderCalcHistory();
   buildToolReferenceTables();
 }
 
+function formatCalc(n){
+  if(!isFinite(n))return 'Error';
+  const fixed=Number(n.toFixed(10));
+  return String(fixed);
+}
+function updateCalcDisplay(){
+  const out=document.getElementById('calc-result');if(out)out.textContent=calcValue;
+  const mini=document.getElementById('calc-mini');if(mini)mini.textContent=calcStored!==null&&calcOp?`${formatCalc(calcStored)} ${calcOp}`:'Ready for AES byte math';
+}
+function calcPress(ch){
+  if(calcReset){calcValue='0';calcReset=false;}
+  if(ch==='.'&&calcValue.includes('.'))return;
+  calcValue=calcValue==='0'&&ch!=='.'?ch:calcValue+ch;
+  updateCalcDisplay();
+}
+function calcClear(){calcValue='0';calcStored=null;calcOp=null;calcReset=false;updateCalcDisplay();}
+function calcBackspace(){calcValue=calcValue.length>1?calcValue.slice(0,-1):'0';updateCalcDisplay();}
+function calcToggleSign(){if(calcValue!=='0')calcValue=calcValue.startsWith('-')?calcValue.slice(1):'-'+calcValue;updateCalcDisplay();}
+function calcPercent(){calcValue=formatCalc(Number(calcValue)/100);updateCalcDisplay();}
+function calcUnary(kind){
+  const n=Number(calcValue);let result=n,label='';
+  if(kind==='recip'){result=n===0?NaN:1/n;label=`1 / ${n}`;}
+  if(kind==='square'){result=n*n;label=`${n} * ${n}`;}
+  if(kind==='sqrt'){result=n<0?NaN:Math.sqrt(n);label=`sqrt(${n})`;}
+  calcValue=formatCalc(result);
+  calcHistory.unshift(`${label} = ${calcValue}`);
+  calcHistory.splice(8);
+  renderCalcHistory();
+  updateCalcDisplay();
+}
+function calcChooseOp(op){
+  if(calcStored!==null&&!calcReset)runCalculator(false);
+  calcStored=Number(calcValue);calcOp=op;calcReset=true;updateCalcDisplay();
+}
 function runCalculator(save=true){
-  const modeEl=document.getElementById('calc-mode'),aEl=document.getElementById('calc-a'),bEl=document.getElementById('calc-b');
-  const mode=modeEl?modeEl.value:'add';
-  const a=Number(aEl?aEl.value:0);
-  const b=Number(bEl?bEl.value:0);
-  const ops={add:['+',a+b],sub:['-',a-b],mul:['*',a*b],div:['/',b===0?'Cannot divide by zero':a/b]};
-  const picked=ops[mode]||ops.add;
-  const result=typeof picked[1]==='number'?Number(picked[1].toFixed(8)).toString():picked[1];
-  const label=`${a} ${picked[0]} ${b}`;
-  const out=document.getElementById('calc-result');if(out)out.textContent=result;
-  if(save&&label){
-    calcHistory.unshift(`${label} = ${result}`);
+  if(calcStored===null||!calcOp){updateCalcDisplay();return;}
+  const a=calcStored,b=Number(calcValue);
+  let result=0;
+  if(calcOp==='+')result=a+b;
+  if(calcOp==='-')result=a-b;
+  if(calcOp==='*')result=a*b;
+  if(calcOp==='/')result=b===0?NaN:a/b;
+  const label=`${formatCalc(a)} ${calcOp} ${formatCalc(b)}`;
+  calcValue=formatCalc(result);
+  if(save){
+    calcHistory.unshift(`${label} = ${calcValue}`);
     calcHistory.splice(8);
     renderCalcHistory();
   }
+  calcStored=null;calcOp=null;calcReset=true;updateCalcDisplay();
+}
+function syncAesCalculator(){
+  const p=document.getElementById('pIn'),k=document.getElementById('kIn'),box=document.getElementById('aes-calc-info');
+  if(!box)return;
+  const plainLen=p?p.value.length:0,keyLen=k?k.value.length:0;
+  box.textContent=`Text: ${plainLen} chars | Block: 16 bytes | Key: ${keyLen}/32 chars = ${keyLen*8} bits`;
 }
 
 function renderCalcHistory(){
@@ -710,7 +752,7 @@ function clrAll(){
   document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';
   const result=document.getElementById('result-cipher');if(result)result.textContent='No ciphertext yet. Run Practice first.';
   const resultBox=document.getElementById('result-dec-box');if(resultBox)resultBox.style.display='none';
-  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;
+  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;syncAesCalculator();
 }
 
 function buildSteps(plain,kb){
