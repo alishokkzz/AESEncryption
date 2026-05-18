@@ -331,7 +331,8 @@ const COURSE_STAGES=[
   {id:'theory',label:'Theory',sections:['about','keygen','sbox-sec','rnd-sec'],note:'Theory stage: AES-256 properties, key schedule, S-Box, and round structure.'},
   {id:'tasks',label:'Theory Tasks',sections:['prac-sec'],note:'Interactive teaching tasks for manual AES calculations.'},
   {id:'encrypt',label:'Practice',sections:['flow-sec'],note:'Full AES-256 walkthrough using your own text and 32-character key.'},
-  {id:'result',label:'Result',sections:['result-sec','team'],note:'Final ciphertext check, decrypt check, and project team.'}
+  {id:'result',label:'Result',sections:['result-sec'],note:'Final ciphertext check and decrypt check.'},
+  {id:'team',label:'Team',sections:['team'],note:'Project team members and responsibilities.'}
 ];
 let activeCourseStage=0;
 let renderGen=0;
@@ -433,7 +434,6 @@ function createStageControls(){
       </div>
     </div>
     <button class="stage-map-btn" onclick="openAesMap()">AES Map</button>
-    <button class="stage-map-btn team-open-btn" onclick="openTeamPanel()">Team</button>
     <button class="stage-arrow" onclick="nextStage()">Next</button>
     <div class="ai-helper-wrap" id="ai-helper-wrap">
       <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
@@ -502,25 +502,12 @@ function answerAiQuestion(q){
   return 'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.';
 }
 
-function createTeamPanel(){
-  if(document.getElementById('team-panel'))return;
-  const panel=document.createElement('div');
-  panel.className='team-panel';
-  panel.id='team-panel';
-  const team=document.querySelector('#team .tgrid');
-  panel.innerHTML=`<div class="team-panel-card"><div class="aes-map-head"><h3>Project Team</h3><button onclick="closeTeamPanel()">Close</button></div><div class="team-panel-grid">${team?team.innerHTML:''}</div></div>`;
-  panel.addEventListener('click',e=>{if(e.target===panel)closeTeamPanel();});
-  document.body.appendChild(panel);
-}
-function openTeamPanel(){createTeamPanel();const p=document.getElementById('team-panel');if(p)p.classList.add('open');}
-function closeTeamPanel(){const p=document.getElementById('team-panel');if(p)p.classList.remove('open');}
-
 function createSideTools(){
   if(document.getElementById('tool-left'))return;
   const left=document.createElement('aside');
   left.className='stage-tools left';
   left.id='tool-left';
-  left.innerHTML=`<div class="tool-title">AES Calculator</div>
+  left.innerHTML=`<button class="tool-pin" onclick="toggleToolPin('tool-left')">Pin</button><div class="tool-title">AES Calculator</div>
     <div class="aes-calc">
       <div class="calc-top"><span>Standard</span><button type="button" onclick="syncAesCalculator()">AES</button></div>
       <div class="calc-sub" id="calc-mini">Ready for AES byte math</div>
@@ -542,7 +529,7 @@ function createSideTools(){
   const right=document.createElement('aside');
   right.className='stage-tools right';
   right.id='tool-right';
-  right.innerHTML=`<div class="tool-title">Current AES Step</div>
+  right.innerHTML=`<button class="tool-pin" onclick="toggleToolPin('tool-right')">Pin</button><div class="tool-title">Current AES Step</div>
     <p class="tool-note" id="stage-note">Use Next to move through the AES course.</p>
     <div class="tool-card aes-remind-card" onclick="showRandomAesCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>`;
   document.body.append(left,right);
@@ -552,6 +539,11 @@ function createSideTools(){
   showRandomAesCard();
   renderCalcHistory();
   buildToolReferenceTables();
+}
+
+function toggleToolPin(id){
+  const panel=document.getElementById(id);if(!panel)return;
+  panel.classList.toggle('pinned');
 }
 
 function showRandomAesCard(){
@@ -834,6 +826,9 @@ function updateRoundDetail(s,idx){
     const bv=s.before[idx],av=s.after[idx],kv=bv^av;
     const bits=n=>B8(n).split('').map(bit=>`<span>${bit}</span>`).join('');
     if(s.isARK)flow.innerHTML=`<div><b>State</b><div class="bit-row">${bits(bv)}</div></div><strong>xor</strong><div><b>Key</b><div class="bit-row keybits">${bits(kv)}</div></div><strong>=</strong><div><b>Result</b><div class="bit-row outbits">${bits(av)}</div></div>`;
+    else if(s.isSUB){const hx=H(bv);flow.innerHTML=`<div><b>Input byte</b><div class="bit-row">${bits(bv)}</div></div><strong>S-Box row ${hx[0]} col ${hx[1]}</strong><div><b>Output byte</b><div class="bit-row outbits">${bits(av)}</div></div>`;}
+    else if(s.isSH){flow.innerHTML=`<div><b>Before position</b><div class="bit-row">${bits(bv)}</div></div><strong>row shift moves byte location</strong><div><b>After position</b><div class="bit-row outbits">${bits(av)}</div></div>`;}
+    else if(s.isMX){flow.innerHTML=`<div><b>Column input</b><div class="bit-row">${bits(bv)}</div></div><strong>GF mix with column</strong><div><b>Column output</b><div class="bit-row outbits">${bits(av)}</div></div>`;}
     else flow.innerHTML=`<div><b>Input</b><div class="bit-row">${bits(bv)}</div></div><strong>-></strong><div><b>Output</b><div class="bit-row outbits">${bits(av)}</div></div>`;
   }
 }
@@ -871,6 +866,7 @@ function buildGrid(s,gen=renderGen){
   s.before.forEach((bv,i)=>{
     const c=document.createElement('div');c.className='scell dim';c.id=`sc${i}`;
     c.innerHTML=`<span>${H(bv)}</span><small>[${i}]</small>`;
+    c.onmouseenter=()=>{highlightCell(s,i);showCellDetail(s,i);};
     c.onclick=()=>{clearTimeout(animT);highlightCell(s,i);showCellDetail(s,i);};
     grid.appendChild(c);
   });
