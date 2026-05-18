@@ -15,6 +15,9 @@ function unpad(b){const p=b[b.length-1];return b.slice(0,b.length-p);}
 function H(n){return n.toString(16).toUpperCase().padStart(2,'0');}
 function hA(a){return a.map(H).join(' ');}
 function B8(n){return n.toString(2).padStart(8,'0');}
+function rowMajorFromState(s){const out=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)out.push(s[r][c]);return out;}
+function bytesToText(bytes){return bytes.map(b=>String.fromCharCode(b)).join('');}
+function escHtml(v){return String(v).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));}
 function getKey(){let k=document.getElementById('kIn').value;while(k.length<32)k+='\0';return k.slice(0,32).split('').map(c=>c.charCodeAt(0));}
 
 function encFull(plain,kb){const nr=14,w=kx(kb),out=[],pd=pad16([...plain.split('').map(c=>c.charCodeAt(0))]);for(let b=0;b<pd.length;b+=16){const s=ts(pd.slice(b,b+16));for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[c][r];for(let rnd=1;rnd<=nr;rnd++){for(let r=0;r<4;r++)for(let c=0;c<4;c++)s[r][c]=SB[s[r][c]];for(let r=1;r<4;r++){const row=s[r].slice();for(let c=0;c<4;c++)s[r][c]=row[(c+r)%4];}if(rnd<nr){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(2,a)^gm(3,b_)^d^e;s[1][c]=a^gm(2,b_)^gm(3,d)^e;s[2][c]=a^b_^gm(2,d)^gm(3,e);s[3][c]=gm(3,a)^b_^d^gm(2,e);}}for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];}out.push(...fs(s));}return out;}
@@ -333,6 +336,7 @@ let activeCourseStage=0;
 let renderGen=0;
 const solvedChallenges=new Set();
 let encryptionComplete=false;
+const calcHistory=[];
 
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
@@ -388,11 +392,25 @@ function createSideTools(){
   const left=document.createElement('aside');
   left.className='stage-tools left';
   left.id='tool-left';
-  left.innerHTML=`<div class="tool-title">Manual AES Tools</div>
-    <div class="tool-card"><label>ASCII to Hex</label><input id="tool-ascii" maxlength="16" value="Hello"><div class="tool-result" id="tool-ascii-res">48 65 6C 6C 6F</div></div>
-    <div class="tool-card"><label>XOR bytes</label><input id="tool-xor-a" maxlength="2" value="48"><input id="tool-xor-b" maxlength="2" value="49"><div class="tool-result" id="tool-xor-res">01</div></div>
-    <div class="tool-card"><label>S-Box lookup</label><input id="tool-sbox" maxlength="2" value="53"><div class="tool-result" id="tool-sbox-res">ED</div></div>
-    <div class="tool-card"><label>GF multiply</label><input id="tool-gf-a" maxlength="2" value="02"><input id="tool-gf-b" maxlength="2" value="87"><div class="tool-result" id="tool-gf-res">15</div></div>
+  left.innerHTML=`<div class="tool-title">AES Calculator</div>
+    <div class="tool-card"><label>Rule: text to hex</label><p class="tool-note">For each character, find its ASCII number, then convert that number to base 16. Example: a = 97 decimal = 0x61.</p></div>
+    <div class="tool-card">
+      <label>Calculator mode</label>
+      <select id="calc-mode" class="calc-select">
+        <option value="ascii">Text -> HEX bytes</option>
+        <option value="xor">Byte operation: A xor B</option>
+        <option value="sbox">AES substitution value</option>
+        <option value="gf">AES field product</option>
+        <option value="d2h">Decimal -> HEX</option>
+        <option value="h2d">HEX -> Decimal</option>
+        <option value="bin">HEX -> Binary</option>
+      </select>
+      <input id="calc-a" value="ali chort" placeholder="A / text">
+      <input id="calc-b" value="49" placeholder="B, if needed">
+      <button class="chk-btn calc-run" onclick="runCalculator()">Calculate</button>
+      <div class="tool-result" id="calc-result">61 6C 69 20 63 68 6F 72 74</div>
+    </div>
+    <div class="tool-card"><label>History</label><div class="calc-history" id="calc-history"></div></div>
     <div class="tool-card"><label>ASCII table</label><div class="mini-ref" id="tool-ascii-table"></div></div>
     <div class="tool-card"><label>Full S-Box</label><div class="mini-ref sbox-ref" id="tool-sbox-table"></div></div>`;
   const right=document.createElement('aside');
@@ -410,27 +428,39 @@ function createSideTools(){
       <li>Final round skips MixColumns.</li>
     </ol>`;
   document.body.append(left,right);
-  ['tool-ascii','tool-xor-a','tool-xor-b','tool-sbox','tool-gf-a','tool-gf-b'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.addEventListener('input',updateSideTools);
+  ['calc-mode','calc-a','calc-b'].forEach(id=>{
+    const el=document.getElementById(id);if(el){el.addEventListener('input',()=>runCalculator(false));el.addEventListener('change',()=>runCalculator(false));}
   });
-  updateSideTools();
+  runCalculator(false);
+  renderCalcHistory();
   buildToolReferenceTables();
 }
 
-function updateSideTools(){
-  const ascii=document.getElementById('tool-ascii');
-  if(ascii)document.getElementById('tool-ascii-res').textContent=[...ascii.value].map(c=>H(c.charCodeAt(0))).join(' ')||'00';
-  const xorA=document.getElementById('tool-xor-a'),xorB=document.getElementById('tool-xor-b');
-  const xa=parseInt((xorA?xorA.value:'0'),16)&255;
-  const xb=parseInt((xorB?xorB.value:'0'),16)&255;
-  const xr=document.getElementById('tool-xor-res');if(xr)xr.textContent=H(xa^xb);
-  const sbIn=document.getElementById('tool-sbox');
-  const sb=parseInt((sbIn?sbIn.value:'0'),16)&255;
-  const sr=document.getElementById('tool-sbox-res');if(sr)sr.textContent=H(SB[sb]);
-  const gfA=document.getElementById('tool-gf-a'),gfB=document.getElementById('tool-gf-b');
-  const ga=parseInt((gfA?gfA.value:'0'),16)&255;
-  const gb=parseInt((gfB?gfB.value:'0'),16)&255;
-  const gr=document.getElementById('tool-gf-res');if(gr)gr.textContent=H(gm(ga,gb));
+function runCalculator(save=true){
+  const modeEl=document.getElementById('calc-mode'),aEl=document.getElementById('calc-a'),bEl=document.getElementById('calc-b');
+  const mode=modeEl?modeEl.value:'ascii';
+  const a=(aEl?aEl.value:'').trim();
+  const b=(bEl?bEl.value:'').trim();
+  const hx=x=>(parseInt(x||'0',16)&255);
+  let label='',result='';
+  if(mode==='ascii'){label=`Text "${a}"`;result=[...a].map(c=>H(c.charCodeAt(0))).join(' ')||'00';}
+  if(mode==='xor'){const av=hx(a),bv=hx(b);label=`${H(av)} XOR ${H(bv)}`;result=H(av^bv);}
+  if(mode==='sbox'){const av=hx(a);label=`S-Box[${H(av)}]`;result=H(SB[av]);}
+  if(mode==='gf'){const av=hx(a),bv=hx(b);label=`GF ${H(av)} * ${H(bv)}`;result=H(gm(av,bv));}
+  if(mode==='d2h'){const av=parseInt(a||'0',10)&255;label=`DEC ${av}`;result=H(av);}
+  if(mode==='h2d'){const av=hx(a);label=`HEX ${H(av)}`;result=String(av);}
+  if(mode==='bin'){const av=hx(a);label=`BIN ${H(av)}`;result=B8(av);}
+  const out=document.getElementById('calc-result');if(out)out.textContent=result;
+  if(save&&label){
+    calcHistory.unshift(`${label} = ${result}`);
+    calcHistory.splice(8);
+    renderCalcHistory();
+  }
+}
+
+function renderCalcHistory(){
+  const box=document.getElementById('calc-history');if(!box)return;
+  box.innerHTML=calcHistory.map(x=>`<div class="history-item">${escHtml(x)}</div>`).join('')||'<div class="history-item">No calculations yet.</div>';
 }
 
 function buildToolReferenceTables(){
@@ -580,7 +610,7 @@ function renderStep(idx){
   if(s.showAscii)html+=`<div style="position:relative;display:inline-block;margin-bottom:14px"><div class="ascii-hint" onclick="toggleAscii('ap-s','ah-s')">ASCII Table - character reference</div><div class="ascii-pop" id="ap-s"><h4>ASCII Reference</h4><div class="ascii-grid" id="ag-s"></div></div></div>`;
   if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> high nibble is row, low nibble is column.</div>`;
   html+=`<div class="sbody"><div><div class="sg-lbl" id="sc-lbl">${s.glbl}</div><div class="sgrid" id="sc-grid"></div></div><div class="sexpl"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm}</div></div></div>`;
-  if(s.challenge)html+=`<div class="step-challenge"><h4>Student Check</h4><p>${s.challenge.prompt}</p><input id="step-answer" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"> <button class="chk-btn" onclick="checkStepAnswer()">Check</button><span class="challenge-feedback" id="challenge-feedback">${s.challenge.hint}</span></div>`;
+  if(s.challenge)html+=renderChallenge(s.challenge);
   card.innerHTML=html;
   if(s.showAscii)buildAsciiGrid('ag-s');
   buildGrid(s,renderGen);
@@ -598,11 +628,29 @@ function renderStep(idx){
   updateAesMap(s.mapPos);
 }
 
+function renderChallenge(ch){
+  let control=`<input id="step-answer" maxlength="${ch.max||2}" placeholder="${ch.placeholder||'??'}" oninput="this.value=this.value.toUpperCase()">`;
+  if(ch.kind==='text')control=`<textarea id="step-answer" placeholder="${ch.placeholder||'Write your answer'}"></textarea>`;
+  if(ch.kind==='choice')control=`<select id="step-answer" class="challenge-select"><option value="">Choose answer</option>${(ch.options||[]).map(o=>`<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}</select>`;
+  return `<div class="step-challenge"><h4>Student Check</h4><p>${ch.prompt}</p><div class="challenge-row">${control}<button class="chk-btn" onclick="checkStepAnswer()">Check</button></div><span class="challenge-feedback" id="challenge-feedback">${ch.hint}</span></div>`;
+}
+
 function checkStepAnswer(){
   const s=steps[curIdx];if(!s||!s.challenge)return true;
   const input=document.getElementById('step-answer'),fb=document.getElementById('challenge-feedback');
-  const value=(input?input.value:'').trim().toUpperCase();
-  const ok=value===s.challenge.answer;
+  const ch=s.challenge;
+  const raw=(input?input.value:'').trim();
+  const value=raw.toUpperCase();
+  let ok=false;
+  if(ch.kind==='text'){
+    const low=raw.toLowerCase();
+    ok=(ch.contains||[]).every(word=>low.includes(word.toLowerCase()));
+    if(!ok&&ch.minLen)ok=raw.length>=ch.minLen;
+  }else if(ch.kind==='choice'){
+    ok=raw===ch.answer;
+  }else{
+    ok=value===String(ch.answer).toUpperCase();
+  }
   if(input){input.classList.toggle('ok',ok);input.classList.toggle('no',!ok);}
   if(fb)fb.textContent=ok?'Correct. You can go to the next step.':`Not yet. ${s.challenge.hint}`;
   if(ok)solvedChallenges.add(curIdx);
@@ -680,14 +728,14 @@ function buildSteps(plain,kb){
   const cipher=encFull(plain,kb).slice(0,16);
 
   add({badge:'Input',title:'Plaintext -> Bytes',why:'AES encrypts bytes. First the text becomes hexadecimal byte values in a 4x4 state matrix.',glbl:'Plaintext block',before:block,after:block,et:'Character conversion',fm:plain.split('').slice(0,16).map((c,i)=>`[${i}] '${c}' = ${c.charCodeAt(0)} = 0x${H(c.charCodeAt(0))}`).join('<br>'),showAscii:true,mapPos:0,
-    challenge:{prompt:`What is the hex byte for the first character '${plain[0]}'?`,answer:H(block[0]),hint:'Use the ASCII tool or table.'}});
+    challenge:{kind:'text',prompt:'Write the rule for converting plaintext into AES bytes.',contains:['ascii','hex'],placeholder:'Example: character -> ASCII -> hex byte',hint:'Mention ASCII and hex bytes.'}});
 
   const pv=16-pb.length||16;
   add({badge:'Padding',title:'PKCS#7 Padding',why:'AES works on 16-byte blocks. The demo uses one padded block so students can follow every byte.',glbl:'Block after padding',before:block,after:block,et:'Padding detail',fm:`Message length: ${pb.length} bytes<br>Padding value: 0x${H(pv)} repeated ${pv} time(s).`,mapPos:0,
     challenge:{prompt:'What is the padding byte value in hex?',answer:H(pv),hint:'Padding value equals the number of missing bytes.'}});
 
   add({badge:'Key',bc:'sd2',sc:'scd',dc:'dnd',title:'AES-256 Key Bytes',why:'AES-256 uses exactly 32 key bytes. The first 16 bytes form Round Key 0.',glbl:'First 16 key bytes',before:kb.slice(0,16),after:kb.slice(0,16),et:'Key detail',fm:kb.map((b,i)=>`K[${String(i).padStart(2,'0')}] = 0x${H(b)}`).join('<br>'),mapPos:1,
-    challenge:{prompt:'What is the first key byte K[00] in hex?',answer:H(kb[0]),hint:'Look at K[00] in the key detail.'}});
+    challenge:{kind:'choice',prompt:'Which key size is this practice using?',options:['128 bits','192 bits','256 bits','512 bits'],answer:'256 bits',hint:'The entered key is 32 bytes, so AES-256 uses 256 bits.'}});
 
   let state=block.slice();
   let rk=roundKey(0),before=state.slice();state=state.map((b,i)=>b^rk[i]);
@@ -700,8 +748,8 @@ function buildSteps(plain,kb){
   add({badge:'SubBytes',bc:'so',sc:'sco',dc:'dno',title:'Round 1 - SubBytes',why:'Each byte is replaced through the AES S-Box. This is the substitution part of the AES scheme.',glbl:'After SubBytes',before,after,isSUB:true,et:'S-Box lookup - click a byte',fm:`Byte 0: S-Box[0x${H(before[0])}] = 0x${H(after[0])}`,showSboxHint:true,mapPos:2,
     challenge:{prompt:`Use the S-Box: S-Box[${H(before[0])}] = ?`,answer:H(after[0]),hint:'High hex digit is row, low hex digit is column.'}});
 
-  before=fs(cS(st));for(let r=1;r<4;r++){const row=st[r].slice();for(let c=0;c<4;c++)st[r][c]=row[(c+r)%4];}
-  after=fs(cS(st));
+  before=rowMajorFromState(st);for(let r=1;r<4;r++){const row=st[r].slice();for(let c=0;c<4;c++)st[r][c]=row[(c+r)%4];}
+  after=rowMajorFromState(st);
   add({badge:'ShiftRows',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 - ShiftRows',why:'Rows rotate left by 0, 1, 2, and 3. This moves bytes between columns before MixColumns.',glbl:'After ShiftRows',before,after,isSH:true,et:'Row movement - click a byte',fm:[0,1,2,3].map(r=>`Row ${r}: ${[0,1,2,3].map(c=>H(before[r*4+c])).join(' ')} -> ${[0,1,2,3].map(c=>H(after[r*4+c])).join(' ')}`).join('<br>'),mapPos:3,
     challenge:{prompt:'After shifting row 1 left, what is the first byte of row 1?',answer:H(after[4]),hint:'Row 1 shifts left by one position.'}});
 
@@ -716,7 +764,7 @@ function buildSteps(plain,kb){
     challenge:{prompt:`Calculate byte 0: ${H(before[0])} XOR ${H(rk[0])} = ?`,answer:H(after[0]),hint:'Use the XOR tool or click byte 0 for bit detail.'}});
 
   add({badge:'Scheme',bc:'sk',sc:'scp',dc:'dnp',title:'AES Scheme Continues',why:'This site teaches one full AES round in detail. AES-256 then repeats the same scheme for Rounds 2-13 and uses a final Round 14 without MixColumns.',glbl:'State after one full round',before:after,after:after,et:'Remaining AES-256 scheme',fm:'Rounds 2-13: SubBytes -> ShiftRows -> MixColumns -> AddRoundKey<br>Round 14: SubBytes -> ShiftRows -> AddRoundKey',mapPos:6,
-    challenge:{prompt:'Which AES step is skipped in the final round? Type its first byte-like abbreviation: MC',answer:'MC',hint:'Final round has no MixColumns.'}});
+    challenge:{kind:'text',prompt:'Write which step the final AES round skips.',contains:['mix'],placeholder:'The final round skips...',hint:'Final round has no MixColumns.'}});
 
   add({badge:'Output',title:'Final Ciphertext',why:'The real AES-256 result is calculated by the full algorithm, while the student walkthrough focuses on one complete round scheme.',glbl:'Ciphertext bytes',before:cipher,after:cipher,et:'Final result',fm:`Ciphertext: <span class="vout">${hexCompact(cipher)}</span>`,mapPos:7});
   return out;
