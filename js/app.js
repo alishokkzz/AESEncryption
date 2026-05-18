@@ -338,6 +338,11 @@ const solvedChallenges=new Set();
 let encryptionComplete=false;
 const calcHistory=[];
 let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
+const AES_SIDE_CARDS={
+  interesting:{title:'Interesting card',body:'AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.'},
+  theory:{title:'Theory card',body:'AES-256 uses 16-byte blocks, a 32-byte key, 14 rounds, PKCS#7 padding here, ECB mode here, and HEX output.'},
+  hint:{title:'Hint card',body:'For manual checks, track one byte: text -> hex, XOR with key byte, S-Box substitution, row shift, then column mix.'}
+};
 
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
@@ -359,6 +364,7 @@ function createResultSection(){
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn-p" onclick="navigateToStage('encrypt')">Back to Practice</button>
         <button class="btn-o" onclick="runDec();syncResultPanel()">Decrypt Check</button>
+        <a class="btn-o" href="https://anycript.com/crypto" target="_blank" rel="noopener">Dont trust me check there</a>
         <button class="btn-o" onclick="openAesMap()">Open AES Map</button>
       </div>
       <div class="dec-box" id="result-dec-box" style="display:none"><strong>Decrypted:</strong> <span id="result-dec-txt">-</span></div>
@@ -381,12 +387,32 @@ function createStageControls(){
       </div>
     </div>
     <button class="stage-map-btn" onclick="openAesMap()">AES Map</button>
-    <button class="stage-arrow" onclick="nextStage()">Next</button>`;
+    <button class="stage-arrow" onclick="nextStage()">Next</button>
+    <div class="ai-helper-wrap" id="ai-helper-wrap">
+      <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
+      <div class="ai-helper-panel" id="ai-helper-panel">
+        <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>AES Buddy</strong><small>Ask inside the lesson</small></div></div>
+        <p id="ai-helper-text">I can remind you what the current AES step means without leaving the site.</p>
+        <button onclick="askAiHelper('step')">Explain current step</button>
+        <button onclick="askAiHelper('hint')">Give a small hint</button>
+        <button onclick="askAiHelper('key')">Check key rule</button>
+      </div>
+    </div>`;
   document.body.appendChild(bar);
 }
 
 function toggleStageMenu(){const bar=document.getElementById('stagebar');if(bar)bar.classList.toggle('open');}
 function closeStageMenu(){const bar=document.getElementById('stagebar');if(bar)bar.classList.remove('open');}
+function toggleAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.toggle('open');}
+function closeAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.remove('open');}
+function askAiHelper(kind){
+  const box=document.getElementById('ai-helper-text');if(!box)return;
+  const stage=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0];
+  const current=steps[curIdx];
+  if(kind==='step')box.textContent=current?`${current.badge}: ${current.why}`:`You are in ${stage.label}. ${stage.note}`;
+  if(kind==='hint')box.textContent=current&&current.challenge?current.challenge.hint:'Follow the stage order, then use AES Map when you need to see where this step sits.';
+  if(kind==='key')box.textContent='AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.';
+}
 
 function createSideTools(){
   if(document.getElementById('tool-left'))return;
@@ -417,7 +443,12 @@ function createSideTools(){
   right.id='tool-right';
   right.innerHTML=`<div class="tool-title">Current AES Step</div>
     <p class="tool-note" id="stage-note">Use Next to move through the AES course.</p>
-    <div class="tool-card"><label>Theory card</label><p class="tool-note">AES-256 uses a 128-bit block, a 256-bit key, ECB mode here, PKCS#7 padding, and HEX output.</p></div>
+    <div class="side-card-tabs">
+      <button class="active" data-side-card="interesting" onclick="setAesSideCard('interesting')">Interesting</button>
+      <button data-side-card="theory" onclick="setAesSideCard('theory')">Theory</button>
+      <button data-side-card="hint" onclick="setAesSideCard('hint')">Hint</button>
+    </div>
+    <div class="tool-card aes-remind-card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>
     <div class="tool-card"><label>Practice rule</label><p class="tool-note">Tools on the left only help calculate. The encrypted result is produced by the AES practice flow after all checks are finished.</p></div>
     <ol class="tool-list">
       <li>Text becomes bytes.</li>
@@ -430,8 +461,17 @@ function createSideTools(){
   ['pIn','kIn'].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener('input',syncAesCalculator);});
   syncAesCalculator();
   updateCalcDisplay();
+  setAesSideCard('interesting');
   renderCalcHistory();
   buildToolReferenceTables();
+}
+
+function setAesSideCard(type){
+  const card=AES_SIDE_CARDS[type]||AES_SIDE_CARDS.interesting;
+  const title=document.getElementById('aes-side-title'),body=document.getElementById('aes-side-body');
+  if(title)title.textContent=card.title;
+  if(body)body.textContent=card.body;
+  document.querySelectorAll('[data-side-card]').forEach(btn=>btn.classList.toggle('active',btn.dataset.sideCard===type));
 }
 
 function formatCalc(n){
@@ -576,7 +616,7 @@ function nextStage(){navigateToStage(Math.min(activeCourseStage+1,COURSE_STAGES.
 function prevStage(){navigateToStage(Math.max(activeCourseStage-1,0));}
 
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.stagebar'))closeStageMenu();
+  if(!e.target.closest('.stagebar')){closeStageMenu();closeAiHelper();}
   const a=e.target.closest('a[href^="#"]');if(!a)return;
   const id=a.getAttribute('href').slice(1);
   const stage=COURSE_STAGES.find(s=>s.sections.includes(id));
