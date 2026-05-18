@@ -1,61 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>AES-256 вЂ” Learn & Practice</title>
+<title>AES-256 - Learn & Practice</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 <div id="prog" style="width:0%"></div>
 <div class="cw"><div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div></div>
-
-<!-- в•ђв•ђв•ђ MAP NAVIGATION в•ђв•ђв•ђ -->
-<div id="mapnav">
-  <div class="mn-section">
-    <div class="mn-header" onclick="toggleMN('mn1')">
-      <span class="mn-htitle">Theory</span>
-      <span class="mn-icon" id="mni1">в–¶</span>
-    </div>
-    <div class="mn-body open" id="mn1">
-      <a class="mn-link" href="#about"><span class="mn-dot"></span>AES-256 Intro</a>
-      <a class="mn-link" href="#keygen"><span class="mn-dot"></span>Key Schedule</a>
-      <a class="mn-link" href="#sbox-sec"><span class="mn-dot"></span>S-Box Table</a>
-      <a class="mn-link" href="#rnd-sec"><span class="mn-dot"></span>14 Rounds</a>
-    </div>
-  </div>
-  <div class="mn-section">
-    <div class="mn-header" onclick="toggleMN('mn2')">
-      <span class="mn-htitle">вњЏпёЏ Practice</span>
-      <span class="mn-icon" id="mni2">в–¶</span>
-    </div>
-    <div class="mn-body open" id="mn2">
-      <a class="mn-link" href="#t1"><span class="mn-dot"></span>Task 1 вЂ” ASCII</a>
-      <a class="mn-link" href="#t2"><span class="mn-dot"></span>Task 2 вЂ” XOR bits</a>
-      <a class="mn-link" href="#t3"><span class="mn-dot"></span>Task 3 вЂ” S-Box</a>
-      <a class="mn-link" href="#t4"><span class="mn-dot"></span>Task 4 вЂ” ShiftRows</a>
-    </div>
-  </div>
-  <div class="mn-section">
-    <div class="mn-header" onclick="toggleMN('mn3')">
-      <span class="mn-htitle">рџ”ђ Encrypt</span>
-      <span class="mn-icon" id="mni3">в–¶</span>
-    </div>
-    <div class="mn-body open" id="mn3">
-      <a class="mn-link" href="#flow-sec"><span class="mn-dot"></span>Full AES-256 Flow</a>
-    </div>
-  </div>
-  <div class="mn-section">
-    <div class="mn-header" onclick="toggleMN('mn4')">
-      <span class="mn-htitle">Team</span>
-      <span class="mn-icon" id="mni4">в–¶</span>
-    </div>
-    <div class="mn-body" id="mn4">
-      <a class="mn-link" href="#team"><span class="mn-dot"></span>Our Team</a>
-    </div>
-  </div>
-</div>
 
 <header>
   <div class="hbrand">AES<b>-256</b> Learn</div>
@@ -71,12 +25,12 @@
 <section class="hero" id="home">
   <div class="h-grid"></div>
   <span class="fhex">63 7c 77 7b</span><span class="fhex">AES-256</span>
-  <span class="fhex">XOR вЉ• GF(2вЃё)</span><span class="fhex">SubBytes</span>
+  <span class="fhex">XOR GF(2^8)</span><span class="fhex">SubBytes</span>
   <span class="fhex">Rcon[0]=01</span><span class="fhex">ShiftRows</span>
   <div class="h-in">
-    <div class="h-sup">Interactive Learning Platform вЂ” Narxoz University</div>
+    <div class="h-sup">Interactive Learning Platform - Narxoz University</div>
     <h1>Learn<br><em>AES-256</em><br>By Doing</h1>
-    <p class="hero-d">Not a textbook. A hands-on course вЂ” you solve the first steps yourself, then the computer finishes the rest, byte by byte.</p>
+    <p class="hero-d">Not a textbook. A hands-on course - you solve the first steps yourself, then the computer finishes the rest, byte by byte.</p>
     <div class="hcta">
       <a href="#prac-sec" class="btn-p">Start Practising</a>
       <a href="#about" class="btn-o">Read Theory First</a>
@@ -84,57 +38,57 @@
   </div>
 </section>
 
-<!-- в•ђв•ђв•ђ THEORY в•ђв•ђв•ђ -->
+<!-- --- THEORY --- -->
 <section class="asec" id="about">
   <div class="sec">
-    <div class="stag fi">Theory 1 вЂ” AES-256</div>
+    <div class="stag fi">Theory 1 - AES-256</div>
     <h2 class="sh fi">What is AES-256?</h2>
     <p class="sd fi">AES-256 is the strongest variant of the Advanced Encryption Standard, standardised by NIST in 2001. It uses a 256-bit key and 14 rounds. Used in government, military, banking, and every HTTPS connection worldwide.</p>
     <div class="agrid">
-      <div class="ac fi"><div class="aclbl">Block cipher</div><h3>128-bit blocks</h3><p>Data is arranged into a 4Г—4 grid of bytes called the <strong>state matrix</strong>. AES transforms this state through 14 rounds of operations.</p></div>
-      <div class="ac fi"><div class="aclbl">256-bit key</div><h3>2ВІвЃµвЃ¶ keys</h3><p>More possibilities than atoms in the observable universe. Brute force is impossible even for all computers on Earth combined.</p></div>
+      <div class="ac fi"><div class="aclbl">Block cipher</div><h3>128-bit blocks</h3><p>Data is arranged into a 4x4 grid of bytes called the <strong>state matrix</strong>. AES transforms this state through 14 rounds of operations.</p></div>
+      <div class="ac fi"><div class="aclbl">256-bit key</div><h3>2^256 keys</h3><p>More possibilities than atoms in the observable universe. Brute force is impossible even for all computers on Earth combined.</p></div>
       <div class="ac fi"><div class="aclbl">14 rounds</div><h3>Nr = Nk + 6</h3><p>AES-256 has Nk=8 key words, so rounds = 8+6 = <strong>14</strong>. Each round applies 4 different operations with a unique round key.</p></div>
       <div class="ac fi"><div class="aclbl">Symmetric</div><h3>Same key both ways</h3><p>The exact same 256-bit key encrypts and decrypts. AES-256 provides 128-bit post-quantum security against Grover's algorithm.</p></div>
     </div>
     <table class="ctbl fi">
-      <thead><tr><th>Property</th><th>AES-128</th><th>AES-192</th><th class="hi256">AES-256 в†ђ this course</th></tr></thead>
+      <thead><tr><th>Property</th><th>AES-128</th><th>AES-192</th><th class="hi256">AES-256 <- this course</th></tr></thead>
       <tbody>
         <tr><td>Key size</td><td>128 bits</td><td>192 bits</td><td class="hi256">256 bits (32 bytes)</td></tr>
         <tr><td>Rounds</td><td>10</td><td>12</td><td class="hi256">14</td></tr>
         <tr><td>Round keys</td><td>11</td><td>13</td><td class="hi256">15</td></tr>
-        <tr><td>Key space</td><td>2В№ВІвЃё</td><td>2В№вЃ№ВІ</td><td class="hi256">2ВІвЃµвЃ¶</td></tr>
-        <tr><td>Post-quantum</td><td>64-bit security</td><td>96-bit</td><td class="hi256">128-bit вњ“</td></tr>
+        <tr><td>Key space</td><td>2^128</td><td>2^192</td><td class="hi256">2^256</td></tr>
+        <tr><td>Post-quantum</td><td>64-bit security</td><td>96-bit</td><td class="hi256">128-bit yes</td></tr>
       </tbody>
     </table>
-    <div class="ibox fi"><strong>Why 256 bits?</strong> AES-128 is already unbreakable today. AES-256 adds an extra 128-bit safety margin specifically to resist future quantum computers (Grover's algorithm halves effective key size: 256 в†’ 128 post-quantum bits).</div>
+    <div class="ibox fi"><strong>Why 256 bits?</strong> AES-128 is already unbreakable today. AES-256 adds an extra 128-bit safety margin specifically to resist future quantum computers (Grover's algorithm halves effective key size: 256 -> 128 post-quantum bits).</div>
   </div>
 </section>
 
 <!-- KEY SCHEDULE -->
 <section class="kssec" id="keygen">
   <div class="sec">
-    <div class="stag fi">Theory 2 вЂ” Key Expansion</div>
-    <h2 class="sh fi">Key Schedule: 32 bytes в†’ 15 round keys</h2>
-    <p class="sd fi">AES never uses the same key twice. Your 32-byte secret expands into 15 unique round keys. AES-256 has an extra step вЂ” "Extra SubWord" вЂ” not found in AES-128/192. Click each stage.</p>
+    <div class="stag fi">Theory 2 - Key Expansion</div>
+    <h2 class="sh fi">Key Schedule: 32 bytes -> 15 round keys</h2>
+    <p class="sd fi">AES never uses the same key twice. Your 32-byte secret expands into 15 unique round keys. AES-256 has an extra step - "Extra SubWord" - not found in AES-128/192. Click each stage.</p>
     <div class="ksvis fi">
       <div class="kspl" id="kspl">
         <div class="kb active" onclick="ksS(0,this)">Original Key<br><small>256 bits</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(1,this)">W[0..7]<br><small>Round 0</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(2,this)">RotWord<br><small>rotate 1</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(3,this)">SubWord<br><small>S-Box</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(4,this)">XOR Rcon<br><small>constant</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(5,this)">Extra SubWord<br><small>256 only!</small></div>
-        <span class="karr">в†’</span>
+        <span class="karr">-></span>
         <div class="kb" onclick="ksS(6,this)">W[8..15]<br><small>Round 1 key</small></div>
-        <span class="karr">в†’вЂ¦в†’</span>
+        <span class="karr">->...-></span>
         <div class="kb" onclick="ksS(7,this)">W[56..59]<br><small>Round 14 key</small></div>
       </div>
-      <div class="kexpl" id="ksex"><strong>Original Key (256 bits):</strong> Your 32-byte secret split into 8 words W[0]вЂ“W[7]. These form Round Key 0 directly. AES-256 needs 60 words total (15 keys Г— 4 words). The extra key length adds a unique "Extra SubWord" step not in AES-128/192.</div>
+      <div class="kexpl" id="ksex"><strong>Original Key (256 bits):</strong> Your 32-byte secret split into 8 words W[0]-W[7]. These form Round Key 0 directly. AES-256 needs 60 words total (15 keys x 4 words). The extra key length adds a unique "Extra SubWord" step not in AES-128/192.</div>
     </div>
   </div>
 </section>
@@ -142,52 +96,52 @@
 <!-- S-BOX -->
 <section class="sbox-sec" id="sbox-sec">
   <div class="sec">
-    <div class="stag fi">Theory 3 вЂ” S-Box</div>
-    <h2 class="sh fi">AES S-Box вЂ” Full Lookup Table</h2>
-    <p class="sd fi">SubBytes replaces every byte using this 16Г—16 table. High nibble (left hex digit) = row. Low nibble (right hex digit) = column. Hover any cell to see input в†’ output.</p>
+    <div class="stag fi">Theory 3 - S-Box</div>
+    <h2 class="sh fi">AES S-Box - Full Lookup Table</h2>
+    <p class="sd fi">SubBytes replaces every byte using this 16x16 table. High nibble (left hex digit) = row. Low nibble (right hex digit) = column. Hover any cell to see input -> output.</p>
     <div style="overflow-x:auto;margin-top:18px" class="fi"><table class="sboxt" id="sboxt-full"></table></div>
-    <div class="ibox fi" style="margin-top:13px"><strong>Example:</strong> Byte 0x53 в†’ row 5, col 3 в†’ S-Box[5][3] = <strong>0xED</strong>. Verify in the table above (row 5 = 5Г—, col 3 = Г—3).</div>
+    <div class="ibox fi" style="margin-top:13px"><strong>Example:</strong> Byte 0x53 -> row 5, col 3 -> S-Box[5][3] = <strong>0xED</strong>. Verify in the table above (row 5 = 5x, col 3 = x3).</div>
   </div>
 </section>
 
 <!-- ROUNDS -->
 <section class="rnd-sec" id="rnd-sec">
   <div class="sec">
-    <div class="stag fi">Theory 4 вЂ” Round Structure</div>
-    <h2 class="sh fi">AES-256: 14 Rounds вЂ” Why and How</h2>
+    <div class="stag fi">Theory 4 - Round Structure</div>
+    <h2 class="sh fi">AES-256: 14 Rounds - Why and How</h2>
     <p class="sd fi">Formula: Rounds = Key words + 6 = 8 + 6 = 14. Each round mixes the data further. After just 2 rounds, every output bit already depends on every input bit.</p>
     <div class="rdbig fi">
       <div style="font-family:'Fraunces',serif;font-size:.98rem;font-weight:700;color:var(--ink);margin-bottom:12px">All 14 rounds</div>
       <div class="rchips" id="rchips"></div>
       <button class="btn-p" style="font-size:.76rem;padding:7px 16px" onclick="animRounds()">Animate</button>
-      <div style="margin-top:13px;font-size:.82rem;color:var(--muted);line-height:1.7"><strong>Why 14?</strong> Rule: Rounds = Key words + 6 = 8+6 = <strong>14</strong>. More key bits в†’ more rounds в†’ harder to reverse. Two rounds already create full avalanche (every bit affects every bit).</div>
+      <div style="margin-top:13px;font-size:.82rem;color:var(--muted);line-height:1.7"><strong>Why 14?</strong> Rule: Rounds = Key words + 6 = 8+6 = <strong>14</strong>. More key bits -> more rounds -> harder to reverse. Two rounds already create full avalanche (every bit affects every bit).</div>
     </div>
     <div style="margin-top:18px" class="fi">
-      <div class="rdrow"><h5>Round 0 вЂ” Initial AddRoundKey</h5><p>Plaintext XOR-ed with original key before any rounds.</p><div class="rdstps"><div class="rdch" style="background:var(--teal)">AddRoundKey only</div></div></div>
-      <div class="rda">в†“</div>
-      <div class="rdrow acc"><h5>Rounds 1вЂ“13 вЂ” Four steps, 13 times</h5><p>Each round uses a different key from the Key Schedule.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--pur)">MixColumns</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
-      <div class="rda">в†“</div>
-      <div class="rdrow" style="border-color:var(--gold);background:linear-gradient(135deg,#fef6e0,#f5ede0)"><h5>Round 14 вЂ” Final (MixColumns skipped)</h5><p>Skipping MixColumns makes decryption structurally symmetric. No security loss.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
-      <div class="rda">в†“</div>
-      <div class="rdrow" style="background:var(--teal);border-color:var(--teal)"><h5 style="color:white">Ciphertext вЂ” 128-bit encrypted output</h5><p style="color:rgba(255,255,255,.7)">Statistically indistinguishable from random noise.</p></div>
+      <div class="rdrow"><h5>Round 0 - Initial AddRoundKey</h5><p>Plaintext XOR-ed with original key before any rounds.</p><div class="rdstps"><div class="rdch" style="background:var(--teal)">AddRoundKey only</div></div></div>
+      <div class="rda">down</div>
+      <div class="rdrow acc"><h5>Rounds 1-13 - Four steps, 13 times</h5><p>Each round uses a different key from the Key Schedule.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--pur)">MixColumns</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
+      <div class="rda">down</div>
+      <div class="rdrow" style="border-color:var(--gold);background:linear-gradient(135deg,#fef6e0,#f5ede0)"><h5>Round 14 - Final (MixColumns skipped)</h5><p>Skipping MixColumns makes decryption structurally symmetric. No security loss.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
+      <div class="rda">down</div>
+      <div class="rdrow" style="background:var(--teal);border-color:var(--teal)"><h5 style="color:white">Ciphertext - 128-bit encrypted output</h5><p style="color:rgba(255,255,255,.7)">Statistically indistinguishable from random noise.</p></div>
     </div>
   </div>
 </section>
 
-<!-- в•ђв•ђв•ђ PRACTICE в•ђв•ђв•ђ -->
+<!-- --- PRACTICE --- -->
 <section style="background:var(--bg);" id="prac-sec">
   <div class="sec">
-    <div class="stag fi">Practice вЂ” Solve It Yourself</div>
+    <div class="stag fi">Practice - Solve It Yourself</div>
     <h2 class="sh fi">Interactive Tasks</h2>
-    <p class="sd fi">Complete these tasks before watching the full encryption. You solve the first few bytes manually вЂ” then the computer finishes the rest and shows you everything.</p>
+    <p class="sd fi">Complete these tasks before watching the full encryption. You solve the first few bytes manually - then the computer finishes the rest and shows you everything.</p>
 
     <!-- TASK 1 -->
-    <div class="task fi" id="t1" data-label="Task 1 of 4 вЂ” ASCII Conversion">
+    <div class="task fi" id="t1" data-label="Task 1 of 4 - ASCII Conversion">
       <div class="task-q">Convert the first 3 characters of "Hello" to hexadecimal</div>
       <div class="task-hint">AES works on bytes (numbers), not letters. Every character has an ASCII code. Convert it to hex (base 16). Use the table below for help.</div>
       <div style="position:relative;display:inline-block">
-        <div class="ascii-hint" id="ah1" onclick="toggleAscii('ap1','ah1')">в–¶ Show ASCII Table (hint)</div>
-        <div class="ascii-pop" id="ap1"><h4>ASCII Table вЂ” Character to Number</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = decimal number = hex. Example: 'H' = 72 = 0x48</p><div class="ascii-grid" id="ag1"></div></div>
+        <div class="ascii-hint" id="ah1" onclick="toggleAscii('ap1','ah1')">> Show ASCII Table (hint)</div>
+        <div class="ascii-pop" id="ap1"><h4>ASCII Table - Character to Number</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = decimal number = hex. Example: 'H' = 72 = 0x48</p><div class="ascii-grid" id="ag1"></div></div>
       </div>
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;margin-bottom:4px">
         <div style="text-align:center">
@@ -205,24 +159,24 @@
           <input class="hinput" id="t1c" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()">
           <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
         </div>
-        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;max-width:240px;padding-bottom:6px">Tip: 'H'=72 decimal. Divide by 16: 72Г·16=4 remainder 8 в†’ 0x48</div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;max-width:240px;padding-bottom:6px">Tip: 'H'=72 decimal. Divide by 16: 72/16=4 remainder 8 -> 0x48</div>
       </div>
       <div>
         <button class="chk-btn" onclick="chkT1()">Check</button>
         <button class="rvl-btn" onclick="rvlT1()">Show Answer</button>
       </div>
       <div class="fb ok" id="t1ok">Correct! 'H'=0x48, 'e'=0x65, 'l'=0x6C. ASCII code in base 16. AES stores every character as its hex byte.</div>
-      <div class="fb no" id="t1no">Not quite. 'H' = ASCII 72. 72 in hex: 72 = 4Г—16 + 8 = 0x48. Use the table above and look up each character.</div>
+      <div class="fb no" id="t1no">Not quite. 'H' = ASCII 72. 72 in hex: 72 = 4x16 + 8 = 0x48. Use the table above and look up each character.</div>
     </div>
 
     <!-- TASK 2 -->
-    <div class="task fi" id="t2" data-label="Task 2 of 4 вЂ” XOR Operation">
-      <div class="task-q">Calculate XOR (вЉ•) вЂ” the core of AddRoundKey</div>
-      <div class="task-hint">XOR compares bits one by one: <strong>same bits в†’ 0</strong>, <strong>different bits в†’ 1</strong>. The bits of each byte are shown. Fill in the result row by clicking the blank cells, then type the hex answer.</div>
+    <div class="task fi" id="t2" data-label="Task 2 of 4 - XOR Operation">
+      <div class="task-q">Calculate XOR ( XOR ) - the core of AddRoundKey</div>
+      <div class="task-hint">XOR compares bits one by one: <strong>same bits -> 0</strong>, <strong>different bits -> 1</strong>. The bits of each byte are shown. Fill in the result row by clicking the blank cells, then type the hex answer.</div>
 
       <!-- Byte 0 -->
       <div style="margin-bottom:22px">
-        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 0 &nbsp;в†’&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x48</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0x49</span></div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 0 &nbsp;->&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x48</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0x49</span></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
           <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">State:</span>
           <div class="bit-strip" id="b0s"></div>
@@ -243,7 +197,7 @@
 
       <!-- Byte 1 -->
       <div style="margin-bottom:14px">
-        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 1 &nbsp;в†’&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x65</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0xA0</span></div>
+        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 1 &nbsp;->&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x65</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0xA0</span></div>
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
           <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">State:</span>
           <div class="bit-strip" id="b1s"></div>
@@ -255,52 +209,52 @@
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Result:</span>
           <div class="bit-strip" id="b1r"></div>
-          <span style="font-size:.64rem;color:var(--muted);margin-left:6px">в†ђ click each blank bit</span>
+          <span style="font-size:.64rem;color:var(--muted);margin-left:6px"><- click each blank bit</span>
         </div>
         <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Type the hex result: <input class="hinput" id="t2b" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
       </div>
 
       <button class="chk-btn" onclick="chkT2()">Check</button>
       <button class="rvl-btn" onclick="rvlT2()">Show Answer</button>
-      <div class="fb ok" id="t2ok">Correct! 0x48вЉ•0x49 = 0x01 (only the last bit differs). 0x65вЉ•0xA0 = 0xC5. And the key property: 0x01вЉ•0x49 = 0x48 вЂ” same XOR undoes it!</div>
-      <div class="fb no" id="t2no">Not quite. For each bit pair: same=0, different=1. 0x48=01001000, 0x49=01001001 вЂ” only the last bit differs, so the result is 00000001 = 0x01.</div>
+      <div class="fb ok" id="t2ok">Correct! 0x48 XOR 0x49 = 0x01 (only the last bit differs). 0x65 XOR 0xA0 = 0xC5. And the key property: 0x01 XOR 0x49 = 0x48 - same XOR undoes it!</div>
+      <div class="fb no" id="t2no">Not quite. For each bit pair: same=0, different=1. 0x48=01001000, 0x49=01001001 - only the last bit differs, so the result is 00000001 = 0x01.</div>
     </div>
 
     <!-- TASK 3 -->
-    <div class="task fi" id="t3" data-label="Task 3 of 4 вЂ” S-Box SubBytes">
+    <div class="task fi" id="t3" data-label="Task 3 of 4 - S-Box SubBytes">
       <div class="task-q">Look up two bytes in the S-Box (SubBytes operation)</div>
-      <div class="task-hint">Use the S-Box table in the Theory section above. Split the byte into two nibbles (hex digits) вЂ” the first gives the row, the second gives the column. The table cell at that position is your answer.</div>
+      <div class="task-hint">Use the S-Box table in the Theory section above. Split the byte into two nibbles (hex digits) - the first gives the row, the second gives the column. The table cell at that position is your answer.</div>
       <div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:14px;margin-top:10px">
         <div>
           <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte: <span style="color:var(--ora);font-family:'DM Mono',monospace;font-size:1rem">0x19</span></div>
           <div class="nb-pair">
-            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">1</div><div style="font-size:.6rem;color:var(--muted)">в†’ Row 1</div></div>
-            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">9</div><div style="font-size:.6rem;color:var(--muted)">в†’ Col 9</div></div>
+            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">1</div><div style="font-size:.6rem;color:var(--muted)">-> Row 1</div></div>
+            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">9</div><div style="font-size:.6rem;color:var(--muted)">-> Col 9</div></div>
           </div>
           <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[1][9] = <input class="hinput" id="t3a" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
         <div>
           <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte: <span style="color:var(--ora);font-family:'DM Mono',monospace;font-size:1rem">0xA0</span></div>
           <div class="nb-pair">
-            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">A</div><div style="font-size:.6rem;color:var(--muted)">в†’ Row 10</div></div>
-            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">0</div><div style="font-size:.6rem;color:var(--muted)">в†’ Col 0</div></div>
+            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">A</div><div style="font-size:.6rem;color:var(--muted)">-> Row 10</div></div>
+            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">0</div><div style="font-size:.6rem;color:var(--muted)">-> Col 0</div></div>
           </div>
           <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[A][0] = <input class="hinput" id="t3b" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
       </div>
       <button class="chk-btn" onclick="chkT3()">Check</button>
       <button class="rvl-btn" onclick="rvlT3()">Show Answer</button>
-      <div class="fb ok" id="t3ok">Correct! S-Box[1][9] = 0xD4. S-Box[A][0] = 0xE0. Scroll to the S-Box table and verify: row 1Г—, col Г—9 в†’ D4.</div>
-      <div class="fb no" id="t3no">Not quite. Scroll up to the S-Box table. Find the row labelled 1Г— and count to column Г—9. That cell is the answer for 0x19.</div>
+      <div class="fb ok" id="t3ok">Correct! S-Box[1][9] = 0xD4. S-Box[A][0] = 0xE0. Scroll to the S-Box table and verify: row 1x, col x9 -> D4.</div>
+      <div class="fb no" id="t3no">Not quite. Scroll up to the S-Box table. Find the row labelled 1x and count to column x9. That cell is the answer for 0x19.</div>
     </div>
 
     <!-- TASK 4 -->
-    <div class="task fi" id="t4" data-label="Task 4 of 4 вЂ” ShiftRows">
+    <div class="task fi" id="t4" data-label="Task 4 of 4 - ShiftRows">
       <div class="task-q">Apply ShiftRows: rotate Row 1 left by 1 position</div>
-      <div class="task-hint">ShiftRows rotates each row cyclically left. Row 0 в†’ shift 0 (stays). Row 1 в†’ shift 1 (first element moves to end). Row 2 в†’ shift 2. Row 3 в†’ shift 3.</div>
+      <div class="task-hint">ShiftRows rotates each row cyclically left. Row 0 -> shift 0 (stays). Row 1 -> shift 1 (first element moves to end). Row 2 -> shift 2. Row 3 -> shift 3.</div>
       <div style="font-family:'DM Mono',monospace;font-size:.88rem;background:var(--bg2);padding:14px 15px;border-radius:9px;border:1px solid var(--bdr);margin-bottom:14px;line-height:2">
-        <div><span style="color:var(--muted);font-size:.66rem">Row 0 (shift 0): </span><span style="color:var(--ora)">D4 E0 B8 1E</span><span style="color:var(--muted);font-size:.66rem"> в†’ stays same</span></div>
-        <div><span style="color:var(--muted);font-size:.66rem">Row 1 (shift 1): </span><span style="color:var(--grn)">27 BF B4 41</span><span style="color:var(--muted);font-size:.66rem"> в†’ after shift: -</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 0 (shift 0): </span><span style="color:var(--ora)">D4 E0 B8 1E</span><span style="color:var(--muted);font-size:.66rem"> -> stays same</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 1 (shift 1): </span><span style="color:var(--grn)">27 BF B4 41</span><span style="color:var(--muted);font-size:.66rem"> -> after shift: -</span></div>
         <div><span style="color:var(--muted);font-size:.66rem">Row 2 (shift 2): </span><span style="color:var(--pur)">11 98 5D 52</span></div>
         <div><span style="color:var(--muted);font-size:.66rem">Row 3 (shift 3): </span><span style="color:var(--gold)">AE F1 E5 30</span></div>
       </div>
@@ -314,14 +268,14 @@
       <button class="chk-btn" onclick="chkT4()">Check</button>
       <button class="rvl-btn" onclick="rvlT4()">Show Answer</button>
       <div class="fb ok" id="t4ok">Correct! [27 BF B4 41] shift left 1 = [BF B4 41 27]. The '27' moved from position 0 to position 3. Now MixColumns can blend it with bytes from other original columns.</div>
-      <div class="fb no" id="t4no">Not quite. Shift left by 1: [a b c d] в†’ [b c d a]. The first element 'a' wraps to the end. So [27 BF B4 41] в†’ [BF B4 41 27].</div>
+      <div class="fb no" id="t4no">Not quite. Shift left by 1: [a b c d] -> [b c d a]. The first element 'a' wraps to the end. So [27 BF B4 41] -> [BF B4 41 27].</div>
     </div>
 
     <div class="ibox fi" style="margin-top:4px">All 4 tasks done? Now use your own input in Practice. The site will teach one complete AES round scheme and ask you to calculate one value before each next step.</div>
   </div>
 </section>
 
-<!-- в•ђв•ђв•ђ FULL FLOW в•ђв•ђв•ђ -->
+<!-- --- FULL FLOW --- -->
 <section class="flow-sec" id="flow-sec">
   <div class="sec">
     <div class="stag fi">AES-256 Practice</div>
@@ -336,7 +290,7 @@
           <label>Message (max 15 chars)</label>
           <input type="text" id="pIn" maxlength="15" value="Hello, Narxoz!" placeholder="Your message">
           <div style="position:relative">
-            <div class="ascii-hint" id="ah-m" onclick="toggleAscii('ap-m','ah-m')">в–¶ ASCII Table</div>
+            <div class="ascii-hint" id="ah-m" onclick="toggleAscii('ap-m','ah-m')">> ASCII Table</div>
             <div class="ascii-pop" id="ap-m"><h4>ASCII Reference</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = number. AES works on these numbers.</p><div class="ascii-grid" id="ag-m"></div></div>
           </div>
         </div>
@@ -369,83 +323,83 @@
         <button class="cbtn nxt" onclick="stepNav(1)" id="btnnxt">Next</button>
       </div>
     </div>
-    <div class="out-blk" id="out-blk"><div class="out-lbl">Ciphertext вЂ” AES-256 encrypted</div><div class="out-val" id="out-val">вЂ”</div></div>
-    <div class="dec-box" id="dec-box"><strong>Decrypted:</strong> <span id="dec-txt">вЂ”</span></div>
+    <div class="out-blk" id="out-blk"><div class="out-lbl">Ciphertext - AES-256 encrypted</div><div class="out-val" id="out-val">-</div></div>
+    <div class="dec-box" id="dec-box"><strong>Decrypted:</strong> <span id="dec-txt">-</span></div>
   </div>
 </section>
 
 <!-- TEAM -->
 <section class="tsec" id="team">
   <div class="sec">
-    <div class="stag fi">Narxoz University вЂ” Final Project</div>
+    <div class="stag fi">Narxoz University - Final Project</div>
     <h2 class="sh fi">Project Team</h2>
-    <p class="sd fi">Topic 1: AES-256 Encryption + Key Generation. Final Examination вЂ” Cryptographic Primitives, 2025вЂ“2026.</p>
+    <p class="sd fi">Topic 1: AES-256 Encryption + Key Generation. Final Examination - Cryptographic Primitives, 2025-2026.</p>
     <div class="tgrid fi">
 
-      <!-- Zhadyra вЂ” girl, laptop -->
+      <!-- Zhadyra - girl, laptop -->
       <div class="tcard">
         <div class="av-wrap">
           <div class="av-ring"></div>
-          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#f48fb1)">рџ‘©рџЏ»вЂЌрџ’»</div>
-          <div class="star s1" style="color:var(--gold)">вњ¦</div>
-          <div class="star s2" style="color:var(--teal)">в…</div>
-          <div class="star s3" style="color:var(--ora)">вњ§</div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#f48fb1)">ZA</div>
+          <div class="star s1" style="color:var(--gold)">*</div>
+          <div class="star s2" style="color:var(--teal)">*</div>
+          <div class="star s3" style="color:var(--ora)">*</div>
         </div>
         <h4>Askarkyzy Zhadyra</h4>
         <small>Narxoz University</small>
         <div class="trole">SubBytes &amp; S-Box</div>
       </div>
 
-      <!-- Alua вЂ” girl, graduate -->
+      <!-- Alua - girl, graduate -->
       <div class="tcard">
         <div class="av-wrap">
           <div class="av-ring"></div>
-          <div class="av av-girl" style="background:linear-gradient(135deg,#e8f5e9,#a5d6a7)">рџ‘©рџЏ»вЂЌрџЋ“</div>
-          <div class="star s1" style="color:var(--grn)">вњ¦</div>
-          <div class="star s2" style="color:var(--gold)">в…</div>
-          <div class="star s3" style="color:var(--teal)">вњ§</div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#e8f5e9,#a5d6a7)">AA</div>
+          <div class="star s1" style="color:var(--grn)">*</div>
+          <div class="star s2" style="color:var(--gold)">*</div>
+          <div class="star s3" style="color:var(--teal)">*</div>
         </div>
         <h4>Amanbek Alua</h4>
         <small>Narxoz University</small>
         <div class="trole">ShiftRows &amp; MixColumns</div>
       </div>
 
-      <!-- Zhanna вЂ” girl, science -->
+      <!-- Zhanna - girl, science -->
       <div class="tcard">
         <div class="av-wrap">
           <div class="av-ring"></div>
-          <div class="av av-girl" style="background:linear-gradient(135deg,#ede7f6,#ce93d8)">рџ‘©рџЏ»вЂЌрџ”¬</div>
-          <div class="star s1" style="color:var(--pur)">вњ¦</div>
-          <div class="star s2" style="color:var(--teal)">в…</div>
-          <div class="star s3" style="color:var(--gold)">вњ§</div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#ede7f6,#ce93d8)">AZ</div>
+          <div class="star s1" style="color:var(--pur)">*</div>
+          <div class="star s2" style="color:var(--teal)">*</div>
+          <div class="star s3" style="color:var(--gold)">*</div>
         </div>
         <h4>Azatkyzy Zhanna</h4>
         <small>Narxoz University</small>
         <div class="trole">Key Schedule AES-256</div>
       </div>
 
-      <!-- Dariyana вЂ” girl, teacher -->
+      <!-- Dariyana - girl, teacher -->
       <div class="tcard">
         <div class="av-wrap">
           <div class="av-ring"></div>
-          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#ef9a9a)">рџ‘©рџЏ»вЂЌрџЏ«</div>
-          <div class="star s1" style="color:var(--ora)">вњ¦</div>
-          <div class="star s2" style="color:var(--pur)">в…</div>
-          <div class="star s3" style="color:var(--grn)">вњ§</div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#ef9a9a)">GD</div>
+          <div class="star s1" style="color:var(--ora)">*</div>
+          <div class="star s2" style="color:var(--pur)">*</div>
+          <div class="star s3" style="color:var(--grn)">*</div>
         </div>
         <h4>Gabdylshukir Dariyana</h4>
         <small>Narxoz University</small>
         <div class="trole">AddRoundKey &amp; Theory</div>
       </div>
 
-      <!-- Ali вЂ” boy, laptop -->
+      <!-- Ali - boy, laptop -->
       <div class="tcard">
         <div class="av-wrap">
           <div class="av-ring"></div>
-          <div class="av av-boy" style="background:linear-gradient(135deg,#e3f2fd,#90caf9)">рџ‘ЁрџЏ»вЂЌрџ’»</div>
-          <div class="star s1" style="color:var(--teal)">вњ¦</div>
-          <div class="star s2" style="color:var(--gold)">в…</div>
-          <div class="star s3" style="color:var(--pur)">вњ§</div>
+          <div class="av av-boy" style="background:linear-gradient(135deg,#e3f2fd,#90caf9)">NA</div>
+          <div class="star s1" style="color:var(--teal)">*</div>
+          <div class="star s2" style="color:var(--gold)">*</div>
+          <div class="star s3" style="color:var(--pur)">*</div>
         </div>
         <h4>Nurmukhamet Ali</h4>
         <small>Narxoz University</small>
@@ -453,11 +407,11 @@
       </div>
 
     </div>
-    <div class="acad fi"><strong>Academic Declaration:</strong> Created independently by students of Narxoz University for the Final Examination, Cryptographic Primitives course, 2025вЂ“2026. AES-256 follows NIST FIPS-197.</div>
+    <div class="acad fi"><strong>Academic Declaration:</strong> Created independently by students of Narxoz University for the Final Examination, Cryptographic Primitives course, 2025-2026. AES-256 follows NIST FIPS-197.</div>
   </div>
 </section>
 
-<footer><strong>AES-256 Learning Platform</strong><br>Narxoz University В· Cryptographic Primitives В· 2025вЂ“2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 В· Topic 1: AES-256 + Key Generation</span></footer>
+<footer><strong>AES-256 Learning Platform</strong><br>Narxoz University . Cryptographic Primitives . 2025-2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 . Topic 1: AES-256 + Key Generation</span></footer>
 
 <script src="js/app.js"></script>
 </body>

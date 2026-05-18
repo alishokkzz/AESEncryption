@@ -1,6 +1,6 @@
-﻿// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // AES-256 CORE
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 const SB=[0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16];
 const ISB=new Array(256);for(let i=0;i<256;i++)ISB[SB[i]]=i;
 const RC=[0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36,0x6c,0xd8,0xab,0x4d];
@@ -20,9 +20,9 @@ function getKey(){let k=document.getElementById('kIn').value;while(k.length<32)k
 function encFull(plain,kb){const nr=14,w=kx(kb),out=[],pd=pad16([...plain.split('').map(c=>c.charCodeAt(0))]);for(let b=0;b<pd.length;b+=16){const s=ts(pd.slice(b,b+16));for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[c][r];for(let rnd=1;rnd<=nr;rnd++){for(let r=0;r<4;r++)for(let c=0;c<4;c++)s[r][c]=SB[s[r][c]];for(let r=1;r<4;r++){const row=s[r].slice();for(let c=0;c<4;c++)s[r][c]=row[(c+r)%4];}if(rnd<nr){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(2,a)^gm(3,b_)^d^e;s[1][c]=a^gm(2,b_)^gm(3,d)^e;s[2][c]=a^b_^gm(2,d)^gm(3,e);s[3][c]=gm(3,a)^b_^d^gm(2,e);}}for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];}out.push(...fs(s));}return out;}
 function decFull(cb,kb){const nr=14,w=kx(kb),result=[];for(let b=0;b<cb.length;b+=16){const s=ts(cb.slice(b,b+16));for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[nr*4+c][r];for(let rnd=nr-1;rnd>=0;rnd--){for(let row=1;row<4;row++){const ro=s[row].slice();for(let c=0;c<4;c++)s[row][c]=ro[(c+4-row)%4];}for(let row=0;row<4;row++)for(let c=0;c<4;c++)s[row][c]=ISB[s[row][c]];for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];if(rnd>0){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(0x0e,a)^gm(0x0b,b_)^gm(0x0d,d)^gm(0x09,e);s[1][c]=gm(0x09,a)^gm(0x0e,b_)^gm(0x0b,d)^gm(0x0d,e);s[2][c]=gm(0x0d,a)^gm(0x09,b_)^gm(0x0e,d)^gm(0x0b,e);s[3][c]=gm(0x0b,a)^gm(0x0d,b_)^gm(0x09,d)^gm(0x0e,e);}}}result.push(...fs(s));}return unpad(result).map(b=>String.fromCharCode(b)).join('');}
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // PRACTICE CHECKS
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 function setInputResult(id,val,correct){const el=document.getElementById(id);el.classList.toggle('ok',el.value.toUpperCase()===correct);el.classList.toggle('no',el.value.toUpperCase()!==correct);}
 function showFB(okId,noId,isOk){const o=document.getElementById(okId),n=document.getElementById(noId);o.style.display=isOk?'block':'none';n.style.display=isOk?'none':'block';}
 
@@ -72,9 +72,9 @@ function initXorBits(){
   buildBits('b1s',0x65,'ora');buildBits('b1k',0xA0,'gld');buildClickBits('b1r',0x65^0xA0);
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // ASCII TABLE
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 function buildAsciiGrid(id){
   const g=document.getElementById(id);if(!g)return;g.innerHTML='';
   const chars=' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
@@ -88,37 +88,37 @@ function toggleAscii(popId,btnId){
 }
 document.addEventListener('click',e=>{if(!e.target.closest('.ascii-hint')&&!e.target.closest('.ascii-pop'))document.querySelectorAll('.ascii-pop').forEach(p=>p.classList.remove('show'));});
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // KEY SCHEDULE
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-const kst=['<strong>Original Key (256 bits = 32 bytes):</strong> Your 32-byte secret splits into 8 words W[0]вЂ“W[7]. These form Round Key 0. AES-256 needs 60 words total = 15 round keys. The larger key means more key derivation steps.',
-'<strong>W[0..7] вЂ” Round Key 0:</strong> The first 8 words = your original key. Used in Initial AddRoundKey to XOR with the plaintext before any rounds start.',
-'<strong>RotWord:</strong> Last word rotated left by 1 byte: [aв‚Ђ,aв‚Ѓ,aв‚‚,aв‚ѓ]в†’[aв‚Ѓ,aв‚‚,aв‚ѓ,aв‚Ђ]. Applied every 8th word. Ensures every byte position participates in key expansion.',
-'<strong>SubWord:</strong> AES S-Box applied to all 4 bytes of the rotated word. Introduces non-linearity вЂ” without this the key schedule would be linear and algebraically breakable.',
+// ------------------------------------------
+const kst=['<strong>Original Key (256 bits = 32 bytes):</strong> Your 32-byte secret splits into 8 words W[0]-W[7]. These form Round Key 0. AES-256 needs 60 words total = 15 round keys. The larger key means more key derivation steps.',
+'<strong>W[0..7] - Round Key 0:</strong> The first 8 words = your original key. Used in Initial AddRoundKey to XOR with the plaintext before any rounds start.',
+'<strong>RotWord:</strong> Last word rotated left by 1 byte: [a0,a1,a2,a3]->[a1,a2,a3,a0]. Applied every 8th word. Ensures every byte position participates in key expansion.',
+'<strong>SubWord:</strong> AES S-Box applied to all 4 bytes of the rotated word. Introduces non-linearity - without this the key schedule would be linear and algebraically breakable.',
 '<strong>XOR with Rcon:</strong> First byte XOR-ed with round constant. AES-256 Rcon values: 01 02 04 08 10 20 40 80 1B 36 6C D8 AB 4D. Prevents related-key attacks.',
 '<strong>Extra SubWord (AES-256 ONLY):</strong> When word index mod 8 = 4, an extra SubWord is applied without RotWord or Rcon. This step does NOT exist in AES-128 or AES-192. It is what makes AES-256 key expansion fundamentally different.',
-'<strong>W[8..15] вЂ” Round Key 1:</strong> W[8]=W[0]вЉ•temp, W[9]=W[1]вЉ•W[8], etc. This process repeats until W[59], generating all 15 round keys needed for the 14 rounds.',
-'<strong>W[56..59] вЂ” Round Key 14:</strong> The final round key. After 60 words total, AES-256 has all 15 unique 128-bit round keys ready for the encryption process.'];
+'<strong>W[8..15] - Round Key 1:</strong> W[8]=W[0] XOR temp, W[9]=W[1] XOR W[8], etc. This process repeats until W[59], generating all 15 round keys needed for the 14 rounds.',
+'<strong>W[56..59] - Round Key 14:</strong> The final round key. After 60 words total, AES-256 has all 15 unique 128-bit round keys ready for the encryption process.'];
 function ksS(i,el){document.querySelectorAll('#kspl .kb').forEach(b=>b.classList.remove('active'));el.classList.add('active');const ex=document.getElementById('ksex');ex.style.opacity='0';setTimeout(()=>{ex.innerHTML=kst[i];ex.style.opacity='1';},150);}
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // ROUND ANIMATION
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 function animRounds(){const rc=document.getElementById('rchips');rc.innerHTML='';const chips=[];for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rchip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('sp');rc.appendChild(c);chips.push(c);}let i=0;function tk(){if(i<chips.length){chips[i].classList.add('lit');i++;setTimeout(tk,200);}}tk();}
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // S-BOX TABLE
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 function buildFullSbox(){
   const t=document.getElementById('sboxt-full');
   const hr=document.createElement('tr');hr.appendChild(Object.assign(document.createElement('th'),{textContent:''}));
-  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent='Г—'+c.toString(16).toUpperCase();hr.appendChild(th);}t.appendChild(hr);
-  for(let row=0;row<16;row++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase()+'Г—';tr.appendChild(th);for(let col=0;col<16;col++){const td=document.createElement('td');const v=SB[row*16+col];td.textContent=v.toString(16).toUpperCase().padStart(2,'0');td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} в†’ 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;tr.appendChild(td);}t.appendChild(tr);}
+  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent='x'+c.toString(16).toUpperCase();hr.appendChild(th);}t.appendChild(hr);
+  for(let row=0;row<16;row++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase()+'x';tr.appendChild(th);for(let col=0;col<16;col++){const td=document.createElement('td');const v=SB[row*16+col];td.textContent=v.toString(16).toUpperCase().padStart(2,'0');td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} -> 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;tr.appendChild(td);}t.appendChild(tr);}
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // STEP BUILDER
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 let steps=[],curIdx=0,playTimer=null,playSp=2500,isPlaying=false,lastCipher=null,gTimer=null;
 
 function buildSteps(plain,kb){
@@ -126,8 +126,8 @@ function buildSteps(plain,kb){
   const rk0=[];for(let c=0;c<4;c++)for(let r=0;r<4;r++)rk0.push(w[c][r]);
 
   // Step 0 Input
-  out.push({badge:'Input',bc:'st',sc:'sct',dc:'dnt',title:'Plaintext в†’ Bytes',why:'AES processes bytes, not text. Every character is converted to its ASCII numeric code, then expressed in hexadecimal (base 16). This is the raw data entering the 4Г—4 state matrix.',glbl:'Plaintext вЂ” 16 bytes',before:block,after:block,
-    et:'Each character в†’ ASCII decimal в†’ Hex',fm:plain.split('').slice(0,16).map((c,i)=>`<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> в†’ ASCII <span class="vop">${c.charCodeAt(0)}</span> в†’ <span class="vout">${H(c.charCodeAt(0))}</span>`).join('<br>'),showAscii:true});
+  out.push({badge:'Input',bc:'st',sc:'sct',dc:'dnt',title:'Plaintext -> Bytes',why:'AES processes bytes, not text. Every character is converted to its ASCII numeric code, then expressed in hexadecimal (base 16). This is the raw data entering the 4x4 state matrix.',glbl:'Plaintext - 16 bytes',before:block,after:block,
+    et:'Each character -> ASCII decimal -> Hex',fm:plain.split('').slice(0,16).map((c,i)=>`<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> -> ASCII <span class="vop">${c.charCodeAt(0)}</span> -> <span class="vout">${H(c.charCodeAt(0))}</span>`).join('<br>'),showAscii:true});
 
   // Step 1 Padding
   const pv=16-pb.length;
@@ -135,58 +135,58 @@ function buildSteps(plain,kb){
     et:'Padding formula',fm:`<span class="lbl">Message length: </span><span class="vin">${pb.length} bytes</span><br><span class="lbl">Block size:     </span><span class="vop">16 bytes</span><br><span class="lbl">Missing:        </span><span class="vop">${pv} bytes</span><br><span class="sep"></span><span class="lbl">Pad value = </span><span class="vout">0x${H(pv)}</span><span class="lbl"> (= ${pv} in decimal)</span><br><span class="lbl">Added ${pv} bytes, each = </span><span class="vout">0x${H(pv)}</span><br><span class="sep"></span><span class="lbl">Block: </span><span class="vout">${hA(block)}</span>`});
 
   // Step 2 Key
-  out.push({badge:'Key AES-256',bc:'sd2',sc:'scd',dc:'dnd',title:'Your 256-bit Key в†’ 32 Bytes',why:'The 32-byte key feeds the Key Schedule which generates 15 round keys. AES-256 has a unique Extra SubWord step in its key expansion. Changing just one character produces a completely different ciphertext.',glbl:'Key вЂ” 32 bytes = 256 bits',before:kb.slice(0,16),after:kb.slice(0,16),
-    et:'Key bytes (first 16 of 32)',fm:kb.slice(0,16).map((b,i)=>{const c=b<32?'\\0':String.fromCharCode(b);return `<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> = <span class="vout">${H(b)}</span>`;}).join('<br>')+`<br><span class="lbl">... + bytes 16вЂ“31 (AES-256 needs all 32)</span>`});
+  out.push({badge:'Key AES-256',bc:'sd2',sc:'scd',dc:'dnd',title:'Your 256-bit Key -> 32 Bytes',why:'The 32-byte key feeds the Key Schedule which generates 15 round keys. AES-256 has a unique Extra SubWord step in its key expansion. Changing just one character produces a completely different ciphertext.',glbl:'Key - 32 bytes = 256 bits',before:kb.slice(0,16),after:kb.slice(0,16),
+    et:'Key bytes (first 16 of 32)',fm:kb.slice(0,16).map((b,i)=>{const c=b<32?'\\0':String.fromCharCode(b);return `<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> = <span class="vout">${H(b)}</span>`;}).join('<br>')+`<br><span class="lbl">... + bytes 16-31 (AES-256 needs all 32)</span>`});
 
   // Step 3 ARK0
   const after0=block.map((b,i)=>b^rk0[i]);
-  out.push({badge:'AddRoundKey Round 0',bc:'st',sc:'sct',dc:'dnt',title:'Initial AddRoundKey вЂ” XOR with Key',why:'Before any rounds begin, every plaintext byte is XOR-ed with Round Key 0 (your original key). XOR: same bits в†’ 0, different bits в†’ 1. This "initial whitening" means Round 1 already starts on scrambled data.',glbl:'State after initial XOR',before:block,after:after0,isARK:true,arkBefore:block,arkKey:rk0,
-    et:'XOR for each byte вЂ” click any cell',fm:''});
+  out.push({badge:'AddRoundKey Round 0',bc:'st',sc:'sct',dc:'dnt',title:'Initial AddRoundKey - XOR with Key',why:'Before any rounds begin, every plaintext byte is XOR-ed with Round Key 0 (your original key). XOR: same bits -> 0, different bits -> 1. This "initial whitening" means Round 1 already starts on scrambled data.',glbl:'State after initial XOR',before:block,after:after0,isARK:true,arkBefore:block,arkKey:rk0,
+    et:'XOR for each byte - click any cell',fm:''});
 
   let curSt=ts(after0.slice());
   const rkF1=[];for(let c=0;c<4;c++)for(let r=0;r<4;r++)rkF1.push(w[4+c][r]);
 
   // Step 4 SubBytes
   const bSub=fs(cS(curSt)),aSub=bSub.map(b=>SB[b]);
-  out.push({badge:'SubBytes Round 1',bc:'so',sc:'sco',dc:'dno',title:'Round 1 вЂ” SubBytes',why:'Every byte replaced via S-Box lookup. High nibble = row, low nibble = column. This introduces non-linearity: without it AES would be solvable with algebra. The S-Box was designed to resist all known algebraic attacks.',glbl:'State after SubBytes',before:bSub,after:aSub,isSUB:true,
-    et:'S-Box lookup вЂ” click any cell',fm:'',showSboxHint:true});
+  out.push({badge:'SubBytes Round 1',bc:'so',sc:'sco',dc:'dno',title:'Round 1 - SubBytes',why:'Every byte replaced via S-Box lookup. High nibble = row, low nibble = column. This introduces non-linearity: without it AES would be solvable with algebra. The S-Box was designed to resist all known algebraic attacks.',glbl:'State after SubBytes',before:bSub,after:aSub,isSUB:true,
+    et:'S-Box lookup - click any cell',fm:'',showSboxHint:true});
   for(let r=0;r<4;r++)for(let c=0;c<4;c++)curSt[r][c]=SB[curSt[r][c]];
 
   // Step 5 ShiftRows
   const bSh=fs(cS(curSt));const stSh=cS(curSt);for(let r=1;r<4;r++){const row=stSh[r].slice();for(let c=0;c<4;c++)stSh[r][c]=row[(c+r)%4];}const aSh=fs(stSh);
-  out.push({badge:'ShiftRows Round 1',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 вЂ” ShiftRows',why:'Each row rotates left by its row number. Row 0: no shift. Row 1: 1 left. Row 2: 2 left. Row 3: 3 left. This moves bytes into different column positions so MixColumns can blend bytes from many original positions вЂ” providing diffusion.',glbl:'State after ShiftRows',before:bSh,after:aSh,isSH:true,
-    et:'Row shifts вЂ” click any cell',fm:[0,1,2,3].map(r=>`<span class="lbl">Row ${r} (shift ${r}): </span><span class="vin">${[0,1,2,3].map(c=>H(bSh[r*4+c])).join(' ')}</span> в†’ <span class="vout">${[0,1,2,3].map(c=>H(aSh[r*4+c])).join(' ')}</span>`).join('<br>')});
+  out.push({badge:'ShiftRows Round 1',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 - ShiftRows',why:'Each row rotates left by its row number. Row 0: no shift. Row 1: 1 left. Row 2: 2 left. Row 3: 3 left. This moves bytes into different column positions so MixColumns can blend bytes from many original positions - providing diffusion.',glbl:'State after ShiftRows',before:bSh,after:aSh,isSH:true,
+    et:'Row shifts - click any cell',fm:[0,1,2,3].map(r=>`<span class="lbl">Row ${r} (shift ${r}): </span><span class="vin">${[0,1,2,3].map(c=>H(bSh[r*4+c])).join(' ')}</span> -> <span class="vout">${[0,1,2,3].map(c=>H(aSh[r*4+c])).join(' ')}</span>`).join('<br>')});
   for(let r=1;r<4;r++){const row=curSt[r].slice();for(let c=0;c<4;c++)curSt[r][c]=row[(c+r)%4];}
 
   // Step 6 MixColumns
   const bMx=fs(cS(curSt));const stMx=cS(curSt);for(let c=0;c<4;c++){const[a,b,d,e]=[stMx[0][c],stMx[1][c],stMx[2][c],stMx[3][c]];stMx[0][c]=gm(2,a)^gm(3,b)^d^e;stMx[1][c]=a^gm(2,b)^gm(3,d)^e;stMx[2][c]=a^b^gm(2,d)^gm(3,e);stMx[3][c]=gm(3,a)^b^d^gm(2,e);}const aMx=fs(stMx);
   const col0=[0,1,2,3].map(r=>bMx[r*4]);
-  out.push({badge:'MixColumns Round 1',bc:'sp',sc:'scp',dc:'dnp',title:'Round 1 вЂ” MixColumns',why:'Each column multiplied by a fixed matrix in GF(2вЃё). Every output byte depends on all 4 input bytes of its column. Combined with ShiftRows, after 2 rounds every single output bit depends on every input bit вЂ” the "avalanche effect". Skipped in Round 14.',glbl:'State after MixColumns',before:bMx,after:aMx,isMX:true,
-    et:'Column 0 вЂ” exact calculation',fm:`<span class="lbl">Col 0 input: </span><span class="vin">${col0.map(H).join(' ')}</span><br><span class="sep"></span><span class="lbl">out[0] = 2В·${H(col0[0])} вЉ• 3В·${H(col0[1])} вЉ• ${H(col0[2])} вЉ• ${H(col0[3])}</span><br><span class="lbl">       = </span><span class="vop">${H(gm(2,col0[0]))}</span> вЉ• <span class="vop">${H(gm(3,col0[1]))}</span> вЉ• <span class="vop">${H(col0[2])}</span> вЉ• <span class="vop">${H(col0[3])}</span> = <span class="vout">${H(aMx[0])}</span><br><span class="lbl">Rule: 2В·x = shift left; if xв‰Ґ0x80 then вЉ•0x1B</span><br><span class="lbl">Rule: 3В·x = (2В·x) вЉ• x</span>`});
+  out.push({badge:'MixColumns Round 1',bc:'sp',sc:'scp',dc:'dnp',title:'Round 1 - MixColumns',why:'Each column multiplied by a fixed matrix in GF(2^8). Every output byte depends on all 4 input bytes of its column. Combined with ShiftRows, after 2 rounds every single output bit depends on every input bit - the "avalanche effect". Skipped in Round 14.',glbl:'State after MixColumns',before:bMx,after:aMx,isMX:true,
+    et:'Column 0 - exact calculation',fm:`<span class="lbl">Col 0 input: </span><span class="vin">${col0.map(H).join(' ')}</span><br><span class="sep"></span><span class="lbl">out[0] = 2*${H(col0[0])} XOR 3*${H(col0[1])} XOR ${H(col0[2])} XOR ${H(col0[3])}</span><br><span class="lbl">       = </span><span class="vop">${H(gm(2,col0[0]))}</span> XOR <span class="vop">${H(gm(3,col0[1]))}</span> XOR <span class="vop">${H(col0[2])}</span> XOR <span class="vop">${H(col0[3])}</span> = <span class="vout">${H(aMx[0])}</span><br><span class="lbl">Rule: 2*x = shift left; if x>=0x80 then  XOR 0x1B</span><br><span class="lbl">Rule: 3*x = (2*x) XOR x</span>`});
   for(let c=0;c<4;c++){const[a,b,d,e]=[curSt[0][c],curSt[1][c],curSt[2][c],curSt[3][c]];curSt[0][c]=gm(2,a)^gm(3,b)^d^e;curSt[1][c]=a^gm(2,b)^gm(3,d)^e;curSt[2][c]=a^b^gm(2,d)^gm(3,e);curSt[3][c]=gm(3,a)^b^d^gm(2,e);}
 
   // Step 7 ARK1
   const bA1=fs(cS(curSt)),aA1=bA1.map((b,i)=>b^rkF1[i]);
-  out.push({badge:'AddRoundKey Round 1',bc:'st',sc:'sct',dc:'dnt',title:'Round 1 вЂ” AddRoundKey (XOR Round Key 1)',why:'State XOR-ed with Round Key 1. This is where the secret key directly affects the data. Change one bit of the key and the entire output changes. XOR is also self-inverse: encrypt then decrypt with same key gives back the original.',glbl:'State after XOR with Round Key 1',before:bA1,after:aA1,isARK:true,arkBefore:bA1,arkKey:rkF1,
+  out.push({badge:'AddRoundKey Round 1',bc:'st',sc:'sct',dc:'dnt',title:'Round 1 - AddRoundKey (XOR Round Key 1)',why:'State XOR-ed with Round Key 1. This is where the secret key directly affects the data. Change one bit of the key and the entire output changes. XOR is also self-inverse: encrypt then decrypt with same key gives back the original.',glbl:'State after XOR with Round Key 1',before:bA1,after:aA1,isARK:true,arkBefore:bA1,arkKey:rkF1,
     et:'XOR each byte with round key 1',fm:''});
   for(let c=0;c<4;c++)for(let r=0;r<4;r++)curSt[r][c]^=w[4+c][r];
 
   // Step 8 Rounds 2-14
   const stR2=fs(cS(curSt));for(let rnd=2;rnd<=nr;rnd++){for(let r=0;r<4;r++)for(let c=0;c<4;c++)curSt[r][c]=SB[curSt[r][c]];for(let r=1;r<4;r++){const row=curSt[r].slice();for(let c=0;c<4;c++)curSt[r][c]=row[(c+r)%4];}if(rnd<nr){for(let c=0;c<4;c++){const[a,b,d,e]=[curSt[0][c],curSt[1][c],curSt[2][c],curSt[3][c]];curSt[0][c]=gm(2,a)^gm(3,b)^d^e;curSt[1][c]=a^gm(2,b)^gm(3,d)^e;curSt[2][c]=a^b^gm(2,d)^gm(3,e);curSt[3][c]=gm(3,a)^b^d^gm(2,e);}}for(let c=0;c<4;c++)for(let r=0;r<4;r++)curSt[r][c]^=w[rnd*4+c][r];}
   const cipher=fs(curSt);
-  out.push({badge:'Rounds 2вЂ“14',bc:'sk',sc:'scp',dc:'dnp',title:'Rounds 2вЂ“14 вЂ” AES-256 Completes',why:'Rounds 2вЂ“13 repeat: SubBytes в†’ ShiftRows в†’ MixColumns в†’ AddRoundKey with keys 2вЂ“13. Round 14 (final) skips MixColumns вЂ” intentional for symmetric decryption. After 14 rounds, the data is completely encrypted.',glbl:`Final state after all 14 rounds`,before:stR2,after:cipher,
-    et:'13 more rounds with unique keys',fm:`<span class="lbl">Rounds 2вЂ“13: SubBytes в†’ ShiftRows в†’ MixColumns в†’ AddRoundKey</span><br><span class="lbl">Round 14:   SubBytes в†’ ShiftRows в†’ AddRoundKey (no MixColumns)</span><br><span class="sep"></span>${Array.from({length:4},(_,i)=>`<span class="lbl">Round Key ${i+2}: </span><span class="vkey">${hA([...Array(4)].flatMap((_,c)=>[...Array(4)].map((_,r)=>w[(i+2)*4+c][r])).slice(0,8))}...</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">Result: </span><span class="vout">${hA(cipher)}</span>`});
+  out.push({badge:'Rounds 2-14',bc:'sk',sc:'scp',dc:'dnp',title:'Rounds 2-14 - AES-256 Completes',why:'Rounds 2-13 repeat: SubBytes -> ShiftRows -> MixColumns -> AddRoundKey with keys 2-13. Round 14 (final) skips MixColumns - intentional for symmetric decryption. After 14 rounds, the data is completely encrypted.',glbl:`Final state after all 14 rounds`,before:stR2,after:cipher,
+    et:'13 more rounds with unique keys',fm:`<span class="lbl">Rounds 2-13: SubBytes -> ShiftRows -> MixColumns -> AddRoundKey</span><br><span class="lbl">Round 14:   SubBytes -> ShiftRows -> AddRoundKey (no MixColumns)</span><br><span class="sep"></span>${Array.from({length:4},(_,i)=>`<span class="lbl">Round Key ${i+2}: </span><span class="vkey">${hA([...Array(4)].flatMap((_,c)=>[...Array(4)].map((_,r)=>w[(i+2)*4+c][r])).slice(0,8))}...</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">Result: </span><span class="vout">${hA(cipher)}</span>`});
 
   // Step 9 Output
-  out.push({badge:'Ciphertext',bc:'st',sc:'sct',dc:'dnt',title:'Final Ciphertext',why:'After 14 rounds, the state matrix is read column by column to produce 16 bytes. The result looks like random noise. Only the exact 256-bit key used to encrypt can reverse the process.',glbl:'Encrypted output вЂ” 16 bytes',before:cipher,after:cipher,
+  out.push({badge:'Ciphertext',bc:'st',sc:'sct',dc:'dnt',title:'Final Ciphertext',why:'After 14 rounds, the state matrix is read column by column to produce 16 bytes. The result looks like random noise. Only the exact 256-bit key used to encrypt can reverse the process.',glbl:'Encrypted output - 16 bytes',before:cipher,after:cipher,
     et:'State matrix read column by column',fm:`${[0,1,2,3].map(c=>`<span class="lbl">Col ${c}: </span><span class="vout">${[0,1,2,3].map(r=>H(ts(cipher)[r][c])).join(' ')}</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">Ciphertext: </span><span class="vout" style="font-size:.9rem;font-weight:700">${hA(cipher)}</span><br><span class="sep"></span><span class="lbl">Decrypt: same key, reverse operations.</span>`});
 
   return out;
 }
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 // RENDER
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 function startEnc(){
   const plain=document.getElementById('pIn').value;if(!plain)return;
   const kb=getKey();steps=buildSteps(plain,kb);lastCipher=encFull(plain,kb);
@@ -197,7 +197,7 @@ function startEnc(){
   setTimeout(()=>document.getElementById('flow-sec').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
-const TRACK_LABELS=['Input','Padding','Key','ARK 0','SubBytes','ShiftRows','MixCols','ARK 1','Rnds 2вЂ“14','Output'];
+const TRACK_LABELS=['Input','Padding','Key','ARK 0','SubBytes','ShiftRows','MixCols','ARK 1','Rnds 2-14','Output'];
 function buildTrack(){
   const t=document.getElementById('ftrack');t.innerHTML='';
   steps.forEach((_,i)=>{if(i>0){const l=document.createElement('div');l.className='ftline';l.id=`ftl${i-1}`;t.appendChild(l);}
@@ -222,8 +222,8 @@ function renderStep(idx){
   sbs.style.borderRadius=s.showSboxHint?'4px':'';
 
   let html=`<div class="sbadge ${s.bc}">${s.badge}</div><div class="stitle">${s.title}</div><div class="swhy">${s.why}</div>`;
-  if(s.showAscii)html+=`<div style="position:relative;display:inline-block;margin-bottom:14px"><div class="ascii-hint" onclick="toggleAscii('ap-s','ah-s')">в–¶ ASCII Table вЂ” character reference</div><div class="ascii-pop" id="ap-s"><h4>ASCII Reference</h4><div class="ascii-grid" id="ag-s"></div></div></div>`;
-  if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> The lookup table is in the Theory section above. <a href="#sbox-sec" style="color:var(--gold);font-weight:700">Scroll up to see it в†’</a></div>`;
+  if(s.showAscii)html+=`<div style="position:relative;display:inline-block;margin-bottom:14px"><div class="ascii-hint" onclick="toggleAscii('ap-s','ah-s')">> ASCII Table - character reference</div><div class="ascii-pop" id="ap-s"><h4>ASCII Reference</h4><div class="ascii-grid" id="ag-s"></div></div></div>`;
+  if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> The lookup table is in the Theory section above. <a href="#sbox-sec" style="color:var(--gold);font-weight:700">Scroll up to see it -></a></div>`;
 
   html+=`<div class="sbody"><div><div class="sg-lbl" id="sc-lbl">${s.glbl}</div><div class="sgrid" id="sc-grid"></div></div><div class="sexpl"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm}</div></div></div>`;
   card.innerHTML=html;
@@ -237,7 +237,6 @@ function renderStep(idx){
   document.getElementById('btnnxt').disabled=false;
   document.getElementById('pbf').style.width=`${(idx/(steps.length-1))*100}%`;
   if(idx===steps.length-1&&lastCipher){document.getElementById('out-blk').classList.add('show');document.getElementById('out-val').textContent=hA(lastCipher);}
-  updateMapLinks();
 }
 
 function buildGrid(s){
@@ -270,31 +269,31 @@ function showCellDetail(s,idx){
   const bv=s.before[idx],av=s.after[idx];
   if(s.isARK){
     const kv=bv^av,bvb=B8(bv),kvb=B8(kv),rvb=B8(av);
-    let bc='';for(let bit=7;bit>=0;bit--){const ba=(bv>>bit)&1,bk=(kv>>bit)&1,br=(av>>bit)&1;bc+=`<td class="${ba===bk?'xsm':'xd'}">${ba}вЉ•${bk}=${br}</td>`;}
-    et.textContent=`Byte [${idx}] вЂ” XOR`;
-    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">в”Ђв”ЂXORв”Ђв”Ђв–¶</span><span class="ch-t">${H(av)}</span></div><div style="overflow-x:auto"><table class="xort"><tr><td class="xlbl">State</td>${[...bvb].map(b=>`<td class="xs">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(bv)}</td></tr><tr><td class="xlbl">Key</td>${[...kvb].map(b=>`<td class="xk">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(kv)}</td></tr><tr><td class="xlbl">Rule</td>${bc}<td class="xlbl" style="padding-left:6px;font-size:.58rem">в‰ в†’1,=в†’0</td></tr><tr><td class="xlbl">Result</td>${[...rvb].map(b=>`<td class="xr">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(av)}</td></tr></table></div><span class="sep"></span><span class="vin">0x${H(bv)}</span> вЉ• <span class="vkey">0x${H(kv)}</span> = <span class="vout">0x${H(av)}</span>&nbsp;&nbsp;<span class="lbl">encrypt</span><br><span class="vout">0x${H(av)}</span> вЉ• <span class="vkey">0x${H(kv)}</span> = <span class="vin">0x${H(bv)}</span>&nbsp;&nbsp;<span class="lbl">decrypt (same op!)</span>`;
+    let bc='';for(let bit=7;bit>=0;bit--){const ba=(bv>>bit)&1,bk=(kv>>bit)&1,br=(av>>bit)&1;bc+=`<td class="${ba===bk?'xsm':'xd'}">${ba} XOR ${bk}=${br}</td>`;}
+    et.textContent=`Byte [${idx}] - XOR`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--XOR--></span><span class="ch-t">${H(av)}</span></div><div style="overflow-x:auto"><table class="xort"><tr><td class="xlbl">State</td>${[...bvb].map(b=>`<td class="xs">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(bv)}</td></tr><tr><td class="xlbl">Key</td>${[...kvb].map(b=>`<td class="xk">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(kv)}</td></tr><tr><td class="xlbl">Rule</td>${bc}<td class="xlbl" style="padding-left:6px;font-size:.58rem">!=->1,=->0</td></tr><tr><td class="xlbl">Result</td>${[...rvb].map(b=>`<td class="xr">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(av)}</td></tr></table></div><span class="sep"></span><span class="vin">0x${H(bv)}</span> XOR <span class="vkey">0x${H(kv)}</span> = <span class="vout">0x${H(av)}</span>&nbsp;&nbsp;<span class="lbl">encrypt</span><br><span class="vout">0x${H(av)}</span> XOR <span class="vkey">0x${H(kv)}</span> = <span class="vin">0x${H(bv)}</span>&nbsp;&nbsp;<span class="lbl">decrypt (same op!)</span>`;
     return;
   }
   if(s.isSUB){
     const row=bv>>4,col=bv&0xf;
-    et.textContent=`Byte [${idx}] вЂ” S-Box lookup`;
-    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">в”Ђв”ЂS-Boxв”Ђв”Ђв–¶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Input: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span><br><div class="nb-row2"><div class="nb2 nhi"><div class="nbl2" style="color:var(--ora)">High nibble</div><div class="nbv2" style="color:var(--ora)">${row}</div><div class="nbs">в†’ Row ${row}</div></div><div class="nb2 nlo"><div class="nbl2" style="color:var(--pur)">Low nibble</div><div class="nbv2" style="color:var(--pur)">${col}</div><div class="nbs">в†’ Col ${col}</div></div></div><span class="lbl">S-Box[${row}][${col}] = </span><span class="vout">0x${H(av)}</span>`;
+    et.textContent=`Byte [${idx}] - S-Box lookup`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--S-Box--></span><span class="ch-t">${H(av)}</span></div><span class="lbl">Input: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span><br><div class="nb-row2"><div class="nb2 nhi"><div class="nbl2" style="color:var(--ora)">High nibble</div><div class="nbv2" style="color:var(--ora)">${row}</div><div class="nbs">-> Row ${row}</div></div><div class="nb2 nlo"><div class="nbl2" style="color:var(--pur)">Low nibble</div><div class="nbv2" style="color:var(--pur)">${col}</div><div class="nbs">-> Col ${col}</div></div></div><span class="lbl">S-Box[${row}][${col}] = </span><span class="vout">0x${H(av)}</span>`;
     return;
   }
   if(s.isSH){
     const rowN=Math.floor(idx/4),colN=idx%4,srcCol=(colN+rowN)%4;
-    et.textContent=`Byte [${idx}] вЂ” Row ${rowN} shift`;
-    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">в”Ђв”Ђshift ${rowN}в”Ђв”Ђв–¶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Row ${rowN} shifts left by ${rowN}</span><br><span class="lbl">Col ${colN} в†ђ col ${srcCol} (value </span><span class="vin">0x${H(s.before[rowN*4+srcCol])}</span><span class="lbl">)</span><br><span class="sep"></span><span class="lbl">Before: </span><span class="vin">${[0,1,2,3].map(c=>H(s.before[rowN*4+c])).join(' ')}</span><br><span class="lbl">After:  </span><span class="vout">${[0,1,2,3].map(c=>H(s.after[rowN*4+c])).join(' ')}</span>`;
+    et.textContent=`Byte [${idx}] - Row ${rowN} shift`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--shift ${rowN}--></span><span class="ch-t">${H(av)}</span></div><span class="lbl">Row ${rowN} shifts left by ${rowN}</span><br><span class="lbl">Col ${colN} <- col ${srcCol} (value </span><span class="vin">0x${H(s.before[rowN*4+srcCol])}</span><span class="lbl">)</span><br><span class="sep"></span><span class="lbl">Before: </span><span class="vin">${[0,1,2,3].map(c=>H(s.before[rowN*4+c])).join(' ')}</span><br><span class="lbl">After:  </span><span class="vout">${[0,1,2,3].map(c=>H(s.after[rowN*4+c])).join(' ')}</span>`;
     return;
   }
   if(s.isMX){
     const colN=idx%4,rowO=Math.floor(idx/4);const colIn=[0,1,2,3].map(r=>s.before[r*4+colN]);const cf=[[2,3,1,1],[1,2,3,1],[1,1,2,3],[3,1,1,2]][rowO];
-    et.textContent=`Byte [${idx}] вЂ” Column ${colN} mix`;
-    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">в”Ђв”ЂGF(2вЃё)в”Ђв”Ђв–¶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Col ${colN}: </span><span class="vin">${colIn.map(H).join(' ')}</span><br><span class="lbl">Row ${rowO}: ${cf[0]}В·aв‚ЂвЉ•${cf[1]}В·aв‚ЃвЉ•${cf[2]}В·aв‚‚вЉ•${cf[3]}В·aв‚ѓ</span><br><span class="sep"></span>${cf.map((c,j)=>`<span class="vop">${c}В·${H(colIn[j])}=${H(gm(c,colIn[j]))}</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">XOR all = </span><span class="vout">${H(av)}</span>`;
+    et.textContent=`Byte [${idx}] - Column ${colN} mix`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--GF(2^8)--></span><span class="ch-t">${H(av)}</span></div><span class="lbl">Col ${colN}: </span><span class="vin">${colIn.map(H).join(' ')}</span><br><span class="lbl">Row ${rowO}: ${cf[0]}.a0 XOR ${cf[1]}.a1 XOR ${cf[2]}.a2 XOR ${cf[3]}.a3</span><br><span class="sep"></span>${cf.map((c,j)=>`<span class="vop">${c}.${H(colIn[j])}=${H(gm(c,colIn[j]))}</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">XOR all = </span><span class="vout">${H(av)}</span>`;
     return;
   }
   et.textContent=`Byte [${idx}]`;
-  fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">в”Ђв”Ђв–¶</span><span class="ch-t">${H(av)}</span></div>${s.fm}`;
+  fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--></span><span class="ch-t">${H(av)}</span></div>${s.fm}`;
 }
 
 function stepNav(dir){stopPlay();const n=curIdx+dir;if(n<0||n>=steps.length)return;curIdx=n;renderStep(curIdx);}
@@ -306,31 +305,12 @@ function runDec(){if(!lastCipher){alert('Encrypt first.');return;}const kb=getKe
 function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';lastCipher=null;steps=[];}
 function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;}
 
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-// MAP NAV
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-function toggleMN(id){
-  const body=document.getElementById(id);
-  const idx=id.replace('mn','');
-  const icon=document.getElementById('mni'+idx);
-  body.classList.toggle('open');
-  icon.textContent=body.classList.contains('open')?'в–ј':'в–¶';
-}
-function updateMapLinks(){
-  const sections=['about','keygen','sbox-sec','rnd-sec','prac-sec','flow-sec','team'];
-  let cur='';
-  sections.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<window.innerHeight*.55)cur=id;});
-  document.querySelectorAll('.mn-link').forEach(a=>{const href=a.getAttribute('href').replace('#','');a.classList.toggle('cur',href===cur);});
-}
-
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 // SCROLL + INIT
-// в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+// ------------------------------------------
 window.addEventListener('scroll',()=>{
   const pct=window.scrollY/(document.body.scrollHeight-window.innerHeight)*100;
   document.getElementById('prog').style.width=pct+'%';
   document.querySelectorAll('.fi').forEach(el=>{if(el.getBoundingClientRect().top<window.innerHeight-50)el.classList.add('on');});
-  updateMapLinks();
 });
 document.addEventListener('click',e=>{if(!e.target.closest('.ascii-pop')&&!e.target.closest('.ascii-hint'))document.querySelectorAll('.ascii-pop').forEach(p=>p.classList.remove('show'));});
 setTimeout(()=>{document.querySelectorAll('.fi').forEach(el=>{if(el.getBoundingClientRect().top<window.innerHeight-50)el.classList.add('on');});},100);
@@ -507,7 +487,7 @@ function syncResultPanel(){
   const out=document.getElementById('result-cipher');
   if(out)out.textContent=lastCipher?hA(lastCipher):'No ciphertext yet. Run Practice first.';
   const src=document.getElementById('dec-txt'),dst=document.getElementById('result-dec-txt'),box=document.getElementById('result-dec-box');
-  if(src&&dst&&box&&src.textContent&&src.textContent!=='вЂ”'&&src.textContent!=='-'){dst.textContent=src.textContent;box.style.display='block';}
+  if(src&&dst&&box&&src.textContent&&src.textContent!=='-'&&src.textContent!=='-'){dst.textContent=src.textContent;box.style.display='block';}
 }
 
 // Exact AES-256 key: students must see and use the real 32-byte requirement.
