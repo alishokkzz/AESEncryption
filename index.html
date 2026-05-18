@@ -2,537 +2,477 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AES-256 — Narxoz University</title>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,700;0,900;1,300;1,700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AES-256 — Learn & Practice</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f0e4;--bg2:#ece3d0;--bg3:#ddd0b5;--card:#fdfaf2;--border:#cbbfa0;
-  --text:#18120a;--muted:#6a5538;--light:#a8956e;
+  --bg:#f5ede0;--bg2:#ece0cc;--bg3:#ddd0b5;--card:#fdfaf2;--bdr:#c8b898;
+  --ink:#1a1008;--muted:#6a5438;--lt:#a8906a;
   --teal:#0b6e62;--tg:rgba(11,110,98,.2);
-  --ora:#c04a18;--og:rgba(192,74,24,.2);
-  --gold:#9a6d08;--gg:rgba(154,109,8,.2);
-  --pur:#523592;--pg:rgba(82,53,146,.2);
-  --grn:#1a6640;--grng:rgba(26,102,64,.2);
+  --ora:#c04818;--og:rgba(192,72,24,.2);
+  --gold:#9a6c08;--gg:rgba(154,108,8,.2);
+  --pur:#523092;--pg:rgba(82,48,146,.2);
+  --grn:#186038;--grng:rgba(24,96,56,.2);
   --red:#a01818;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
 
-/* ── CLOUDS ── */
-.cw{position:fixed;top:0;left:0;right:0;height:180px;pointer-events:none;z-index:0;overflow:hidden;}
+/* clouds */
+.cw{position:fixed;top:0;left:0;right:0;height:200px;pointer-events:none;z-index:0;overflow:hidden;}
 .cl{position:absolute;background:rgba(255,255,255,.55);border-radius:80px;filter:blur(4px);}
 .cl::before,.cl::after{content:'';position:absolute;background:rgba(255,255,255,.55);border-radius:50%;}
-.c1{width:200px;height:50px;top:22px;animation:cf 80s linear infinite;}
-.c1::before{width:100px;height:76px;top:-40px;left:26px;}.c1::after{width:68px;height:55px;top:-26px;left:96px;}
-.c2{width:150px;height:38px;top:72px;animation:cf 100s linear infinite 30s;opacity:.32;}
-.c2::before{width:76px;height:60px;top:-30px;left:16px;}.c2::after{width:52px;height:44px;top:-18px;left:70px;}
-.c3{width:260px;height:58px;top:8px;animation:cf 125s linear infinite 58s;opacity:.28;}
-.c3::before{width:120px;height:90px;top:-50px;left:36px;}.c3::after{width:82px;height:65px;top:-34px;left:118px;}
-@keyframes cf{from{transform:translateX(-300px);}to{transform:translateX(110vw);}}
-
-#prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--gold));z-index:3000;transition:width .15s;}
-
-/* ══ RIGHT SIDE NAVIGATION ══ */
-#sidenav{
-  position:fixed;right:0;top:50%;transform:translateY(-50%);
-  z-index:900;display:flex;flex-direction:column;align-items:flex-end;
-}
-.sn-toggle{
-  width:38px;height:38px;background:var(--teal);border:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
-  border-radius:8px 0 0 8px;box-shadow:-3px 0 12px rgba(0,0,0,.12);
-  transition:background .2s;flex-shrink:0;
-}
-.sn-toggle:hover{background:var(--gold);}
-.sn-toggle span{display:block;width:18px;height:2px;background:white;border-radius:2px;transition:all .3s;}
-.sn-toggle.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
-.sn-toggle.open span:nth-child(2){opacity:0;}
-.sn-toggle.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
-.sn-panel{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px 0 0 12px;padding:0;
-  max-height:0;overflow:hidden;
-  transition:max-height .4s ease,padding .3s;
-  box-shadow:-4px 0 20px rgba(0,0,0,.1);
-  width:200px;margin-top:6px;
-}
-.sn-panel.open{max-height:600px;padding:12px 0;}
-.sn-item{
-  display:block;padding:8px 16px;font-family:'Outfit',sans-serif;
-  font-size:.76rem;font-weight:600;color:var(--muted);text-decoration:none;
-  transition:all .2s;border-left:3px solid transparent;letter-spacing:.02em;
-  white-space:nowrap;
-}
-.sn-item:hover{color:var(--teal);background:var(--bg);border-left-color:var(--teal);}
-.sn-item.active{color:var(--teal);background:var(--bg2);border-left-color:var(--teal);font-weight:700;}
-.sn-group{font-family:'Outfit',sans-serif;font-size:.6rem;font-weight:700;
-  letter-spacing:.18em;text-transform:uppercase;color:var(--light);
-  padding:10px 16px 4px;margin-top:4px;}
-.sn-group:first-child{margin-top:0;}
+.c1{width:200px;height:50px;top:24px;animation:cf 76s linear infinite;}
+.c1::before{width:100px;height:78px;top:-42px;left:27px;}.c1::after{width:68px;height:56px;top:-27px;left:96px;}
+.c2{width:150px;height:38px;top:74px;animation:cf 96s linear infinite 28s;opacity:.32;}
+.c2::before{width:76px;height:60px;top:-32px;left:17px;}.c2::after{width:52px;height:44px;top:-19px;left:70px;}
+.c3{width:260px;height:58px;top:9px;animation:cf 120s linear infinite 54s;opacity:.28;}
+.c3::before{width:120px;height:92px;top:-50px;left:36px;}.c3::after{width:80px;height:64px;top:-34px;left:116px;}
+@keyframes cf{from{transform:translateX(-310px);}to{transform:translateX(110vw);}}
+#prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--gold));z-index:3000;transition:width .12s;}
 
 /* ── HEADER ── */
-header{
-  position:fixed;top:0;left:0;right:0;z-index:800;height:52px;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:0 5%;background:rgba(246,240,228,.96);backdrop-filter:blur(16px);
-  border-bottom:1px solid var(--border);
-}
-.hbrand{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:900;color:var(--text);letter-spacing:-.02em;}
+header{position:fixed;top:0;left:0;right:0;z-index:800;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 5%;background:rgba(245,237,224,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);}
+.hbrand{font-family:'Fraunces',serif;font-size:1.08rem;font-weight:900;color:var(--ink);letter-spacing:-.02em;}
 .hbrand b{color:var(--teal);}
-.hlinks{display:flex;gap:20px;list-style:none;}
-.hlinks a{font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s;}
+.hlinks{display:flex;gap:16px;list-style:none;}
+.hlinks a{font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s;}
 .hlinks a:hover{color:var(--teal);}
 
+/* ── MAP NAVIGATION ── */
+#mapnav{position:fixed;right:16px;top:50%;transform:translateY(-50%);z-index:700;display:flex;flex-direction:column;gap:4px;width:180px;}
+.mn-section{background:var(--card);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;box-shadow:2px 2px 10px rgba(0,0,0,.08);}
+.mn-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;background:var(--bg2);transition:background .2s;}
+.mn-header:hover{background:var(--bdr);}
+.mn-htitle{font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.mn-icon{font-size:.7rem;color:var(--lt);transition:transform .3s;}
+.mn-body{max-height:0;overflow:hidden;transition:max-height .35s ease;}
+.mn-body.open{max-height:300px;}
+.mn-link{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:.72rem;font-weight:600;color:var(--muted);text-decoration:none;transition:all .18s;border-left:3px solid transparent;}
+.mn-link:hover{color:var(--teal);background:var(--bg);border-left-color:var(--teal);}
+.mn-link.cur{color:var(--teal);background:var(--bg2);border-left-color:var(--teal);font-weight:700;}
+.mn-dot{width:7px;height:7px;border-radius:50%;background:var(--bdr);flex-shrink:0;transition:background .2s;}
+.mn-link.cur .mn-dot,.mn-link:hover .mn-dot{background:var(--teal);}
+.mn-link.done-link .mn-dot{background:var(--grn);}
+.mn-link.done-link{color:var(--grn);}
+@media(max-width:900px){#mapnav{display:none;}}
+
 /* ── HERO ── */
-.hero{
-  position:relative;min-height:100vh;
-  display:flex;align-items:center;justify-content:center;text-align:center;
-  padding:100px 5% 80px;
-  background:linear-gradient(150deg,#cfe8e4 0%,var(--bg) 48%,#eddcc8 100%);
-  overflow:hidden;
-}
-.hero-grid{position:absolute;inset:0;background-image:radial-gradient(var(--border) 1.5px,transparent 1.5px);background-size:28px 28px;opacity:.35;}
-.hero-inner{position:relative;z-index:2;max-width:780px;}
-.hero-sup{
-  display:inline-block;font-family:'Outfit',sans-serif;font-size:.66rem;font-weight:700;
-  letter-spacing:.22em;text-transform:uppercase;color:var(--teal);
-  border:1.5px solid var(--teal);padding:5px 14px;border-radius:999px;margin-bottom:24px;
-  animation:fup .7s ease both;
-}
-.hero h1{
-  font-family:'Fraunces',serif;font-size:clamp(3rem,8vw,6rem);font-weight:900;
-  line-height:1;letter-spacing:-.04em;color:var(--text);
-  animation:fup .7s ease .1s both;
-}
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:100px 5% 80px;background:linear-gradient(150deg,#cde8e4 0%,var(--bg) 50%,#eddcc8 100%);overflow:hidden;}
+.h-grid{position:absolute;inset:0;background-image:radial-gradient(var(--bdr) 1.4px,transparent 1.4px);background-size:28px 28px;opacity:.34;}
+.h-in{position:relative;z-index:2;max-width:800px;}
+.h-sup{display:inline-block;font-size:.65rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);border:1.5px solid var(--teal);padding:4px 14px;border-radius:999px;margin-bottom:22px;animation:fup .7s ease both;}
+.hero h1{font-family:'Fraunces',serif;font-size:clamp(2.8rem,7.5vw,5.8rem);font-weight:900;line-height:.98;letter-spacing:-.04em;color:var(--ink);animation:fup .7s ease .1s both;}
 .hero h1 em{color:var(--teal);font-style:italic;}
-.hero-desc{font-size:.98rem;color:var(--muted);line-height:1.82;margin:20px auto 0;max-width:480px;animation:fup .7s ease .2s both;}
-.hero-btns{margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fup .7s ease .3s both;}
-.btn-p{background:var(--teal);color:white;border:none;padding:12px 28px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 16px var(--tg);}
+.hero-d{font-size:.96rem;color:var(--muted);line-height:1.82;margin:18px auto 0;max-width:480px;animation:fup .7s ease .2s both;}
+.hcta{margin-top:30px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;animation:fup .7s ease .3s both;}
+.btn-p{background:var(--teal);color:white;border:none;padding:11px 26px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 16px var(--tg);}
 .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px var(--tg);}
-.btn-o{background:transparent;color:var(--text);border:2px solid var(--border);padding:12px 28px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:border-color .2s,color .2s;}
+.btn-o{background:transparent;color:var(--ink);border:2px solid var(--bdr);padding:11px 26px;border-radius:9px;font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;cursor:pointer;text-decoration:none;display:inline-block;transition:border-color .2s,color .2s;}
 .btn-o:hover{border-color:var(--teal);color:var(--teal);}
-.fhex{position:absolute;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--teal);opacity:.11;animation:hfl 10s ease-in-out infinite;user-select:none;pointer-events:none;}
-@keyframes hfl{0%,100%{transform:translateY(0);}50%{transform:translateY(-13px);}}
-.fhex:nth-child(1){top:11%;left:3.5%;}.fhex:nth-child(2){top:20%;right:5%;animation-delay:2.5s;}
-.fhex:nth-child(3){top:55%;left:2%;animation-delay:4s;font-size:.54rem;}.fhex:nth-child(4){top:63%;right:4%;animation-delay:1.8s;}
+.fhex{position:absolute;font-family:'DM Mono',monospace;font-size:.6rem;color:var(--teal);opacity:.1;animation:hfl 10s ease-in-out infinite;user-select:none;pointer-events:none;}
+@keyframes hfl{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.fhex:nth-child(1){top:11%;left:3%;}.fhex:nth-child(2){top:20%;right:5%;animation-delay:2.5s;}
+.fhex:nth-child(3){top:55%;left:2%;animation-delay:4s;font-size:.52rem;}.fhex:nth-child(4){top:62%;right:4%;animation-delay:1.8s;}
 .fhex:nth-child(5){top:38%;left:9%;animation-delay:3.8s;}.fhex:nth-child(6){top:44%;right:10%;animation-delay:.9s;}
 @keyframes fup{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
 
-/* ── SECTIONS ── */
+/* ── SHARED ── */
 section{position:relative;z-index:1;}
-.sec{max-width:1020px;margin:0 auto;padding:72px 5%;}
-.sec-tag{font-family:'Outfit',sans-serif;font-size:.64rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:9px;}
-.sec-h{font-family:'Fraunces',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:700;color:var(--text);margin-bottom:13px;line-height:1.08;letter-spacing:-.02em;}
-.sec-d{font-size:.94rem;color:var(--muted);line-height:1.82;max-width:580px;}
-.fi{opacity:0;transform:translateY(20px);transition:opacity .55s ease,transform .55s ease;}
+.sec{max-width:960px;margin:0 auto;padding:70px 5%;}
+.stag{font-size:.63rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);margin-bottom:9px;}
+.sh{font-family:'Fraunces',serif;font-size:clamp(1.8rem,4vw,2.6rem);font-weight:700;color:var(--ink);margin-bottom:13px;line-height:1.08;letter-spacing:-.02em;}
+.sd{font-size:.92rem;color:var(--muted);line-height:1.82;max-width:580px;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .55s,transform .55s;}
 .fi.on{opacity:1;transform:none;}
+.ibox{background:#dff0ec;border:1px solid #8eccc4;border-radius:10px;padding:13px 17px;font-size:.84rem;color:#0c4a44;line-height:1.74;margin-top:14px;}
+.wbox{background:#fef5dc;border:1px solid #dfc870;border-radius:10px;padding:13px 17px;font-size:.84rem;color:#5a4208;line-height:1.74;margin-top:14px;}
 
-/* ── ABOUT ── */
+/* ── ABOUT GRID ── */
 .asec{background:var(--card);}
-.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-top:36px;}
-.ac{background:var(--bg);border:1px solid var(--border);border-radius:13px;padding:22px 18px;transition:transform .28s,box-shadow .28s;position:relative;overflow:hidden;}
+.agrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px;margin-top:32px;}
+.ac{background:var(--bg);border:1px solid var(--bdr);border-radius:12px;padding:20px 16px;transition:transform .28s,box-shadow .28s;position:relative;overflow:hidden;}
 .ac::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--gold));opacity:0;transition:opacity .28s;}
 .ac:hover{transform:translateY(-4px);box-shadow:0 9px 28px rgba(24,18,10,.09);}
 .ac:hover::after{opacity:1;}
-.aclbl{font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:7px;}
-.ac h3{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:6px;}
-.ac p{font-size:.84rem;color:var(--muted);line-height:1.7;}
-.ibox{background:#dff0ec;border:1px solid #8eccc4;border-radius:10px;padding:14px 18px;font-size:.85rem;color:#0c4a44;line-height:1.75;margin-top:16px;}
-.ctbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:12px;overflow:hidden;box-shadow:0 3px 14px rgba(24,18,10,.07);margin-top:28px;}
-.ctbl th{background:var(--teal);color:white;padding:10px 14px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:left;}
-.ctbl td{background:white;padding:9px 14px;font-size:.83rem;color:var(--muted);border-bottom:1px solid var(--bg2);}
-.ctbl tr:last-child td{border-bottom:none;}.ctbl td:first-child{font-weight:600;color:var(--text);}
+.aclbl{font-size:.59rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:7px;}
+.ac h3{font-family:'Fraunces',serif;font-size:1.02rem;font-weight:700;color:var(--ink);margin-bottom:5px;}
+.ac p{font-size:.83rem;color:var(--muted);line-height:1.68;}
+.ctbl{width:100%;border-collapse:separate;border-spacing:0;border-radius:11px;overflow:hidden;box-shadow:0 3px 14px rgba(24,18,10,.07);margin-top:26px;}
+.ctbl th{background:var(--teal);color:white;padding:10px 13px;font-size:.7rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;text-align:left;}
+.ctbl td{background:white;padding:9px 13px;font-size:.82rem;color:var(--muted);border-bottom:1px solid var(--bg2);}
+.ctbl tr:last-child td{border-bottom:none;}.ctbl td:first-child{font-weight:600;color:var(--ink);}
 .ctbl tr:hover td{background:var(--bg);}
-.highlight-256{background:#dff0ec!important;}.ctbl td.highlight-256{font-weight:700;color:var(--teal);}
+.hi256{background:#dff0ec!important;}.ctbl td.hi256{font-weight:700;color:var(--teal);}
 
 /* ── KEY SCHEDULE ── */
 .kssec{background:var(--bg);}
-.ksvis{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:28px;margin-top:34px;box-shadow:0 3px 18px rgba(24,18,10,.06);}
-.kspl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:22px;}
-.kb{background:var(--bg2);border:2px solid var(--border);border-radius:8px;padding:8px 11px;font-family:'DM Mono',monospace;font-size:.67rem;color:var(--muted);text-align:center;min-width:78px;cursor:pointer;transition:all .2s;}
-.kb small{display:block;font-size:.56rem;opacity:.7;margin-top:2px;}
-.kb:hover,.kb.active{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 0 0 3px var(--tg),0 0 14px var(--tg);transform:scale(1.04);}
-.karr{color:var(--teal);font-size:.9rem;font-weight:700;}
-.kexpl{background:var(--bg2);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:12px 16px;font-size:.85rem;color:var(--muted);line-height:1.74;transition:opacity .2s;min-height:54px;}
+.ksvis{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:24px;margin-top:28px;}
+.kspl{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:20px;}
+.kb{background:var(--bg2);border:2px solid var(--bdr);border-radius:8px;padding:8px 10px;font-family:'DM Mono',monospace;font-size:.66rem;color:var(--muted);text-align:center;min-width:76px;cursor:pointer;transition:all .2s;}
+.kb small{display:block;font-size:.55rem;opacity:.7;margin-top:1px;}
+.kb:hover,.kb.active{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 0 0 3px var(--tg);}
+.karr{color:var(--teal);font-size:.88rem;font-weight:700;}
+.kexpl{background:var(--bg2);border-left:4px solid var(--teal);border-radius:0 8px 8px 0;padding:12px 16px;font-size:.84rem;color:var(--muted);line-height:1.74;transition:opacity .2s;min-height:52px;}
 
-/* ══ MAIN CIPHER FLOW — THE CORE ══ */
-.flow-sec{background:var(--bg2);}
-
-/* input panel at top */
-.flow-input-panel{
-  background:var(--card);border:2px solid var(--teal);border-radius:14px;
-  padding:26px 28px;margin-bottom:32px;
-  box-shadow:0 0 0 4px var(--tg),0 4px 24px rgba(0,0,0,.08);
-}
-.fip-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:4px;}
-.fip-sub{font-size:.84rem;color:var(--muted);margin-bottom:18px;}
-.fip-row{display:grid;grid-template-columns:1fr 1fr auto;gap:14px;align-items:end;}
-@media(max-width:620px){.fip-row{grid-template-columns:1fr;}}
-.fg label{display:block;font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
-.fg input{width:100%;background:var(--bg);border:2px solid var(--border);border-radius:8px;padding:9px 12px;font-family:'DM Mono',monospace;font-size:.84rem;color:var(--text);outline:none;transition:border-color .2s;}
-.fg input:focus{border-color:var(--teal);}
-.fg input::placeholder{color:var(--bg3);}
-.fip-hint{font-size:.75rem;color:var(--muted);margin-top:5px;}
-
-/* ASCII hint tooltip */
-.ascii-hint-wrap{position:relative;display:inline-block;}
-.ascii-trigger{
-  display:inline-flex;align-items:center;gap:4px;
-  font-size:.72rem;font-weight:600;color:var(--gold);cursor:pointer;
-  background:#fef5dc;border:1px solid var(--gold);padding:3px 9px;border-radius:6px;
-  transition:all .2s;margin-top:6px;
-  animation:pulse-gold 2s ease-in-out infinite;
-}
-.ascii-trigger:hover{background:var(--gold);color:white;}
-@keyframes pulse-gold{0%,100%{box-shadow:0 0 0 0 var(--gg);}50%{box-shadow:0 0 0 5px transparent;}}
-.ascii-table-popup{
-  display:none;position:absolute;left:0;top:calc(100% + 8px);
-  background:var(--card);border:2px solid var(--gold);border-radius:12px;
-  padding:14px;z-index:500;box-shadow:0 8px 32px rgba(0,0,0,.15);
-  width:480px;max-width:90vw;
-}
-.ascii-table-popup.show{display:block;animation:popIn .25s ease;}
-@keyframes popIn{from{opacity:0;transform:translateY(-8px);}to{opacity:1;transform:translateY(0);}}
-.ascii-table-popup h4{font-family:'Fraunces',serif;font-size:.95rem;font-weight:700;color:var(--text);margin-bottom:10px;}
-.ascii-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;font-family:'DM Mono',monospace;font-size:.62rem;}
-.ascii-cell{background:var(--bg2);border-radius:4px;padding:3px 2px;text-align:center;cursor:default;}
-.ascii-cell .ac-char{font-weight:700;color:var(--teal);}
-.ascii-cell .ac-num{color:var(--muted);font-size:.56rem;}
-.ascii-cell:hover{background:var(--teal);}.ascii-cell:hover .ac-char,.ascii-cell:hover .ac-num{color:white;}
-
-/* flow steps track */
-.flow-track{display:flex;gap:0;margin:28px 0 20px;overflow-x:auto;padding-bottom:4px;}
-.ft-dot{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:72px;flex-shrink:0;}
-.ft-circ{
-  width:32px;height:32px;border-radius:50%;border:2px solid var(--border);
-  background:var(--bg2);display:flex;align-items:center;justify-content:center;
-  font-family:'Outfit',sans-serif;font-size:.62rem;font-weight:700;color:var(--muted);
-  transition:all .3s;
-}
-.ft-lbl{font-size:.55rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.3;max-width:68px;}
-.ft-dot.done .ft-circ{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 0 0 3px var(--tg);}
-.ft-dot.active .ft-circ{background:var(--gold);border-color:var(--gold);color:white;box-shadow:0 0 0 4px var(--gg),0 0 14px var(--gg);animation:pp 1.2s ease-in-out infinite;}
-.ft-dot.done .ft-lbl,.ft-dot.active .ft-lbl{color:var(--text);}
-@keyframes pp{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
-.ft-line{flex:1;height:2px;background:var(--border);align-self:flex-start;margin-top:15px;min-width:10px;transition:background .4s;}
-.ft-line.done{background:var(--teal);}
-
-/* STEP CARD — page-flip feel */
-.step-card{
-  background:var(--card);border:2px solid var(--border);border-radius:14px;
-  padding:28px;position:relative;overflow:hidden;
-  box-shadow:4px 4px 0 var(--border);/* page feel */
-  transition:border-color .3s,box-shadow .3s;
-}
-.step-card::before{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,var(--teal),var(--gold));
-  transform:scaleX(0);transform-origin:left;transition:transform .4s ease;
-}
-.step-card.active{border-color:var(--teal);box-shadow:4px 4px 0 var(--tg),0 0 0 3px var(--tg);}
-.step-card.active::before{transform:scaleX(1);}
-.step-badge{
-  display:inline-block;font-size:.62rem;font-weight:700;letter-spacing:.14em;
-  text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-bottom:9px;
-  font-family:'Outfit',sans-serif;
-}
-.sb-teal{background:var(--teal);color:white;}.sb-ora{background:var(--ora);color:white;}
-.sb-grn{background:var(--grn);color:white;}.sb-pur{background:var(--pur);color:white;}
-.sb-gold{background:var(--gold);color:white;}.sb-dark{background:var(--text);color:white;}
-.step-title{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--text);margin-bottom:6px;letter-spacing:-.02em;}
-.step-why{font-size:.85rem;color:var(--muted);line-height:1.74;margin-bottom:18px;max-width:680px;}
-
-/* two-column: grid + explain */
-.step-body{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start;}
-@media(max-width:660px){.step-body{grid-template-columns:1fr;}}
-
-/* state grid */
-.sgrid{display:grid;grid-template-columns:repeat(4,60px);gap:5px;}
-.sgrid-label{font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;text-align:center;font-family:'Outfit',sans-serif;}
-.scell{
-  width:60px;height:66px;border-radius:8px;border:2px solid var(--border);
-  background:var(--bg2);display:flex;flex-direction:column;align-items:center;
-  justify-content:center;font-family:'DM Mono',monospace;font-size:.78rem;
-  font-weight:700;color:var(--text);transition:all .38s;cursor:pointer;gap:1px;padding:3px;
-}
-.scell small{font-size:.5rem;font-weight:400;opacity:.55;margin-top:1px;}
-.scell.dim{opacity:.35;}
-/* active scanning */
-.scell.sc-teal{background:var(--teal);border-color:var(--teal);color:white;transform:scale(1.1);box-shadow:0 0 0 4px var(--tg),0 0 16px var(--tg);}
-.scell.sc-ora{background:var(--ora);border-color:var(--ora);color:white;transform:scale(1.1);box-shadow:0 0 0 4px var(--og),0 0 16px var(--og);}
-.scell.sc-grn{background:var(--grn);border-color:var(--grn);color:white;transform:scale(1.1);box-shadow:0 0 0 4px var(--grng),0 0 16px var(--grng);}
-.scell.sc-pur{background:var(--pur);border-color:var(--pur);color:white;transform:scale(1.1);box-shadow:0 0 0 4px var(--pg),0 0 16px var(--pg);}
-.scell.sc-gold{background:var(--gold);border-color:var(--gold);color:white;transform:scale(1.1);box-shadow:0 0 0 4px var(--gg),0 0 16px var(--gg);}
-/* done */
-.scell.dn-teal{background:#cce8e4;border-color:var(--teal);color:var(--teal);}
-.scell.dn-ora{background:#f5ddd2;border-color:var(--ora);color:var(--ora);}
-.scell.dn-grn{background:#d2eade;border-color:var(--grn);color:var(--grn);}
-.scell.dn-pur{background:#e2dcf2;border-color:var(--pur);color:var(--pur);}
-.scell.dn-gold{background:#f5ecc8;border-color:var(--gold);color:var(--gold);}
-/* inside-cell transition text */
-.cell-from{font-size:.6rem;opacity:.8;text-decoration:line-through;}
-.cell-arr{font-size:.5rem;display:block;line-height:1.2;opacity:.85;}
-.cell-to{font-size:.86rem;font-weight:700;}
-
-/* explain panel */
-.step-explain{
-  background:var(--bg);border:1px solid var(--border);border-radius:11px;
-  padding:16px 18px;min-height:200px;overflow-x:auto;
-}
-.se-label{font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;font-family:'Outfit',sans-serif;}
-.se-fm{font-family:'DM Mono',monospace;font-size:.76rem;line-height:2;color:var(--text);}
-.se-fm .lbl{color:var(--muted);font-size:.68rem;}
-.se-fm .vin{color:var(--ora);font-weight:700;}
-.se-fm .vop{color:var(--pur);font-weight:700;}
-.se-fm .vout{color:var(--teal);font-weight:700;}
-.se-fm .vkey{color:var(--gold);font-weight:700;}
-.se-fm .sep{border-top:1.5px solid var(--border);display:block;margin:5px 0;}
-
-/* cell hero */
-.cell-hero{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;}
-.ch-from{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--ora);background:#f5ddd2;padding:5px 10px;border-radius:7px;border:2px solid var(--ora);}
-.ch-arr{font-size:.75rem;color:var(--muted);font-family:'DM Mono',monospace;}
-.ch-to{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:700;color:var(--teal);background:#cce8e4;padding:5px 10px;border-radius:7px;border:2px solid var(--teal);box-shadow:0 0 0 3px var(--tg);}
-
-/* nibble */
-.nibble-row{display:flex;gap:8px;margin:7px 0;}
-.nbbox{flex:1;border-radius:9px;padding:9px 10px;text-align:center;}
-.nb-hi{background:#f5ddd2;border:2px solid var(--ora);}
-.nb-lo{background:#e2dcf2;border:2px solid var(--pur);}
-.nb-lbl{font-size:.58rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;font-family:'Outfit',sans-serif;}
-.nb-hi .nb-lbl{color:var(--ora);}.nb-lo .nb-lbl{color:var(--pur);}
-.nb-val{font-family:'DM Mono',monospace;font-size:1.5rem;font-weight:700;line-height:1;}
-.nb-hi .nb-val{color:var(--ora);}.nb-lo .nb-val{color:var(--pur);}
-.nb-sub{font-size:.6rem;color:var(--muted);margin-top:3px;line-height:1.3;}
-
-/* XOR table */
-.xor-table{border-collapse:separate;border-spacing:2px;font-family:'DM Mono',monospace;font-size:.7rem;white-space:nowrap;}
-.xor-table td{padding:3px 5px;border-radius:4px;text-align:center;font-weight:700;}
-.xr-lbl{color:var(--muted);font-size:.62rem;font-weight:400!important;text-align:left!important;padding-right:8px!important;}
-.xr-state{background:#f5ddd2;color:var(--ora);}
-.xr-key{background:#f5ecc8;color:var(--gold);}
-.xr-rule-diff{background:#d2eade;color:var(--grn);}
-.xr-rule-same{background:#f5ddd2;color:var(--ora);}
-.xr-result{background:#cce8e4;color:var(--teal);}
-
-/* player */
-.sv-player{margin-top:16px;background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px 18px;}
-.sv-pbwrap{height:4px;background:var(--bg3);border-radius:999px;overflow:hidden;margin-bottom:12px;}
-.sv-pbfill{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:999px;width:0%;transition:width .3s;}
-.sv-controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
-.sv-ctr{font-size:.74rem;font-weight:700;color:var(--muted);flex:1;font-family:'Outfit',sans-serif;}
-.cbtn{padding:7px 16px;border-radius:8px;border:2px solid var(--border);background:var(--card);font-family:'Outfit',sans-serif;font-size:.74rem;font-weight:700;cursor:pointer;transition:all .2s;color:var(--muted);}
-.cbtn:hover:not(:disabled){border-color:var(--teal);color:var(--teal);}
-.cbtn:disabled{opacity:.3;cursor:not-allowed;}
-.cbtn.play{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 3px 10px var(--tg);}
-.cbtn.stop{background:var(--ora);border-color:var(--ora);color:white;}
-.cbtn.nxt{background:var(--text);border-color:var(--text);color:white;}
-.cbtn.nxt:hover:not(:disabled){background:#3a2a10;}
-.sv-speed{display:flex;align-items:center;gap:6px;margin-top:9px;}
-.sv-speed label{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-family:'Outfit',sans-serif;}
-.spb{padding:3px 10px;border-radius:999px;border:1.5px solid var(--border);background:var(--card);font-size:.66rem;font-weight:700;cursor:pointer;transition:all .18s;color:var(--muted);font-family:'Outfit',sans-serif;}
-.spb:hover,.spb.on{background:var(--teal);border-color:var(--teal);color:white;}
-
-/* output */
-.out-block{background:var(--card);border:2px solid var(--teal);border-radius:11px;padding:16px 18px;margin-top:16px;display:none;box-shadow:0 0 0 3px var(--tg);}
-.out-block.show{display:block;}
-.out-lbl{font-size:.64rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;font-family:'Outfit',sans-serif;}
-.out-val{font-family:'DM Mono',monospace;font-size:.84rem;color:var(--text);word-break:break-all;line-height:1.7;}
-.dec-box{display:none;margin-top:12px;background:#dff0ec;border:1px solid #8eccc4;border-radius:9px;padding:12px 16px;font-size:.88rem;color:#0c4a44;line-height:1.7;}
-
-/* ROUND COUNT EXPLAINER */
-.round-why{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-top:28px;box-shadow:0 3px 14px rgba(24,18,10,.06);}
-.rw-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px;}
-.rw-chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
-.rw-chip{padding:5px 12px;border-radius:999px;font-family:'DM Mono',monospace;font-size:.7rem;font-weight:700;background:var(--bg2);color:var(--muted);border:1px solid var(--border);transition:all .28s;}
-.rw-chip.lit{background:var(--teal);color:white;border-color:var(--teal);box-shadow:0 0 8px var(--tg);}
-.rw-chip.special{background:var(--gold);color:white;border-color:var(--gold);}
-
-/* ── ROUND DIAGRAM ── */
-.round-diag-sec{background:var(--bg);}
-.rdrow{background:var(--bg2);border:1.5px solid var(--border);border-radius:10px;padding:13px 18px;margin-bottom:5px;}
-.rdrow.acc{border-color:var(--teal);background:linear-gradient(135deg,#d4eeea,#f6f0e4);}
-.rdrow h4{font-family:'Outfit',sans-serif;font-size:.86rem;font-weight:700;color:var(--text);margin-bottom:4px;}
-.rdrow p{font-size:.81rem;color:var(--muted);}
-.rdsteps{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px;}
-.rdch{padding:6px 12px;border-radius:7px;font-size:.72rem;font-weight:700;color:white;font-family:'Outfit',sans-serif;}
-.rdarr{text-align:center;font-size:1.1rem;color:var(--teal);padding:2px 0;}
-
-/* ── SBOX TABLE ── */
+/* ── S-BOX ── */
 .sbox-sec{background:var(--card);}
-.sboxt{border-collapse:separate;border-spacing:2px;font-family:'DM Mono',monospace;font-size:.62rem;}
-.sboxt th{background:var(--teal);color:white;padding:4px 6px;border-radius:3px;text-align:center;font-weight:700;}
-.sboxt td{background:var(--bg);border:1px solid var(--border);padding:4px 6px;text-align:center;border-radius:3px;cursor:pointer;transition:all .18s;}
+.sboxt{border-collapse:separate;border-spacing:2px;font-family:'DM Mono',monospace;font-size:.6rem;}
+.sboxt th{background:var(--teal);color:white;padding:4px 5px;border-radius:3px;text-align:center;font-weight:700;}
+.sboxt td{background:var(--bg);border:1px solid var(--bdr);padding:4px 5px;text-align:center;border-radius:3px;cursor:pointer;transition:all .16s;}
 .sboxt td:hover{background:var(--teal);color:white;transform:scale(1.15);}
 
-/* ── TEAM ── */
-.tsec{background:var(--bg2);}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:13px;margin-top:30px;}
-.tcard{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px 14px;text-align:center;transition:transform .2s;}
-.tcard:hover{transform:translateY(-3px);}
-.tav{width:44px;height:44px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-size:1.05rem;font-weight:900;border:2px solid var(--border);}
-.tcard h4{font-family:'Outfit',sans-serif;font-size:.83rem;font-weight:700;color:var(--text);margin-bottom:2px;}
-.tcard small{font-size:.7rem;color:var(--muted);}
-.trole{display:inline-block;margin-top:6px;font-size:.6rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--bg2);color:var(--muted);border:1px solid var(--border);}
-.acad{background:#fef8e4;border:1px solid #dfc870;border-radius:10px;padding:14px 18px;font-size:.83rem;color:#5a4208;line-height:1.74;margin-top:26px;}
+/* ── ROUND SECTION ── */
+.rnd-sec{background:var(--bg2);}
+.rdbig{background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-top:22px;}
+.rdrow{background:var(--bg2);border:1.5px solid var(--bdr);border-radius:9px;padding:12px 15px;margin-bottom:4px;}
+.rdrow.acc{border-color:var(--teal);background:linear-gradient(135deg,#d4eeea,#f5ede0);}
+.rdrow h5{font-size:.84rem;font-weight:700;color:var(--ink);margin-bottom:3px;}
+.rdrow p{font-size:.79rem;color:var(--muted);}
+.rdstps{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+.rdch{padding:5px 10px;border-radius:6px;font-size:.7rem;font-weight:700;color:white;}
+.rda{text-align:center;font-size:1rem;color:var(--teal);padding:2px 0;}
+.rchips{display:flex;gap:5px;flex-wrap:wrap;margin:12px 0 9px;}
+.rchip{padding:4px 9px;border-radius:999px;font-family:'DM Mono',monospace;font-size:.66rem;font-weight:700;background:var(--bg2);color:var(--muted);border:1px solid var(--bdr);transition:all .25s;}
+.rchip.lit{background:var(--teal);color:white;border-color:var(--teal);box-shadow:0 0 8px var(--tg);}
+.rchip.sp{background:var(--gold);color:white;border-color:var(--gold);}
 
-footer{background:var(--text);color:rgba(255,255,255,.4);text-align:center;padding:28px 5%;font-size:.75rem;line-height:1.9;}
+/* ═══════════════════════════════════
+   PRACTICE SECTION
+═══════════════════════════════════ */
+.prac-sec{background:var(--bg);}
+.task{background:white;border:2px solid var(--ora);border-radius:13px;padding:26px;margin-bottom:18px;position:relative;}
+.task::before{content:attr(data-label);position:absolute;top:-12px;left:16px;background:var(--ora);color:white;font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 10px;border-radius:999px;}
+.task-q{font-family:'Fraunces',serif;font-size:1.05rem;font-weight:700;color:var(--ink);margin-bottom:10px;margin-top:6px;}
+.task-hint{font-size:.8rem;color:var(--muted);line-height:1.72;margin-bottom:14px;}
+
+/* input cells */
+.hinput{font-family:'DM Mono',monospace;font-size:1rem;font-weight:700;width:66px;text-align:center;padding:8px 3px;border:2px solid var(--bdr);border-radius:8px;background:var(--bg);color:var(--ink);outline:none;text-transform:uppercase;transition:border-color .2s;}
+.hinput:focus{border-color:var(--teal);}
+.hinput.ok{border-color:var(--grn);background:#dff0ec;color:var(--grn);}
+.hinput.no{border-color:var(--red);background:#fde0d8;color:var(--red);animation:shk .3s ease;}
+@keyframes shk{0%,100%{transform:translateX(0);}25%{transform:translateX(-4px);}75%{transform:translateX(4px);}}
+.chk-btn{background:var(--teal);color:white;border:none;padding:9px 18px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .18s;margin-top:12px;}
+.chk-btn:hover{background:#085048;transform:translateY(-1px);}
+.rvl-btn{background:transparent;border:1.5px solid var(--bdr);color:var(--muted);padding:7px 14px;border-radius:8px;font-size:.74rem;font-weight:700;cursor:pointer;margin-top:12px;margin-left:8px;font-family:'Outfit',sans-serif;transition:all .18s;}
+.rvl-btn:hover{border-color:var(--teal);color:var(--teal);}
+.fb{font-size:.86rem;font-weight:700;margin-top:8px;display:none;padding:8px 14px;border-radius:8px;}
+.fb.ok{background:#dff0ec;color:var(--grn);display:none;}
+.fb.no{background:#fde0d8;color:var(--red);display:none;}
+
+/* bit cells */
+.bit-strip{display:flex;gap:3px;}
+.bt{width:28px;height:28px;border-radius:5px;border:1.5px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.8rem;font-weight:700;color:var(--ink);}
+.bt.ora{background:#f5ddd2;border-color:var(--ora);color:var(--ora);}
+.bt.gld{background:#f5ecc8;border-color:var(--gold);color:var(--gold);}
+.bt.tel{background:#cce8e4;border-color:var(--teal);color:var(--teal);}
+.bt.grn{background:#d2eade;border-color:var(--grn);color:var(--grn);}
+.bt.red{background:#fde0d8;border-color:var(--red);color:var(--red);}
+.bt.blank{background:var(--bg2);cursor:pointer;transition:all .18s;}
+.bt.blank:hover{background:var(--teal);color:white;border-color:var(--teal);}
+
+/* nibble boxes */
+.nb-pair{display:flex;gap:8px;margin:8px 0;}
+.nb{border-radius:9px;padding:8px 12px;text-align:center;min-width:80px;}
+.nb.hi{background:#f5ddd2;border:2px solid var(--ora);}
+.nb.lo{background:#e2dcf2;border:2px solid var(--pur);}
+.nb .nbl{font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.nb.hi .nbl{color:var(--ora);}.nb.lo .nbl{color:var(--pur);}
+.nb .nbv{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;}
+.nb.hi .nbv{color:var(--ora);}.nb.lo .nbv{color:var(--pur);}
+.nb .nbs{font-size:.6rem;color:var(--muted);margin-top:2px;}
+
+/* ascii popup */
+.ascii-hint{display:inline-flex;align-items:center;gap:5px;font-size:.71rem;font-weight:600;color:var(--gold);cursor:pointer;background:#fef5dc;border:1.5px solid var(--gold);padding:3px 10px;border-radius:6px;transition:all .18s;margin:6px 0 0;animation:pulseg 2.2s ease-in-out infinite;}
+.ascii-hint:hover{background:var(--gold);color:white;}
+@keyframes pulseg{0%,100%{box-shadow:0 0 0 0 transparent;}50%{box-shadow:0 0 0 4px var(--gg);}}
+.ascii-pop{display:none;position:absolute;left:0;top:calc(100%+8px);z-index:500;background:var(--card);border:2px solid var(--gold);border-radius:12px;padding:14px;width:480px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+.ascii-pop.show{display:block;animation:pin .22s ease;}
+@keyframes pin{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.ascii-pop h4{font-family:'Fraunces',serif;font-size:.9rem;font-weight:700;margin-bottom:8px;}
+.ascii-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;}
+.ascii-cell{background:var(--bg2);border-radius:4px;padding:3px 2px;text-align:center;cursor:default;transition:background .14s;}
+.ascii-cell:hover{background:var(--teal);}
+.ascii-cell .achar{font-family:'DM Mono',monospace;font-size:.68rem;font-weight:700;color:var(--teal);}
+.ascii-cell:hover .achar,.ascii-cell:hover .anum{color:white!important;}
+.ascii-cell .anum{font-size:.52rem;color:var(--muted);}
+
+/* ═══════════════════════════════════
+   FULL ENCRYPTION FLOW
+═══════════════════════════════════ */
+.flow-sec{background:var(--bg2);}
+.flow-inp{background:var(--card);border:2px solid var(--teal);border-radius:13px;padding:22px;margin-bottom:24px;box-shadow:0 0 0 4px var(--tg);}
+.fi-title{font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.fi-sub{font-size:.82rem;color:var(--muted);margin-bottom:14px;}
+.fi-row{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end;}
+@media(max-width:580px){.fi-row{grid-template-columns:1fr;}}
+.fg label{display:block;font-size:.62rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.fg input{width:100%;background:var(--bg);border:2px solid var(--bdr);border-radius:8px;padding:9px 12px;font-family:'DM Mono',monospace;font-size:.82rem;color:var(--ink);outline:none;transition:border-color .2s;}
+.fg input:focus{border-color:var(--teal);}
+.fg input::placeholder{color:var(--bg3);}
+
+/* track */
+.ftrack{display:flex;gap:0;overflow-x:auto;padding-bottom:4px;margin:20px 0 16px;}
+.ftd{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;min-width:64px;flex-shrink:0;}
+.ftc{width:29px;height:29px;border-radius:50%;border:2px solid var(--bdr);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:.59rem;font-weight:700;color:var(--muted);transition:all .3s;}
+.ftlbl{font-size:.51rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:center;line-height:1.3;max-width:62px;}
+.ftd.done .ftc{background:var(--teal);border-color:var(--teal);color:white;box-shadow:0 0 0 3px var(--tg);}
+.ftd.active .ftc{background:var(--gold);border-color:var(--gold);color:white;box-shadow:0 0 0 4px var(--gg);animation:ppulse 1.2s ease-in-out infinite;}
+.ftd.done .ftlbl,.ftd.active .ftlbl{color:var(--ink);}
+@keyframes ppulse{0%,100%{transform:scale(1);}50%{transform:scale(1.15);}}
+.ftline{flex:1;height:2px;background:var(--bdr);align-self:flex-start;margin-top:13px;min-width:8px;transition:background .4s;}
+.ftline.done{background:var(--teal);}
+
+/* step card */
+.scard{background:var(--card);border:2px solid var(--bdr);border-radius:13px;padding:24px;box-shadow:3px 3px 0 var(--bdr);transition:border-color .3s,box-shadow .3s;}
+.scard.active{border-color:var(--teal);box-shadow:3px 3px 0 var(--tg),0 0 0 3px var(--tg);}
+.scard.flip{animation:flipIn .36s ease both;}
+@keyframes flipIn{from{opacity:0;transform:rotateY(-10deg) translateX(16px);}to{opacity:1;transform:none;}}
+.sbadge{display:inline-block;font-size:.6rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;padding:3px 10px;border-radius:999px;margin-bottom:8px;}
+.st{background:var(--teal);color:white;}.so{background:var(--ora);color:white;}
+.sg{background:var(--grn);color:white;}.sp{background:var(--pur);color:white;}
+.sd2{background:var(--gold);color:white;}.sk{background:var(--ink);color:white;}
+.stitle{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;color:var(--ink);margin-bottom:6px;letter-spacing:-.02em;}
+.swhy{font-size:.83rem;color:var(--muted);line-height:1.74;margin-bottom:14px;max-width:650px;}
+
+.sbody{display:grid;grid-template-columns:auto 1fr;gap:17px;align-items:start;}
+@media(max-width:620px){.sbody{grid-template-columns:1fr;}}
+.sgrid{display:grid;grid-template-columns:repeat(4,56px);gap:4px;}
+.sg-lbl{font-size:.57rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;text-align:center;}
+.scell{width:56px;height:62px;border-radius:8px;border:2px solid var(--bdr);background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.74rem;font-weight:700;color:var(--ink);transition:all .36s;cursor:pointer;gap:1px;padding:3px;}
+.scell small{font-size:.47rem;font-weight:400;opacity:.55;}
+.scell.dim{opacity:.34;}
+.scell.sct{background:var(--teal);border-color:var(--teal);color:white;transform:scale(1.09);box-shadow:0 0 0 4px var(--tg),0 0 16px var(--tg);}
+.scell.sco{background:var(--ora);border-color:var(--ora);color:white;transform:scale(1.09);box-shadow:0 0 0 4px var(--og),0 0 16px var(--og);}
+.scell.scg{background:var(--grn);border-color:var(--grn);color:white;transform:scale(1.09);box-shadow:0 0 0 4px var(--grng),0 0 16px var(--grng);}
+.scell.scp{background:var(--pur);border-color:var(--pur);color:white;transform:scale(1.09);box-shadow:0 0 0 4px var(--pg),0 0 16px var(--pg);}
+.scell.scd{background:var(--gold);border-color:var(--gold);color:white;transform:scale(1.09);box-shadow:0 0 0 4px var(--gg),0 0 16px var(--gg);}
+.scell.dnt{background:#cce8e4;border-color:var(--teal);color:var(--teal);}
+.scell.dno{background:#f5ddd2;border-color:var(--ora);color:var(--ora);}
+.scell.dng{background:#d2eade;border-color:var(--grn);color:var(--grn);}
+.scell.dnp{background:#e2dcf2;border-color:var(--pur);color:var(--pur);}
+.scell.dnd{background:#f5ecc8;border-color:var(--gold);color:var(--gold);}
+.cf{font-size:.57rem;opacity:.8;text-decoration:line-through;}
+.ca{font-size:.84rem;font-weight:700;}
+
+.sexpl{background:var(--bg);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;min-height:190px;overflow-x:auto;}
+.se-lbl{font-size:.61rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.se-fm{font-family:'DM Mono',monospace;font-size:.73rem;line-height:2;color:var(--ink);}
+.lbl{color:var(--muted);font-size:.65rem;}.vin{color:var(--ora);font-weight:700;}.vop{color:var(--pur);font-weight:700;}
+.vout{color:var(--teal);font-weight:700;}.vkey{color:var(--gold);font-weight:700;}
+.sep{border-top:1.5px solid var(--bdr);display:block;margin:4px 0;}
+.ch{display:flex;align-items:center;gap:9px;margin-bottom:7px;flex-wrap:wrap;}
+.ch-f{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--ora);background:#f5ddd2;padding:4px 10px;border-radius:7px;border:2px solid var(--ora);}
+.ch-a{font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace;}
+.ch-t{font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:700;color:var(--teal);background:#cce8e4;padding:4px 10px;border-radius:7px;border:2px solid var(--teal);box-shadow:0 0 0 3px var(--tg);}
+.nb-row2{display:flex;gap:8px;margin:7px 0;}
+.nb2{flex:1;border-radius:8px;padding:8px 10px;text-align:center;}
+.nhi{background:#f5ddd2;border:2px solid var(--ora);}.nlo{background:#e2dcf2;border:2px solid var(--pur);}
+.nbl2{font-size:.56rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px;}
+.nhi .nbl2{color:var(--ora);}.nlo .nbl2{color:var(--pur);}
+.nbv2{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:700;}
+.nhi .nbv2{color:var(--ora);}.nlo .nbv2{color:var(--pur);}
+.xort{border-collapse:separate;border-spacing:2px;font-family:'DM Mono',monospace;font-size:.67rem;white-space:nowrap;}
+.xort td{padding:3px 4px;border-radius:4px;text-align:center;font-weight:700;}
+.xlbl{color:var(--muted);font-size:.59rem;font-weight:400!important;text-align:left!important;padding-right:7px!important;}
+.xs{background:#f5ddd2;color:var(--ora);}.xk{background:#f5ecc8;color:var(--gold);}
+.xd{background:#d2eade;color:var(--grn);}.xsm{background:#f5ddd2;color:var(--ora);}
+.xr{background:#cce8e4;color:var(--teal);}
+
+/* player */
+.player{margin-top:13px;background:var(--bg2);border:1px solid var(--bdr);border-radius:10px;padding:13px 16px;}
+.pb-w{height:4px;background:var(--bg3);border-radius:999px;overflow:hidden;margin-bottom:11px;}
+.pb-f{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:999px;width:0%;transition:width .3s;}
+.p-ctrl{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.pctr{font-size:.71rem;font-weight:700;color:var(--muted);flex:1;}
+.cbtn{padding:6px 13px;border-radius:7px;border:2px solid var(--bdr);background:var(--card);font-family:'Outfit',sans-serif;font-size:.71rem;font-weight:700;cursor:pointer;transition:all .18s;color:var(--muted);}
+.cbtn:hover:not(:disabled){border-color:var(--teal);color:var(--teal);}
+.cbtn:disabled{opacity:.3;cursor:not-allowed;}
+.cbtn.play{background:var(--teal);border-color:var(--teal);color:white;}
+.cbtn.stop{background:var(--ora);border-color:var(--ora);color:white;}
+.cbtn.nxt{background:var(--ink);border-color:var(--ink);color:white;}
+.spd{display:flex;align-items:center;gap:5px;margin-top:8px;}
+.spd label{font-size:.59rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.spb{padding:3px 9px;border-radius:999px;border:1.5px solid var(--bdr);background:var(--card);font-size:.63rem;font-weight:700;cursor:pointer;transition:all .16s;color:var(--muted);}
+.spb:hover,.spb.on{background:var(--teal);border-color:var(--teal);color:white;}
+
+.out-blk{background:var(--card);border:2px solid var(--teal);border-radius:10px;padding:13px 17px;margin-top:13px;display:none;box-shadow:0 0 0 3px var(--tg);}
+.out-blk.show{display:block;}
+.out-lbl{font-size:.61rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);margin-bottom:5px;}
+.out-val{font-family:'DM Mono',monospace;font-size:.81rem;color:var(--ink);word-break:break-all;line-height:1.7;}
+.dec-box{display:none;margin-top:10px;background:#dff0ec;border:1px solid #8eccc4;border-radius:9px;padding:11px 15px;font-size:.86rem;color:#0c4a44;}
+
+/* ═══════════════════════════════════
+   TEAM AVATARS
+═══════════════════════════════════ */
+.tsec{background:var(--card);}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-top:28px;}
+.tcard{background:var(--bg);border:1px solid var(--bdr);border-radius:14px;padding:22px 14px;text-align:center;transition:transform .22s,box-shadow .22s;overflow:hidden;position:relative;}
+.tcard:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(24,18,10,.1);}
+
+/* avatar container */
+.av-wrap{position:relative;width:80px;height:80px;margin:0 auto 12px;}
+.av{width:80px;height:80px;border-radius:50%;border:3px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:2.2rem;transition:border-color .3s;position:relative;overflow:hidden;}
+.tcard:hover .av{border-color:var(--teal);}
+
+/* sparkle ring on hover */
+.av-ring{position:absolute;inset:-6px;border-radius:50%;border:2px dashed transparent;transition:border-color .3s,transform .3s;}
+.tcard:hover .av-ring{border-color:var(--teal);transform:rotate(90deg);}
+
+/* floating stars on hover */
+.star{position:absolute;font-size:.7rem;opacity:0;pointer-events:none;animation:starPop 1.5s ease-in-out infinite;}
+.tcard:hover .star{opacity:1;}
+.s1{top:-4px;left:50%;transform:translateX(-50%);animation-delay:0s;}
+.s2{bottom:-4px;right:4px;animation-delay:.5s;}
+.s3{top:50%;left:-6px;transform:translateY(-50%);animation-delay:1s;}
+@keyframes starPop{0%,100%{opacity:0;transform:scale(.4);}50%{opacity:1;transform:scale(1.2);}}
+
+/* girl animations */
+.av-girl{animation:girlBob 3s ease-in-out infinite;}
+@keyframes girlBob{0%,100%{transform:translateY(0) rotate(0deg);}30%{transform:translateY(-3px) rotate(-2deg);}70%{transform:translateY(-2px) rotate(1deg);}}
+/* boy animation */
+.av-boy{animation:boyTilt 4s ease-in-out infinite;}
+@keyframes boyTilt{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-3deg);}75%{transform:rotate(3deg);}}
+
+.tcard h4{font-family:'Outfit',sans-serif;font-size:.84rem;font-weight:700;color:var(--ink);margin-bottom:2px;}
+.tcard small{font-size:.69rem;color:var(--muted);}
+.trole{display:inline-block;margin-top:7px;font-size:.59rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:var(--bg2);color:var(--muted);border:1px solid var(--bdr);}
+.acad{background:#fef8e4;border:1px solid #dfc870;border-radius:10px;padding:13px 17px;font-size:.82rem;color:#5a4208;line-height:1.72;margin-top:24px;}
+
+footer{background:var(--ink);color:rgba(255,255,255,.4);text-align:center;padding:26px 5%;font-size:.74rem;line-height:1.9;}
 footer strong{color:rgba(255,255,255,.78);}
-
-/* PAGE FLIP TRANSITION */
-.step-card-wrap{perspective:1200px;}
-.step-card{transform-origin:left center;}
-.step-card.flip-in{animation:flipIn .4s ease both;}
-.step-card.flip-out{animation:flipOut .25s ease both;}
-@keyframes flipIn{from{opacity:0;transform:rotateY(-12deg) translateX(20px);}to{opacity:1;transform:rotateY(0) translateX(0);}}
-@keyframes flipOut{from{opacity:1;}to{opacity:0;transform:rotateY(12deg) translateX(-20px);}}
-
-@media(max-width:520px){.hlinks{display:none;}.sgrid{grid-template-columns:repeat(4,50px);}.scell{width:50px;height:58px;}}
 </style>
 </head>
 <body>
-
 <div id="prog" style="width:0%"></div>
 <div class="cw"><div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div></div>
 
-<!-- ══ RIGHT SIDE NAVIGATION ══ -->
-<div id="sidenav">
-  <button class="sn-toggle" id="sn-btn" onclick="toggleSidenav()">
-    <span></span><span></span><span></span>
-  </button>
-  <nav class="sn-panel" id="sn-panel">
-    <div class="sn-group">Theory</div>
-    <a class="sn-item" href="#about">What is AES-256?</a>
-    <a class="sn-item" href="#keygen">Key Schedule</a>
-    <a class="sn-item" href="#round-diag">Round Structure</a>
-    <a class="sn-item" href="#sbox-sec">S-Box Table</a>
-    <div class="sn-group">Encryption Steps</div>
-    <a class="sn-item" href="#cipher-flow">Input & Key</a>
-    <a class="sn-item" href="#cipher-flow">Padding</a>
-    <a class="sn-item" href="#cipher-flow">AddRoundKey 0</a>
-    <a class="sn-item" href="#cipher-flow">SubBytes R1</a>
-    <a class="sn-item" href="#cipher-flow">ShiftRows R1</a>
-    <a class="sn-item" href="#cipher-flow">MixColumns R1</a>
-    <a class="sn-item" href="#cipher-flow">AddRoundKey R1</a>
-    <a class="sn-item" href="#cipher-flow">Rounds 2–14</a>
-    <a class="sn-item" href="#cipher-flow">Ciphertext</a>
-    <div class="sn-group">Project</div>
-    <a class="sn-item" href="#team">Team</a>
-  </nav>
+<!-- ═══ MAP NAVIGATION ═══ -->
+<div id="mapnav">
+  <div class="mn-section">
+    <div class="mn-header" onclick="toggleMN('mn1')">
+      <span class="mn-htitle">Theory</span>
+      <span class="mn-icon" id="mni1">▶</span>
+    </div>
+    <div class="mn-body open" id="mn1">
+      <a class="mn-link" href="#about"><span class="mn-dot"></span>AES-256 Intro</a>
+      <a class="mn-link" href="#keygen"><span class="mn-dot"></span>Key Schedule</a>
+      <a class="mn-link" href="#sbox-sec"><span class="mn-dot"></span>S-Box Table</a>
+      <a class="mn-link" href="#rnd-sec"><span class="mn-dot"></span>14 Rounds</a>
+    </div>
+  </div>
+  <div class="mn-section">
+    <div class="mn-header" onclick="toggleMN('mn2')">
+      <span class="mn-htitle">✏️ Practice</span>
+      <span class="mn-icon" id="mni2">▶</span>
+    </div>
+    <div class="mn-body open" id="mn2">
+      <a class="mn-link" href="#t1"><span class="mn-dot"></span>Task 1 — ASCII</a>
+      <a class="mn-link" href="#t2"><span class="mn-dot"></span>Task 2 — XOR bits</a>
+      <a class="mn-link" href="#t3"><span class="mn-dot"></span>Task 3 — S-Box</a>
+      <a class="mn-link" href="#t4"><span class="mn-dot"></span>Task 4 — ShiftRows</a>
+    </div>
+  </div>
+  <div class="mn-section">
+    <div class="mn-header" onclick="toggleMN('mn3')">
+      <span class="mn-htitle">🔐 Encrypt</span>
+      <span class="mn-icon" id="mni3">▶</span>
+    </div>
+    <div class="mn-body open" id="mn3">
+      <a class="mn-link" href="#flow-sec"><span class="mn-dot"></span>Full AES-256 Flow</a>
+    </div>
+  </div>
+  <div class="mn-section">
+    <div class="mn-header" onclick="toggleMN('mn4')">
+      <span class="mn-htitle">Team</span>
+      <span class="mn-icon" id="mni4">▶</span>
+    </div>
+    <div class="mn-body" id="mn4">
+      <a class="mn-link" href="#team"><span class="mn-dot"></span>Our Team</a>
+    </div>
+  </div>
 </div>
 
 <header>
-  <div class="hbrand">AES<b>-256</b></div>
+  <div class="hbrand">AES<b>-256</b> Learn</div>
   <ul class="hlinks">
     <li><a href="#about">Theory</a></li>
-    <li><a href="#cipher-flow">Encrypt</a></li>
+    <li><a href="#prac-sec">Practice</a></li>
+    <li><a href="#flow-sec">Encrypt</a></li>
     <li><a href="#team">Team</a></li>
   </ul>
 </header>
 
 <!-- HERO -->
 <section class="hero" id="home">
-  <div class="hero-grid"></div>
-  <span class="fhex">63 7c 77 7b f2</span><span class="fhex">AES-256</span>
-  <span class="fhex">0x1b XOR</span><span class="fhex">SubBytes</span>
-  <span class="fhex">Rcon[0]=01</span><span class="fhex">GF(2⁸)</span>
-  <div class="hero-inner">
-    <div class="hero-sup">Cryptographic Primitives — Topic 1</div>
-    <h1>Advanced<br>Encryption<br><em>Standard 256</em></h1>
-    <p class="hero-desc">One input. One key. Every step explained — from plaintext to ciphertext, byte by byte, bit by bit.</p>
-    <div class="hero-btns">
-      <a href="#cipher-flow" class="btn-p">Start Encrypting</a>
-      <a href="#about" class="btn-o">Read Theory</a>
+  <div class="h-grid"></div>
+  <span class="fhex">63 7c 77 7b</span><span class="fhex">AES-256</span>
+  <span class="fhex">XOR ⊕ GF(2⁸)</span><span class="fhex">SubBytes</span>
+  <span class="fhex">Rcon[0]=01</span><span class="fhex">ShiftRows</span>
+  <div class="h-in">
+    <div class="h-sup">Interactive Learning Platform — Narxoz University</div>
+    <h1>Learn<br><em>AES-256</em><br>By Doing</h1>
+    <p class="hero-d">Not a textbook. A hands-on course — you solve the first steps yourself, then the computer finishes the rest, byte by byte.</p>
+    <div class="hcta">
+      <a href="#prac-sec" class="btn-p">Start Practising</a>
+      <a href="#about" class="btn-o">Read Theory First</a>
     </div>
   </div>
 </section>
 
-<!-- ABOUT -->
+<!-- ═══ THEORY ═══ -->
 <section class="asec" id="about">
   <div class="sec">
-    <div class="sec-tag fi">Definition — AES-256</div>
-    <h2 class="sec-h fi">What is AES-256?</h2>
-    <p class="sec-d fi">AES-256 is the strongest variant of the Advanced Encryption Standard, standardised by NIST (2001). It uses a 256-bit key and runs 14 rounds of transformation. It secures classified government files, military communications, full-disk encryption, and financial systems worldwide.</p>
+    <div class="stag fi">Theory 1 — AES-256</div>
+    <h2 class="sh fi">What is AES-256?</h2>
+    <p class="sd fi">AES-256 is the strongest variant of the Advanced Encryption Standard, standardised by NIST in 2001. It uses a 256-bit key and 14 rounds. Used in government, military, banking, and every HTTPS connection worldwide.</p>
     <div class="agrid">
-      <div class="ac fi"><div class="aclbl">Definition</div><h3>Symmetric Block Cipher</h3><p>The same 256-bit key encrypts and decrypts. Data is processed in fixed 128-bit (16-byte) blocks. AES-256 is the strongest AES variant.</p></div>
-      <div class="ac fi"><div class="aclbl">Key Size</div><h3>256-bit = 32 bytes</h3><p>2<sup>256</sup> possible keys — more than the number of atoms in the observable universe. No brute-force attack is feasible.</p></div>
-      <div class="ac fi"><div class="aclbl">Rounds</div><h3>14 Rounds</h3><p>AES-256 applies 14 rounds of 4 operations (SubBytes → ShiftRows → MixColumns → AddRoundKey), each with a unique round key. Round 14 skips MixColumns.</p></div>
-      <div class="ac fi"><div class="aclbl">Used In</div><h3>Top-Secret Systems</h3><p>US government classified data, military comms, BitLocker, VeraCrypt, Signal, AWS KMS, and hardware security modules.</p></div>
+      <div class="ac fi"><div class="aclbl">Block cipher</div><h3>128-bit blocks</h3><p>Data is arranged into a 4×4 grid of bytes called the <strong>state matrix</strong>. AES transforms this state through 14 rounds of operations.</p></div>
+      <div class="ac fi"><div class="aclbl">256-bit key</div><h3>2²⁵⁶ keys</h3><p>More possibilities than atoms in the observable universe. Brute force is impossible even for all computers on Earth combined.</p></div>
+      <div class="ac fi"><div class="aclbl">14 rounds</div><h3>Nr = Nk + 6</h3><p>AES-256 has Nk=8 key words, so rounds = 8+6 = <strong>14</strong>. Each round applies 4 different operations with a unique round key.</p></div>
+      <div class="ac fi"><div class="aclbl">Symmetric</div><h3>Same key both ways</h3><p>The exact same 256-bit key encrypts and decrypts. AES-256 provides 128-bit post-quantum security against Grover's algorithm.</p></div>
     </div>
-    <div class="ibox fi"><strong>Why 256, not 128?</strong> AES-128 is already unbreakable by today's computers. AES-256 provides an extra 128-bit security margin specifically to resist future quantum computers (Grover's algorithm halves the effective key size, so 256 → 128-bit post-quantum security).</div>
     <table class="ctbl fi">
-      <thead><tr><th>Property</th><th>AES-128</th><th>AES-192</th><th class="highlight-256">AES-256 ← We use this</th></tr></thead>
+      <thead><tr><th>Property</th><th>AES-128</th><th>AES-192</th><th class="hi256">AES-256 ← this course</th></tr></thead>
       <tbody>
-        <tr><td>Key size</td><td>128 bits</td><td>192 bits</td><td class="highlight-256">256 bits (32 bytes)</td></tr>
-        <tr><td>Block size</td><td>128 bits</td><td>128 bits</td><td class="highlight-256">128 bits</td></tr>
-        <tr><td>Number of rounds</td><td>10</td><td>12</td><td class="highlight-256">14</td></tr>
-        <tr><td>Round keys generated</td><td>11</td><td>13</td><td class="highlight-256">15</td></tr>
-        <tr><td>Key space</td><td>2<sup>128</sup></td><td>2<sup>192</sup></td><td class="highlight-256">2<sup>256</sup></td></tr>
-        <tr><td>Use case</td><td>General TLS</td><td>Rare</td><td class="highlight-256">Government / Military / Finance</td></tr>
+        <tr><td>Key size</td><td>128 bits</td><td>192 bits</td><td class="hi256">256 bits (32 bytes)</td></tr>
+        <tr><td>Rounds</td><td>10</td><td>12</td><td class="hi256">14</td></tr>
+        <tr><td>Round keys</td><td>11</td><td>13</td><td class="hi256">15</td></tr>
+        <tr><td>Key space</td><td>2¹²⁸</td><td>2¹⁹²</td><td class="hi256">2²⁵⁶</td></tr>
+        <tr><td>Post-quantum</td><td>64-bit security</td><td>96-bit</td><td class="hi256">128-bit ✓</td></tr>
       </tbody>
     </table>
+    <div class="ibox fi"><strong>Why 256 bits?</strong> AES-128 is already unbreakable today. AES-256 adds an extra 128-bit safety margin specifically to resist future quantum computers (Grover's algorithm halves effective key size: 256 → 128 post-quantum bits).</div>
   </div>
 </section>
 
 <!-- KEY SCHEDULE -->
 <section class="kssec" id="keygen">
   <div class="sec">
-    <div class="sec-tag fi">Before Encryption</div>
-    <h2 class="sec-h fi">Key Schedule — AES-256</h2>
-    <p class="sec-d fi">AES-256 expands your 32-byte key into <strong>15 round keys</strong> (one per round + initial). Click each stage to see exactly what happens and why.</p>
+    <div class="stag fi">Theory 2 — Key Expansion</div>
+    <h2 class="sh fi">Key Schedule: 32 bytes → 15 round keys</h2>
+    <p class="sd fi">AES never uses the same key twice. Your 32-byte secret expands into 15 unique round keys. AES-256 has an extra step — "Extra SubWord" — not found in AES-128/192. Click each stage.</p>
     <div class="ksvis fi">
-      <div style="font-family:'Fraunces',serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:18px">Key Schedule — 32 bytes → 15 round keys &nbsp;<span style="font-family:'Outfit',sans-serif;font-size:.72rem;font-weight:400;background:#d0f0e8;color:#0a4840;padding:3px 10px;border-radius:999px">AES-256 specific</span></div>
       <div class="kspl" id="kspl">
         <div class="kb active" onclick="ksS(0,this)">Original Key<br><small>256 bits</small></div>
         <span class="karr">→</span>
-        <div class="kb" onclick="ksS(1,this)">W[0..7]<br><small>Round 0 key</small></div>
+        <div class="kb" onclick="ksS(1,this)">W[0..7]<br><small>Round 0</small></div>
         <span class="karr">→</span>
-        <div class="kb" onclick="ksS(2,this)">RotWord<br><small>rotate 1 byte</small></div>
+        <div class="kb" onclick="ksS(2,this)">RotWord<br><small>rotate 1</small></div>
         <span class="karr">→</span>
-        <div class="kb" onclick="ksS(3,this)">SubWord<br><small>S-Box each byte</small></div>
+        <div class="kb" onclick="ksS(3,this)">SubWord<br><small>S-Box</small></div>
         <span class="karr">→</span>
-        <div class="kb" onclick="ksS(4,this)">XOR Rcon<br><small>round constant</small></div>
+        <div class="kb" onclick="ksS(4,this)">XOR Rcon<br><small>constant</small></div>
         <span class="karr">→</span>
-        <div class="kb" onclick="ksS(5,this)">Extra SubWord<br><small>AES-256 only</small></div>
+        <div class="kb" onclick="ksS(5,this)">Extra SubWord<br><small>256 only!</small></div>
         <span class="karr">→</span>
         <div class="kb" onclick="ksS(6,this)">W[8..15]<br><small>Round 1 key</small></div>
-        <span class="karr">→ … →</span>
+        <span class="karr">→…→</span>
         <div class="kb" onclick="ksS(7,this)">W[56..59]<br><small>Round 14 key</small></div>
       </div>
-      <div class="kexpl" id="ksex"><strong>Original Key (256 bits):</strong> Your 32-byte secret. Split into 8 words W[0]–W[7]. These form Round Key 0 directly. AES-256 needs 15 round keys total (60 words). The extra key length means AES-256 has its own unique step — the "Extra SubWord" — that AES-128 and AES-192 do not have.</div>
-    </div>
-  </div>
-</section>
-
-<!-- ROUND STRUCTURE -->
-<section id="round-diag" class="round-diag-sec">
-  <div class="sec">
-    <div class="sec-tag fi">How Many Rounds?</div>
-    <h2 class="sec-h fi">AES-256 Runs 14 Rounds — Here is Why</h2>
-    <p class="sec-d fi">More rounds = more mixing = harder to break. AES-256 uses 14 rounds because its 256-bit key is larger, so more rounds are needed to fully "spread" the key influence across all bytes. The rule: Nr = Nk + 6, where Nk = key words. For AES-256: Nk=8, so Nr = 8+6 = 14.</p>
-
-    <div class="round-why fi">
-      <div class="rw-title">Visualising all 14 rounds of AES-256</div>
-      <div class="rw-chips" id="rwchips">
-        <span style="font-size:.72rem;font-weight:700;color:var(--muted);padding-top:3px;margin-right:4px">Click to animate:</span>
-      </div>
-      <button class="btn-p" style="font-size:.78rem;padding:8px 18px" onclick="animRounds()">Animate 14 Rounds</button>
-      <div style="margin-top:14px;font-size:.83rem;color:var(--muted);line-height:1.7">
-        <strong>Why exactly 14?</strong> Formula: Rounds = Key words + 6 = 8 + 6 = <strong>14</strong>.<br>
-        Each round takes the data one step further from the original. After 2 rounds, every output byte already depends on all 32 input bytes (the "avalanche effect"). 14 rounds makes reversal without the key computationally impossible.
-      </div>
-    </div>
-
-    <div style="margin-top:28px" class="fi">
-      <div class="rdrow"><h4>Round 0 — Initial AddRoundKey</h4><p>Plaintext XOR-ed with Round Key 0 (your original key) — "whitening" before rounds start.</p><div class="rdsteps"><div class="rdch" style="background:var(--teal)">AddRoundKey only</div></div></div>
-      <div class="rdarr">↓</div>
-      <div class="rdrow acc"><h4>Rounds 1–13 — Full 4-step transformation (repeated 13 times)</h4><p>Each round uses a different key. Each one makes the data more scrambled and the relationship to the original less traceable.</p><div class="rdsteps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--pur)">MixColumns</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
-      <div class="rdarr">↓</div>
-      <div class="rdrow" style="border-color:var(--gold);background:linear-gradient(135deg,#fef6e0,#f6f0e4)"><h4>Round 14 — Final round, MixColumns skipped</h4><p>MixColumns is omitted in the final round. This is intentional — it makes decryption structurally identical to encryption (running the inverse operations in reverse order) without any loss of security.</p><div class="rdsteps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
-      <div class="rdarr">↓</div>
-      <div class="rdrow" style="background:var(--teal);border-color:var(--teal)"><h4 style="color:white">Ciphertext — 128-bit encrypted output</h4><p style="color:rgba(255,255,255,.7)">Looks like random noise. Only the correct 256-bit key can reverse it.</p></div>
+      <div class="kexpl" id="ksex"><strong>Original Key (256 bits):</strong> Your 32-byte secret split into 8 words W[0]–W[7]. These form Round Key 0 directly. AES-256 needs 60 words total (15 keys × 4 words). The extra key length adds a unique "Extra SubWord" step not in AES-128/192.</div>
     </div>
   </div>
 </section>
@@ -540,788 +480,671 @@ footer strong{color:rgba(255,255,255,.78);}
 <!-- S-BOX -->
 <section class="sbox-sec" id="sbox-sec">
   <div class="sec">
-    <div class="sec-tag fi">Reference Table</div>
-    <h2 class="sec-h fi">S-Box — Substitution Lookup Table</h2>
-    <p class="sec-d fi">Used in SubBytes: every byte is replaced by the value at S-Box[high nibble][low nibble]. This table is shown <strong>as a hint at the right moment</strong> during encryption — it will highlight when SubBytes runs.</p>
-    <div style="overflow-x:auto;margin-top:24px" class="fi">
-      <table class="sboxt" id="sboxt-full"></table>
-    </div>
-    <div class="ibox fi" style="margin-top:16px"><strong>How to read the S-Box:</strong> Take byte 0x53. High nibble = 5 → row 5. Low nibble = 3 → column 3. S-Box[5][3] = 0xED. The byte 0x53 becomes 0xED after SubBytes. Hover any cell above to confirm.</div>
+    <div class="stag fi">Theory 3 — S-Box</div>
+    <h2 class="sh fi">AES S-Box — Full Lookup Table</h2>
+    <p class="sd fi">SubBytes replaces every byte using this 16×16 table. High nibble (left hex digit) = row. Low nibble (right hex digit) = column. Hover any cell to see input → output.</p>
+    <div style="overflow-x:auto;margin-top:18px" class="fi"><table class="sboxt" id="sboxt-full"></table></div>
+    <div class="ibox fi" style="margin-top:13px"><strong>Example:</strong> Byte 0x53 → row 5, col 3 → S-Box[5][3] = <strong>0xED</strong>. Verify in the table above (row 5 = 5×, col 3 = ×3).</div>
   </div>
 </section>
 
-<!-- ══ MAIN CIPHER FLOW ══ -->
-<section class="flow-sec" id="cipher-flow">
+<!-- ROUNDS -->
+<section class="rnd-sec" id="rnd-sec">
   <div class="sec">
-    <div class="sec-tag fi">AES-256 Encryption — Live Demo</div>
-    <h2 class="sec-h fi">One Input → Through Every Step</h2>
-    <p class="sec-d fi">Enter your message and key once. The same data flows through every step — each stage picks up exactly where the previous one left off. Press <strong>Next Step</strong> to advance manually or <strong>Play</strong> for auto.</p>
+    <div class="stag fi">Theory 4 — Round Structure</div>
+    <h2 class="sh fi">AES-256: 14 Rounds — Why and How</h2>
+    <p class="sd fi">Formula: Rounds = Key words + 6 = 8 + 6 = 14. Each round mixes the data further. After just 2 rounds, every output bit already depends on every input bit.</p>
+    <div class="rdbig fi">
+      <div style="font-family:'Fraunces',serif;font-size:.98rem;font-weight:700;color:var(--ink);margin-bottom:12px">All 14 rounds</div>
+      <div class="rchips" id="rchips"></div>
+      <button class="btn-p" style="font-size:.76rem;padding:7px 16px" onclick="animRounds()">Animate</button>
+      <div style="margin-top:13px;font-size:.82rem;color:var(--muted);line-height:1.7"><strong>Why 14?</strong> Rule: Rounds = Key words + 6 = 8+6 = <strong>14</strong>. More key bits → more rounds → harder to reverse. Two rounds already create full avalanche (every bit affects every bit).</div>
+    </div>
+    <div style="margin-top:18px" class="fi">
+      <div class="rdrow"><h5>Round 0 — Initial AddRoundKey</h5><p>Plaintext XOR-ed with original key before any rounds.</p><div class="rdstps"><div class="rdch" style="background:var(--teal)">AddRoundKey only</div></div></div>
+      <div class="rda">↓</div>
+      <div class="rdrow acc"><h5>Rounds 1–13 — Four steps, 13 times</h5><p>Each round uses a different key from the Key Schedule.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--pur)">MixColumns</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
+      <div class="rda">↓</div>
+      <div class="rdrow" style="border-color:var(--gold);background:linear-gradient(135deg,#fef6e0,#f5ede0)"><h5>Round 14 — Final (MixColumns skipped)</h5><p>Skipping MixColumns makes decryption structurally symmetric. No security loss.</p><div class="rdstps"><div class="rdch" style="background:var(--ora)">SubBytes</div><div class="rdch" style="background:var(--grn)">ShiftRows</div><div class="rdch" style="background:var(--teal)">AddRoundKey</div></div></div>
+      <div class="rda">↓</div>
+      <div class="rdrow" style="background:var(--teal);border-color:var(--teal)"><h5 style="color:white">Ciphertext — 128-bit encrypted output</h5><p style="color:rgba(255,255,255,.7)">Statistically indistinguishable from random noise.</p></div>
+    </div>
+  </div>
+</section>
 
-    <!-- SINGLE INPUT PANEL -->
-    <div class="flow-input-panel fi">
-      <div class="fip-title">Your Input</div>
-      <div class="fip-sub">Enter text and key — this exact data will be traced through all 14 rounds.</div>
-      <div class="fip-row">
-        <div class="fg">
-          <label>Plaintext message</label>
-          <input type="text" id="pIn" placeholder="e.g. Hello World" maxlength="16" value="Hello, Narxoz!">
-          <div class="fip-hint">Max 16 chars (one 128-bit block)</div>
-          <!-- ASCII HINT — appears here, contextually -->
-          <div class="ascii-hint-wrap">
-            <div class="ascii-trigger" onclick="toggleAscii()" id="ascii-trigger">
-              ▶ ASCII table — what are character codes?
-            </div>
-            <div class="ascii-table-popup" id="ascii-popup">
-              <h4>ASCII Reference — Character to Number</h4>
-              <p style="font-size:.76rem;color:var(--muted);margin-bottom:10px">AES works on <strong>numbers</strong>, not letters. Each character has an ASCII code. Example: 'H' = 72 = 0x48. Hover any cell.</p>
-              <div class="ascii-grid" id="ascii-grid"></div>
-            </div>
-          </div>
+<!-- ═══ PRACTICE ═══ -->
+<section style="background:var(--bg);" id="prac-sec">
+  <div class="sec">
+    <div class="stag fi">Practice — Solve It Yourself</div>
+    <h2 class="sh fi">Interactive Tasks</h2>
+    <p class="sd fi">Complete these tasks before watching the full encryption. You solve the first few bytes manually — then the computer finishes the rest and shows you everything.</p>
+
+    <!-- TASK 1 -->
+    <div class="task fi" id="t1" data-label="Task 1 of 4 — ASCII Conversion">
+      <div class="task-q">Convert the first 3 characters of "Hello" to hexadecimal</div>
+      <div class="task-hint">AES works on bytes (numbers), not letters. Every character has an ASCII code. Convert it to hex (base 16). Use the table below for help.</div>
+      <div style="position:relative;display:inline-block">
+        <div class="ascii-hint" id="ah1" onclick="toggleAscii('ap1','ah1')">▶ Show ASCII Table (hint)</div>
+        <div class="ascii-pop" id="ap1"><h4>ASCII Table — Character to Number</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = decimal number = hex. Example: 'H' = 72 = 0x48</p><div class="ascii-grid" id="ag1"></div></div>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;margin-bottom:4px">
+        <div style="text-align:center">
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'H'</div>
+          <input class="hinput" id="t1a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
         </div>
-        <div class="fg">
-          <label>Secret key (32 chars = 256-bit)</label>
-          <input type="text" id="kIn" placeholder="32 characters = 256 bits" maxlength="32" value="MySecretAES256KeyForNarxoz12345!">
-          <div class="fip-hint">Exactly 32 characters for AES-256</div>
+        <div style="text-align:center">
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'e'</div>
+          <input class="hinput" id="t1b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'l'</div>
+          <input class="hinput" id="t1c" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
+        </div>
+        <div style="font-size:.78rem;color:var(--muted);line-height:1.6;max-width:240px;padding-bottom:6px">Tip: 'H'=72 decimal. Divide by 16: 72÷16=4 remainder 8 → 0x48</div>
+      </div>
+      <div>
+        <button class="chk-btn" onclick="chkT1()">Check</button>
+        <button class="rvl-btn" onclick="rvlT1()">Show Answer</button>
+      </div>
+      <div class="fb ok" id="t1ok">Correct! 'H'=0x48, 'e'=0x65, 'l'=0x6C. ASCII code in base 16. AES stores every character as its hex byte.</div>
+      <div class="fb no" id="t1no">Not quite. 'H' = ASCII 72. 72 in hex: 72 = 4×16 + 8 = 0x48. Use the table above and look up each character.</div>
+    </div>
+
+    <!-- TASK 2 -->
+    <div class="task fi" id="t2" data-label="Task 2 of 4 — XOR Operation">
+      <div class="task-q">Calculate XOR (⊕) — the core of AddRoundKey</div>
+      <div class="task-hint">XOR compares bits one by one: <strong>same bits → 0</strong>, <strong>different bits → 1</strong>. The bits of each byte are shown. Fill in the result row by clicking the blank cells, then type the hex answer.</div>
+
+      <!-- Byte 0 -->
+      <div style="margin-bottom:22px">
+        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 0 &nbsp;→&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x48</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0x49</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">State:</span>
+          <div class="bit-strip" id="b0s"></div>
+          <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--ora);margin-left:4px">0x48</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Key:</span>
+          <div class="bit-strip" id="b0k"></div>
+          <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--gold);margin-left:4px">0x49</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Result:</span>
+          <div class="bit-strip" id="b0r"></div>
+          <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--teal);margin-left:4px" id="b0hex">= ??</span>
+        </div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Now type the hex result: <input class="hinput" id="t2a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+      </div>
+
+      <!-- Byte 1 -->
+      <div style="margin-bottom:14px">
+        <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte 1 &nbsp;→&nbsp; State = <span style="color:var(--ora);font-family:'DM Mono',monospace">0x65</span> &nbsp;&nbsp; Key = <span style="color:var(--gold);font-family:'DM Mono',monospace">0xA0</span></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">State:</span>
+          <div class="bit-strip" id="b1s"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Key:</span>
+          <div class="bit-strip" id="b1k"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Result:</span>
+          <div class="bit-strip" id="b1r"></div>
+          <span style="font-size:.64rem;color:var(--muted);margin-left:6px">← click each blank bit</span>
+        </div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Type the hex result: <input class="hinput" id="t2b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+      </div>
+
+      <button class="chk-btn" onclick="chkT2()">Check</button>
+      <button class="rvl-btn" onclick="rvlT2()">Show Answer</button>
+      <div class="fb ok" id="t2ok">Correct! 0x48⊕0x49 = 0x01 (only the last bit differs). 0x65⊕0xA0 = 0xC5. And the key property: 0x01⊕0x49 = 0x48 — same XOR undoes it!</div>
+      <div class="fb no" id="t2no">Not quite. For each bit pair: same=0, different=1. 0x48=01001000, 0x49=01001001 — only the last bit differs, so the result is 00000001 = 0x01.</div>
+    </div>
+
+    <!-- TASK 3 -->
+    <div class="task fi" id="t3" data-label="Task 3 of 4 — S-Box SubBytes">
+      <div class="task-q">Look up two bytes in the S-Box (SubBytes operation)</div>
+      <div class="task-hint">Use the S-Box table in the Theory section above. Split the byte into two nibbles (hex digits) — the first gives the row, the second gives the column. The table cell at that position is your answer.</div>
+      <div style="display:flex;gap:28px;flex-wrap:wrap;margin-bottom:14px;margin-top:10px">
+        <div>
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte: <span style="color:var(--ora);font-family:'DM Mono',monospace;font-size:1rem">0x19</span></div>
+          <div class="nb-pair">
+            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">1</div><div style="font-size:.6rem;color:var(--muted)">→ Row 1</div></div>
+            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">9</div><div style="font-size:.6rem;color:var(--muted)">→ Col 9</div></div>
+          </div>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[1][9] = <input class="hinput" id="t3a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
         <div>
-          <button class="btn-p" onclick="startEnc()" style="white-space:nowrap">Encrypt</button>
+          <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte: <span style="color:var(--ora);font-family:'DM Mono',monospace;font-size:1rem">0xA0</span></div>
+          <div class="nb-pair">
+            <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">A</div><div style="font-size:.6rem;color:var(--muted)">→ Row 10</div></div>
+            <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">0</div><div style="font-size:.6rem;color:var(--muted)">→ Col 0</div></div>
+          </div>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[A][0] = <input class="hinput" id="t3b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+        </div>
+      </div>
+      <button class="chk-btn" onclick="chkT3()">Check</button>
+      <button class="rvl-btn" onclick="rvlT3()">Show Answer</button>
+      <div class="fb ok" id="t3ok">Correct! S-Box[1][9] = 0xD4. S-Box[A][0] = 0xE0. Scroll to the S-Box table and verify: row 1×, col ×9 → D4.</div>
+      <div class="fb no" id="t3no">Not quite. Scroll up to the S-Box table. Find the row labelled 1× and count to column ×9. That cell is the answer for 0x19.</div>
+    </div>
+
+    <!-- TASK 4 -->
+    <div class="task fi" id="t4" data-label="Task 4 of 4 — ShiftRows">
+      <div class="task-q">Apply ShiftRows: rotate Row 1 left by 1 position</div>
+      <div class="task-hint">ShiftRows rotates each row cyclically left. Row 0 → shift 0 (stays). Row 1 → shift 1 (first element moves to end). Row 2 → shift 2. Row 3 → shift 3.</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.88rem;background:var(--bg2);padding:14px 15px;border-radius:9px;border:1px solid var(--bdr);margin-bottom:14px;line-height:2">
+        <div><span style="color:var(--muted);font-size:.66rem">Row 0 (shift 0): </span><span style="color:var(--ora)">D4 E0 B8 1E</span><span style="color:var(--muted);font-size:.66rem"> → stays same</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 1 (shift 1): </span><span style="color:var(--grn)">27 BF B4 41</span><span style="color:var(--muted);font-size:.66rem"> → after shift: ???</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 2 (shift 2): </span><span style="color:var(--pur)">11 98 5D 52</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 3 (shift 3): </span><span style="color:var(--gold)">AE F1 E5 30</span></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+        <span style="font-size:.8rem;color:var(--muted);font-weight:600">Row 1 result:</span>
+        <input class="hinput" id="t4a" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4b" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4c" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4d" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <button class="chk-btn" onclick="chkT4()">Check</button>
+      <button class="rvl-btn" onclick="rvlT4()">Show Answer</button>
+      <div class="fb ok" id="t4ok">Correct! [27 BF B4 41] shift left 1 = [BF B4 41 27]. The '27' moved from position 0 to position 3. Now MixColumns can blend it with bytes from other original columns.</div>
+      <div class="fb no" id="t4no">Not quite. Shift left by 1: [a b c d] → [b c d a]. The first element 'a' wraps to the end. So [27 BF B4 41] → [BF B4 41 27].</div>
+    </div>
+
+    <div class="ibox fi" style="margin-top:4px">All 4 tasks done? Now watch the computer run the <strong>full AES-256 encryption</strong> on your own input — all 14 rounds, every byte explained.</div>
+  </div>
+</section>
+
+<!-- ═══ FULL FLOW ═══ -->
+<section class="flow-sec" id="flow-sec">
+  <div class="sec">
+    <div class="stag fi">Full AES-256 Encryption</div>
+    <h2 class="sh fi">One Input → All 14 Rounds</h2>
+    <p class="sd fi">Enter your message and 32-character key. The same bytes flow through every single step — each one picks up exactly where the previous left off.</p>
+
+    <div class="flow-inp fi">
+      <div class="fi-title">Your Input</div>
+      <div class="fi-sub">Enter once — traced through the complete AES-256 algorithm.</div>
+      <div class="fi-row">
+        <div class="fg">
+          <label>Message (max 16 chars)</label>
+          <input type="text" id="pIn" maxlength="16" value="Hello, Narxoz!" placeholder="Your message">
+          <div style="position:relative">
+            <div class="ascii-hint" id="ah-m" onclick="toggleAscii('ap-m','ah-m')">▶ ASCII Table</div>
+            <div class="ascii-pop" id="ap-m"><h4>ASCII Reference</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = number. AES works on these numbers.</p><div class="ascii-grid" id="ag-m"></div></div>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Key (32 chars = 256-bit)</label>
+          <input type="text" id="kIn" maxlength="32" value="MySecretAES256KeyForNarxoz12345!" placeholder="Exactly 32 characters">
+        </div>
+        <div>
+          <button class="btn-p" onclick="startEnc()">Encrypt</button>
           <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn-o" style="font-size:.76rem;padding:6px 12px" onclick="runDec()">Decrypt</button>
-            <button class="btn-o" style="font-size:.76rem;padding:6px 12px" onclick="rndKey()">Random Key</button>
-            <button class="btn-o" style="font-size:.76rem;padding:6px 12px" onclick="clrAll()">Clear</button>
+            <button class="btn-o" style="font-size:.72rem;padding:5px 10px" onclick="runDec()">Decrypt</button>
+            <button class="btn-o" style="font-size:.72rem;padding:5px 10px" onclick="rndKey()">Random Key</button>
+            <button class="btn-o" style="font-size:.72rem;padding:5px 10px" onclick="clrAll()">Clear</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- FLOW TRACK -->
-    <div class="flow-track" id="flow-track"></div>
-
-    <!-- STEP CARD VIEWPORT -->
-    <div class="step-card-wrap">
-      <div class="step-card" id="step-card">
-        <div style="text-align:center;padding:40px;color:var(--muted)">
-          <div style="font-family:'Fraunces',serif;font-size:1.1rem;margin-bottom:8px">Enter your text above and press <strong>Encrypt</strong></div>
-          <div style="font-size:.85rem">Each step will show exactly what happens to every byte of your data.</div>
-        </div>
+    <div class="ftrack" id="ftrack"></div>
+    <div class="scard" id="scard">
+      <div style="text-align:center;padding:38px;color:var(--muted);font-family:'Fraunces',serif;font-size:1rem">
+        Complete the practice tasks above, then enter your text and press <strong>Encrypt</strong>.
       </div>
     </div>
-
-    <!-- PLAYER CONTROLS -->
-    <div class="sv-player" id="sv-player" style="display:none">
-      <div class="sv-pbwrap"><div class="sv-pbfill" id="sv-pbfill"></div></div>
-      <div class="sv-controls">
-        <div class="sv-ctr" id="sv-ctr">Step 1 of ?</div>
-        <button class="cbtn" onclick="stepNav(-1)" id="btn-prev" disabled>Prev</button>
-        <button class="cbtn play" id="btn-play" onclick="togglePlay()">Play</button>
-        <button class="cbtn stop" id="btn-stop" onclick="stopPlay()" disabled>Stop</button>
-        <button class="cbtn nxt" onclick="stepNav(1)" id="btn-next">Next Step</button>
+    <div class="player" id="player" style="display:none">
+      <div class="pb-w"><div class="pb-f" id="pbf"></div></div>
+      <div class="p-ctrl">
+        <div class="pctr" id="pctr">Step 1 of ?</div>
+        <button class="cbtn" onclick="stepNav(-1)" id="btnprev" disabled>Prev</button>
+        <button class="cbtn play" id="btnplay" onclick="togglePlay()">Play</button>
+        <button class="cbtn stop" id="btnstop" onclick="stopPlay()" disabled>Stop</button>
+        <button class="cbtn nxt" onclick="stepNav(1)" id="btnnxt">Next</button>
       </div>
-      <div class="sv-speed">
+      <div class="spd">
         <label>Speed:</label>
-        <button class="spb on" id="spb-slow" onclick="setSpd(2500,this)">Slow</button>
-        <button class="spb" id="spb-med" onclick="setSpd(1000,this)">Medium</button>
-        <button class="spb" id="spb-fast" onclick="setSpd(350,this)">Fast</button>
+        <button class="spb on" onclick="setSp(2500,this)">Slow</button>
+        <button class="spb" onclick="setSp(1000,this)">Medium</button>
+        <button class="spb" onclick="setSp(350,this)">Fast</button>
       </div>
     </div>
-
-    <div class="out-block" id="out-block">
-      <div class="out-lbl">Ciphertext (hex) — your encrypted data</div>
-      <div class="out-val" id="out-cipher">—</div>
-    </div>
-    <div class="dec-box" id="dec-box"><strong>Decrypted result:</strong> <span id="dec-text">—</span></div>
+    <div class="out-blk" id="out-blk"><div class="out-lbl">Ciphertext — AES-256 encrypted</div><div class="out-val" id="out-val">—</div></div>
+    <div class="dec-box" id="dec-box"><strong>Decrypted:</strong> <span id="dec-txt">—</span></div>
   </div>
 </section>
 
 <!-- TEAM -->
 <section class="tsec" id="team">
   <div class="sec">
-    <div class="sec-tag fi">Narxoz University — Final Project</div>
-    <h2 class="sec-h fi">Project Team</h2>
-    <p class="sec-d fi">Topic 1: AES-256 Encryption + Key Generation. Final Examination — Cryptographic Primitives, 2025–2026.</p>
+    <div class="stag fi">Narxoz University — Final Project</div>
+    <h2 class="sh fi">Project Team</h2>
+    <p class="sd fi">Topic 1: AES-256 Encryption + Key Generation. Final Examination — Cryptographic Primitives, 2025–2026.</p>
     <div class="tgrid fi">
-      <div class="tcard"><div class="tav" style="background:#cce8e4;color:#0a5048">ZA</div><h4>Askarkyzy Zhadyra</h4><small>Narxoz University</small><div class="trole">SubBytes &amp; S-Box</div></div>
-      <div class="tcard"><div class="tav" style="background:#feecc8;color:#7a4800">AA</div><h4>Amanbek Alua</h4><small>Narxoz University</small><div class="trole">ShiftRows &amp; MixColumns</div></div>
-      <div class="tcard"><div class="tav" style="background:#e2dcf2;color:#422880">ZA</div><h4>Azatkyzy Zhanna</h4><small>Narxoz University</small><div class="trole">Key Schedule AES-256</div></div>
-      <div class="tcard"><div class="tav" style="background:#fbd8d0;color:#701808">GD</div><h4>Gabdylshukir Dariyana</h4><small>Narxoz University</small><div class="trole">AddRoundKey &amp; Theory</div></div>
-      <div class="tcard"><div class="tav" style="background:#d8e4f4;color:#082858">NA</div><h4>Nurmukhamet Ali</h4><small>Narxoz University</small><div class="trole">Interactive Playground</div></div>
+
+      <!-- Zhadyra — girl, laptop -->
+      <div class="tcard">
+        <div class="av-wrap">
+          <div class="av-ring"></div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#f48fb1)">👩🏻‍💻</div>
+          <div class="star s1" style="color:var(--gold)">✦</div>
+          <div class="star s2" style="color:var(--teal)">★</div>
+          <div class="star s3" style="color:var(--ora)">✧</div>
+        </div>
+        <h4>Askarkyzy Zhadyra</h4>
+        <small>Narxoz University</small>
+        <div class="trole">SubBytes &amp; S-Box</div>
+      </div>
+
+      <!-- Alua — girl, graduate -->
+      <div class="tcard">
+        <div class="av-wrap">
+          <div class="av-ring"></div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#e8f5e9,#a5d6a7)">👩🏻‍🎓</div>
+          <div class="star s1" style="color:var(--grn)">✦</div>
+          <div class="star s2" style="color:var(--gold)">★</div>
+          <div class="star s3" style="color:var(--teal)">✧</div>
+        </div>
+        <h4>Amanbek Alua</h4>
+        <small>Narxoz University</small>
+        <div class="trole">ShiftRows &amp; MixColumns</div>
+      </div>
+
+      <!-- Zhanna — girl, science -->
+      <div class="tcard">
+        <div class="av-wrap">
+          <div class="av-ring"></div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#ede7f6,#ce93d8)">👩🏻‍🔬</div>
+          <div class="star s1" style="color:var(--pur)">✦</div>
+          <div class="star s2" style="color:var(--teal)">★</div>
+          <div class="star s3" style="color:var(--gold)">✧</div>
+        </div>
+        <h4>Azatkyzy Zhanna</h4>
+        <small>Narxoz University</small>
+        <div class="trole">Key Schedule AES-256</div>
+      </div>
+
+      <!-- Dariyana — girl, teacher -->
+      <div class="tcard">
+        <div class="av-wrap">
+          <div class="av-ring"></div>
+          <div class="av av-girl" style="background:linear-gradient(135deg,#fce4ec,#ef9a9a)">👩🏻‍🏫</div>
+          <div class="star s1" style="color:var(--ora)">✦</div>
+          <div class="star s2" style="color:var(--pur)">★</div>
+          <div class="star s3" style="color:var(--grn)">✧</div>
+        </div>
+        <h4>Gabdylshukir Dariyana</h4>
+        <small>Narxoz University</small>
+        <div class="trole">AddRoundKey &amp; Theory</div>
+      </div>
+
+      <!-- Ali — boy, laptop -->
+      <div class="tcard">
+        <div class="av-wrap">
+          <div class="av-ring"></div>
+          <div class="av av-boy" style="background:linear-gradient(135deg,#e3f2fd,#90caf9)">👨🏻‍💻</div>
+          <div class="star s1" style="color:var(--teal)">✦</div>
+          <div class="star s2" style="color:var(--gold)">★</div>
+          <div class="star s3" style="color:var(--pur)">✧</div>
+        </div>
+        <h4>Nurmukhamet Ali</h4>
+        <small>Narxoz University</small>
+        <div class="trole">Interactive Playground</div>
+      </div>
+
     </div>
-    <div class="acad fi"><strong>Academic Declaration:</strong> This project was created independently by students of Narxoz University for the Final Examination, Cryptographic Primitives course, 2025–2026. AES-256 implementation follows NIST FIPS-197.</div>
+    <div class="acad fi"><strong>Academic Declaration:</strong> Created independently by students of Narxoz University for the Final Examination, Cryptographic Primitives course, 2025–2026. AES-256 follows NIST FIPS-197.</div>
   </div>
 </section>
 
-<footer><strong>AES-256 — Educational Platform</strong><br>Narxoz University · Final Project · Cryptographic Primitives · 2025–2026<br><span style="font-size:.65rem;opacity:.38;display:block;margin-top:4px">Topic 1: AES-256 Encryption + Key Generation · NIST FIPS-197</span></footer>
+<footer><strong>AES-256 Learning Platform</strong><br>Narxoz University · Cryptographic Primitives · 2025–2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 · Topic 1: AES-256 + Key Generation</span></footer>
 
 <script>
-// ═══════════════════════════════════════════════════
-// AES CORE (AES-256: 32-byte key, 14 rounds)
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// AES-256 CORE
+// ══════════════════════════════════════════
 const SB=[0x63,0x7c,0x77,0x7b,0xf2,0x6b,0x6f,0xc5,0x30,0x01,0x67,0x2b,0xfe,0xd7,0xab,0x76,0xca,0x82,0xc9,0x7d,0xfa,0x59,0x47,0xf0,0xad,0xd4,0xa2,0xaf,0x9c,0xa4,0x72,0xc0,0xb7,0xfd,0x93,0x26,0x36,0x3f,0xf7,0xcc,0x34,0xa5,0xe5,0xf1,0x71,0xd8,0x31,0x15,0x04,0xc7,0x23,0xc3,0x18,0x96,0x05,0x9a,0x07,0x12,0x80,0xe2,0xeb,0x27,0xb2,0x75,0x09,0x83,0x2c,0x1a,0x1b,0x6e,0x5a,0xa0,0x52,0x3b,0xd6,0xb3,0x29,0xe3,0x2f,0x84,0x53,0xd1,0x00,0xed,0x20,0xfc,0xb1,0x5b,0x6a,0xcb,0xbe,0x39,0x4a,0x4c,0x58,0xcf,0xd0,0xef,0xaa,0xfb,0x43,0x4d,0x33,0x85,0x45,0xf9,0x02,0x7f,0x50,0x3c,0x9f,0xa8,0x51,0xa3,0x40,0x8f,0x92,0x9d,0x38,0xf5,0xbc,0xb6,0xda,0x21,0x10,0xff,0xf3,0xd2,0xcd,0x0c,0x13,0xec,0x5f,0x97,0x44,0x17,0xc4,0xa7,0x7e,0x3d,0x64,0x5d,0x19,0x73,0x60,0x81,0x4f,0xdc,0x22,0x2a,0x90,0x88,0x46,0xee,0xb8,0x14,0xde,0x5e,0x0b,0xdb,0xe0,0x32,0x3a,0x0a,0x49,0x06,0x24,0x5c,0xc2,0xd3,0xac,0x62,0x91,0x95,0xe4,0x79,0xe7,0xc8,0x37,0x6d,0x8d,0xd5,0x4e,0xa9,0x6c,0x56,0xf4,0xea,0x65,0x7a,0xae,0x08,0xba,0x78,0x25,0x2e,0x1c,0xa6,0xb4,0xc6,0xe8,0xdd,0x74,0x1f,0x4b,0xbd,0x8b,0x8a,0x70,0x3e,0xb5,0x66,0x48,0x03,0xf6,0x0e,0x61,0x35,0x57,0xb9,0x86,0xc1,0x1d,0x9e,0xe1,0xf8,0x98,0x11,0x69,0xd9,0x8e,0x94,0x9b,0x1e,0x87,0xe9,0xce,0x55,0x28,0xdf,0x8c,0xa1,0x89,0x0d,0xbf,0xe6,0x42,0x68,0x41,0x99,0x2d,0x0f,0xb0,0x54,0xbb,0x16];
 const ISB=new Array(256);for(let i=0;i<256;i++)ISB[SB[i]]=i;
 const RC=[0x01,0x02,0x04,0x08,0x10,0x20,0x40,0x80,0x1b,0x36,0x6c,0xd8,0xab,0x4d];
 function xt(b){return b&0x80?((b<<1)^0x1b)&0xff:(b<<1)&0xff;}
 function gm(a,b){let p=0;for(let i=0;i<8;i++){if(b&1)p^=a;a=xt(a);b>>=1;}return p;}
-function kx(key){
-  const nk=key.length/4,nr=nk+6,w=[];
-  for(let i=0;i<nk;i++)w.push(key.slice(i*4,i*4+4).slice());
-  for(let i=nk;i<4*(nr+1);i++){
-    let t=w[i-1].slice();
-    if(i%nk===0){t=[t[1],t[2],t[3],t[0]].map(b=>SB[b]);t[0]^=RC[i/nk-1];}
-    else if(nk>6&&i%nk===4){t=t.map(b=>SB[b]);} // AES-256 extra SubWord
-    w.push(w[i-nk].map((b,j)=>b^t[j]));
-  }
-  return w;
-}
+function kx(key){const nk=key.length/4,nr=nk+6,w=[];for(let i=0;i<nk;i++)w.push(key.slice(i*4,i*4+4).slice());for(let i=nk;i<4*(nr+1);i++){let t=w[i-1].slice();if(i%nk===0){t=[t[1],t[2],t[3],t[0]].map(b=>SB[b]);t[0]^=RC[i/nk-1];}else if(nk>6&&i%nk===4)t=t.map(b=>SB[b]);w.push(w[i-nk].map((b,j)=>b^t[j]));}return w;}
 function ts(bytes){const s=[[],[],[],[]];for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]=bytes[c*4+r];return s;}
 function fs(s){const b=[];for(let c=0;c<4;c++)for(let r=0;r<4;r++)b.push(s[r][c]);return b;}
 function cS(s){return s.map(r=>r.slice());}
-function pad16(bytes){const p=16-(bytes.length%16)||16;return bytes.concat(new Array(p).fill(p));}
+function pad16(b){const p=16-(b.length%16)||16;return b.concat(new Array(p).fill(p));}
 function unpad(b){const p=b[b.length-1];return b.slice(0,b.length-p);}
 function H(n){return n.toString(16).toUpperCase().padStart(2,'0');}
 function hA(a){return a.map(H).join(' ');}
 function B8(n){return n.toString(2).padStart(8,'0');}
+function getKey(){let k=document.getElementById('kIn').value;while(k.length<32)k+='\0';return k.slice(0,32).split('').map(c=>c.charCodeAt(0));}
 
-function getKey(){
-  let k=document.getElementById('kIn').value;
-  while(k.length<32)k+='\0';
-  return k.slice(0,32).split('').map(c=>c.charCodeAt(0));
+function encFull(plain,kb){const nr=14,w=kx(kb),out=[],pd=pad16([...plain.split('').map(c=>c.charCodeAt(0))]);for(let b=0;b<pd.length;b+=16){const s=ts(pd.slice(b,b+16));for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[c][r];for(let rnd=1;rnd<=nr;rnd++){for(let r=0;r<4;r++)for(let c=0;c<4;c++)s[r][c]=SB[s[r][c]];for(let r=1;r<4;r++){const row=s[r].slice();for(let c=0;c<4;c++)s[r][c]=row[(c+r)%4];}if(rnd<nr){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(2,a)^gm(3,b_)^d^e;s[1][c]=a^gm(2,b_)^gm(3,d)^e;s[2][c]=a^b_^gm(2,d)^gm(3,e);s[3][c]=gm(3,a)^b_^d^gm(2,e);}}for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];}out.push(...fs(s));}return out;}
+function decFull(cb,kb){const nr=14,w=kx(kb),result=[];for(let b=0;b<cb.length;b+=16){const s=ts(cb.slice(b,b+16));for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[nr*4+c][r];for(let rnd=nr-1;rnd>=0;rnd--){for(let row=1;row<4;row++){const ro=s[row].slice();for(let c=0;c<4;c++)s[row][c]=ro[(c+4-row)%4];}for(let row=0;row<4;row++)for(let c=0;c<4;c++)s[row][c]=ISB[s[row][c]];for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];if(rnd>0){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(0x0e,a)^gm(0x0b,b_)^gm(0x0d,d)^gm(0x09,e);s[1][c]=gm(0x09,a)^gm(0x0e,b_)^gm(0x0b,d)^gm(0x0d,e);s[2][c]=gm(0x0d,a)^gm(0x09,b_)^gm(0x0e,d)^gm(0x0b,e);s[3][c]=gm(0x0b,a)^gm(0x0d,b_)^gm(0x09,d)^gm(0x0e,e);}}}result.push(...fs(s));}return unpad(result).map(b=>String.fromCharCode(b)).join('');}
+
+// ══════════════════════════════════════════
+// PRACTICE CHECKS
+// ══════════════════════════════════════════
+function setInputResult(id,val,correct){const el=document.getElementById(id);el.classList.toggle('ok',el.value.toUpperCase()===correct);el.classList.toggle('no',el.value.toUpperCase()!==correct);}
+function showFB(okId,noId,isOk){const o=document.getElementById(okId),n=document.getElementById(noId);o.style.display=isOk?'block':'none';n.style.display=isOk?'none':'block';}
+
+function chkT1(){const a=document.getElementById('t1a').value.toUpperCase(),b=document.getElementById('t1b').value.toUpperCase(),c=document.getElementById('t1c').value.toUpperCase();const ok=a==='48'&&b==='65'&&c==='6C';['t1a','t1b','t1c'].forEach((id,i)=>setInputResult(id,['48','65','6C'][i]));showFB('t1ok','t1no',ok);}
+function rvlT1(){['t1a','t1b','t1c'].forEach((id,v)=>{const el=document.getElementById(id);el.value=['48','65','6C'][v];el.classList.add('ok');el.classList.remove('no');});showFB('t1ok','t1no',true);}
+
+function chkT2(){const a=document.getElementById('t2a').value.toUpperCase(),b=document.getElementById('t2b').value.toUpperCase();const ok=a==='01'&&b==='C5';setInputResult('t2a','01');setInputResult('t2b','C5');showFB('t2ok','t2no',ok);}
+function rvlT2(){['t2a','t2b'].forEach((id,i)=>{const el=document.getElementById(id);el.value=['01','C5'][i];el.classList.add('ok');el.classList.remove('no');});showFB('t2ok','t2no',true);revealXorBits();}
+
+function chkT3(){const a=document.getElementById('t3a').value.toUpperCase(),b=document.getElementById('t3b').value.toUpperCase();const ok=a==='D4'&&b==='E0';setInputResult('t3a','D4');setInputResult('t3b','E0');showFB('t3ok','t3no',ok);}
+function rvlT3(){['t3a','t3b'].forEach((id,i)=>{const el=document.getElementById(id);el.value=['D4','E0'][i];el.classList.add('ok');el.classList.remove('no');});showFB('t3ok','t3no',true);}
+
+function chkT4(){const vals=['t4a','t4b','t4c','t4d'].map(id=>document.getElementById(id).value.toUpperCase());const correct=['BF','B4','41','27'];const ok=vals.every((v,i)=>v===correct[i]);['t4a','t4b','t4c','t4d'].forEach((id,i)=>setInputResult(id,correct[i]));showFB('t4ok','t4no',ok);}
+function rvlT4(){['t4a','t4b','t4c','t4d'].forEach((id,i)=>{const el=document.getElementById(id);el.value=['BF','B4','41','27'][i];el.classList.add('ok');el.classList.remove('no');});showFB('t4ok','t4no',true);}
+
+// XOR bit display
+function buildBits(id,val,cls){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML='';
+  B8(val).split('').forEach(b=>{const d=document.createElement('div');d.className=`bt ${cls}`;d.textContent=b;el.appendChild(d);});
 }
-function encFull(plain,kb){
-  const nr=14,w=kx(kb),out=[];
-  const padded=pad16([...plain.split('').map(c=>c.charCodeAt(0))]);
-  for(let b=0;b<padded.length;b+=16){
-    const s=ts(padded.slice(b,b+16));
-    for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[c][r];
-    for(let rnd=1;rnd<=nr;rnd++){
-      for(let r=0;r<4;r++)for(let c=0;c<4;c++)s[r][c]=SB[s[r][c]];
-      for(let r=1;r<4;r++){const row=s[r].slice();for(let c=0;c<4;c++)s[r][c]=row[(c+r)%4];}
-      if(rnd<nr){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(2,a)^gm(3,b_)^d^e;s[1][c]=a^gm(2,b_)^gm(3,d)^e;s[2][c]=a^b_^gm(2,d)^gm(3,e);s[3][c]=gm(3,a)^b_^d^gm(2,e);}}
-      for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];
-    }
-    out.push(...fs(s));
-  }
-  return out;
+function buildBlankBits(id,val){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML='';
+  B8(val).split('').forEach((b,i)=>{
+    const d=document.createElement('div');d.className='bt blank';d.textContent='?';
+    d.onclick=function(){this.textContent=b;this.className='bt tel';this.onclick=null;checkB0Done();};
+    el.appendChild(d);
+  });
 }
-function decFull(cb,kb){
-  const nr=14,w=kx(kb),result=[];
-  for(let b=0;b<cb.length;b+=16){
-    const s=ts(cb.slice(b,b+16));
-    for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[nr*4+c][r];
-    for(let rnd=nr-1;rnd>=0;rnd--){
-      for(let row=1;row<4;row++){const ro=s[row].slice();for(let c=0;c<4;c++)s[row][c]=ro[(c+4-row)%4];}
-      for(let row=0;row<4;row++)for(let c=0;c<4;c++)s[row][c]=ISB[s[row][c]];
-      for(let c=0;c<4;c++)for(let r=0;r<4;r++)s[r][c]^=w[rnd*4+c][r];
-      if(rnd>0){for(let c=0;c<4;c++){const[a,b_,d,e]=[s[0][c],s[1][c],s[2][c],s[3][c]];s[0][c]=gm(0x0e,a)^gm(0x0b,b_)^gm(0x0d,d)^gm(0x09,e);s[1][c]=gm(0x09,a)^gm(0x0e,b_)^gm(0x0b,d)^gm(0x0d,e);s[2][c]=gm(0x0d,a)^gm(0x09,b_)^gm(0x0e,d)^gm(0x0b,e);s[3][c]=gm(0x0b,a)^gm(0x0d,b_)^gm(0x09,d)^gm(0x0e,e);}}
-    }
-    result.push(...fs(s));
-  }
-  return unpad(result).map(b=>String.fromCharCode(b)).join('');
+function buildClickBits(id,val){
+  const el=document.getElementById(id);if(!el)return;el.innerHTML='';
+  B8(val).split('').forEach(b=>{
+    const d=document.createElement('div');d.className='bt blank';d.textContent='?';
+    d.onclick=function(){this.textContent=b;this.className='bt tel';this.onclick=null;};
+    el.appendChild(d);
+  });
+}
+function revealXorBits(){
+  buildBits('b0r',0x48^0x49,'tel');document.getElementById('b0hex').textContent='= '+H(0x48^0x49);
+  buildBits('b1r',0x65^0xA0,'tel');
+}
+function checkB0Done(){
+  const el=document.getElementById('b0r');if(!el)return;
+  if([...el.querySelectorAll('.bt')].every(b=>b.textContent!=='?'))document.getElementById('b0hex').textContent='= '+H(0x48^0x49);
+}
+function initXorBits(){
+  buildBits('b0s',0x48,'ora');buildBits('b0k',0x49,'gld');buildBlankBits('b0r',0x48^0x49);
+  buildBits('b1s',0x65,'ora');buildBits('b1k',0xA0,'gld');buildClickBits('b1r',0x65^0xA0);
 }
 
-// ═══════════════════════════════════════════════════
-// STEP BUILDER — one input flows through all steps
-// ═══════════════════════════════════════════════════
-let steps=[],curIdx=0,playTimer=null,playSpd=2500,isPlaying=false,lastCipher=null,gridTimer=null;
+// ══════════════════════════════════════════
+// ASCII TABLE
+// ══════════════════════════════════════════
+function buildAsciiGrid(id){
+  const g=document.getElementById(id);if(!g)return;g.innerHTML='';
+  const chars=' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
+  chars.split('').forEach(c=>{const code=c.charCodeAt(0);const d=document.createElement('div');d.className='ascii-cell';d.innerHTML=`<div class="achar">${c===' '?'SP':c}</div><div class="anum">${code}<br>${H(code)}</div>`;d.title=`'${c}' = ${code} = 0x${H(code)}`;g.appendChild(d);});
+}
+function toggleAscii(popId,btnId){
+  const p=document.getElementById(popId);if(!p)return;
+  const show=!p.classList.contains('show');
+  document.querySelectorAll('.ascii-pop').forEach(x=>x.classList.remove('show'));
+  if(show){p.classList.add('show');buildAsciiGrid(popId.replace('ap','ag').replace('ap-','ag-'));}
+}
+document.addEventListener('click',e=>{if(!e.target.closest('.ascii-hint')&&!e.target.closest('.ascii-pop'))document.querySelectorAll('.ascii-pop').forEach(p=>p.classList.remove('show'));});
+
+// ══════════════════════════════════════════
+// KEY SCHEDULE
+// ══════════════════════════════════════════
+const kst=['<strong>Original Key (256 bits = 32 bytes):</strong> Your 32-byte secret splits into 8 words W[0]–W[7]. These form Round Key 0. AES-256 needs 60 words total = 15 round keys. The larger key means more key derivation steps.',
+'<strong>W[0..7] — Round Key 0:</strong> The first 8 words = your original key. Used in Initial AddRoundKey to XOR with the plaintext before any rounds start.',
+'<strong>RotWord:</strong> Last word rotated left by 1 byte: [a₀,a₁,a₂,a₃]→[a₁,a₂,a₃,a₀]. Applied every 8th word. Ensures every byte position participates in key expansion.',
+'<strong>SubWord:</strong> AES S-Box applied to all 4 bytes of the rotated word. Introduces non-linearity — without this the key schedule would be linear and algebraically breakable.',
+'<strong>XOR with Rcon:</strong> First byte XOR-ed with round constant. AES-256 Rcon values: 01 02 04 08 10 20 40 80 1B 36 6C D8 AB 4D. Prevents related-key attacks.',
+'<strong>Extra SubWord (AES-256 ONLY):</strong> When word index mod 8 = 4, an extra SubWord is applied without RotWord or Rcon. This step does NOT exist in AES-128 or AES-192. It is what makes AES-256 key expansion fundamentally different.',
+'<strong>W[8..15] — Round Key 1:</strong> W[8]=W[0]⊕temp, W[9]=W[1]⊕W[8], etc. This process repeats until W[59], generating all 15 round keys needed for the 14 rounds.',
+'<strong>W[56..59] — Round Key 14:</strong> The final round key. After 60 words total, AES-256 has all 15 unique 128-bit round keys ready for the encryption process.'];
+function ksS(i,el){document.querySelectorAll('#kspl .kb').forEach(b=>b.classList.remove('active'));el.classList.add('active');const ex=document.getElementById('ksex');ex.style.opacity='0';setTimeout(()=>{ex.innerHTML=kst[i];ex.style.opacity='1';},150);}
+
+// ══════════════════════════════════════════
+// ROUND ANIMATION
+// ══════════════════════════════════════════
+function animRounds(){const rc=document.getElementById('rchips');rc.innerHTML='';const chips=[];for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rchip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('sp');rc.appendChild(c);chips.push(c);}let i=0;function tk(){if(i<chips.length){chips[i].classList.add('lit');i++;setTimeout(tk,200);}}tk();}
+
+// ══════════════════════════════════════════
+// S-BOX TABLE
+// ══════════════════════════════════════════
+function buildFullSbox(){
+  const t=document.getElementById('sboxt-full');
+  const hr=document.createElement('tr');hr.appendChild(Object.assign(document.createElement('th'),{textContent:''}));
+  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent='×'+c.toString(16).toUpperCase();hr.appendChild(th);}t.appendChild(hr);
+  for(let row=0;row<16;row++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase()+'×';tr.appendChild(th);for(let col=0;col<16;col++){const td=document.createElement('td');const v=SB[row*16+col];td.textContent=v.toString(16).toUpperCase().padStart(2,'0');td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} → 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;tr.appendChild(td);}t.appendChild(tr);}
+}
+
+// ══════════════════════════════════════════
+// STEP BUILDER
+// ══════════════════════════════════════════
+let steps=[],curIdx=0,playTimer=null,playSp=2500,isPlaying=false,lastCipher=null,gTimer=null;
 
 function buildSteps(plain,kb){
-  const out=[];
-  const pb=plain.split('').map(c=>c.charCodeAt(0));
-  const padded=pad16([...pb]);
-  const block=padded.slice(0,16);
-  const w=kx(kb);
-  const nr=14;
-  const rk0=[]; for(let c=0;c<4;c++)for(let r=0;r<4;r++) rk0.push(w[c][r]);
+  const out=[],pb=plain.split('').map(c=>c.charCodeAt(0)),padded=pad16([...pb]),block=padded.slice(0,16),w=kx(kb),nr=14;
+  const rk0=[];for(let c=0;c<4;c++)for(let r=0;r<4;r++)rk0.push(w[c][r]);
 
-  // ── STEP 0: Input ──
-  out.push({
-    badge:'Input',badgeCls:'sb-teal',scanCls:'sc-teal',doneCls:'dn-teal',
-    title:'Your Message → Bytes',
-    why:'AES does not work on text — it works on numbers. Every character is converted to its ASCII code (a number 0–255) then written in hexadecimal (base 16). This is the first representation of your data.',
-    glbl:'Plaintext as 16 bytes',
-    before:block,after:block,
-    et:'Character → ASCII decimal → Hexadecimal',
-    fm:plain.split('').slice(0,16).map((c,i)=>{
-      const code=c.charCodeAt(0);
-      return `<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> → ASCII <span class="vop">${code}</span> → hex <span class="vout">${H(code)}</span>`;
-    }).join('<br>'),
-    showAscii:true
-  });
+  // Step 0 Input
+  out.push({badge:'Input',bc:'st',sc:'sct',dc:'dnt',title:'Plaintext → Bytes',why:'AES processes bytes, not text. Every character is converted to its ASCII numeric code, then expressed in hexadecimal (base 16). This is the raw data entering the 4×4 state matrix.',glbl:'Plaintext — 16 bytes',before:block,after:block,
+    et:'Each character → ASCII decimal → Hex',fm:plain.split('').slice(0,16).map((c,i)=>`<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> → ASCII <span class="vop">${c.charCodeAt(0)}</span> → <span class="vout">${H(c.charCodeAt(0))}</span>`).join('<br>'),showAscii:true});
 
-  // ── STEP 1: Padding ──
+  // Step 1 Padding
   const pv=16-pb.length;
-  out.push({
-    badge:'Padding',badgeCls:'sb-teal',scanCls:'sc-teal',doneCls:'dn-teal',
-    title:'PKCS#7 Padding',
-    why:'AES needs exactly 16 bytes (128 bits) per block. If the message is shorter, PKCS#7 adds bytes at the end. The value of each padding byte equals how many bytes were added. This way, when decrypting, the padding can be cleanly removed.',
-    glbl:'Block after padding applied',
-    before:block,after:block,
-    et:'Padding rule',
-    fm:`<span class="lbl">Message:       </span><span class="vin">${pb.length} bytes</span><br>
-<span class="lbl">Block size:    </span><span class="vop">16 bytes</span><br>
-<span class="lbl">Missing:       </span><span class="vop">${pv} bytes</span><br>
-<span class="sep"></span>
-<span class="lbl">Pad value:     </span><span class="vout">0x${H(pv)}</span><span class="lbl"> (= ${pv} decimal)</span><br>
-<span class="lbl">Added ${pv} bytes each = </span><span class="vout">0x${H(pv)}</span><br>
-<span class="sep"></span>
-<span class="lbl">Final block:   </span><span class="vout">${hA(block)}</span>`
-  });
+  out.push({badge:'Padding PKCS#7',bc:'st',sc:'sct',dc:'dnt',title:'PKCS#7 Padding',why:'AES needs exactly 16 bytes (128 bits) per block. PKCS#7 pads the remainder: each padding byte has the value equal to the count of padding bytes added. Example: if 2 bytes missing, add two 0x02 bytes.',glbl:'Block after padding',before:block,after:block,
+    et:'Padding formula',fm:`<span class="lbl">Message length: </span><span class="vin">${pb.length} bytes</span><br><span class="lbl">Block size:     </span><span class="vop">16 bytes</span><br><span class="lbl">Missing:        </span><span class="vop">${pv} bytes</span><br><span class="sep"></span><span class="lbl">Pad value = </span><span class="vout">0x${H(pv)}</span><span class="lbl"> (= ${pv} in decimal)</span><br><span class="lbl">Added ${pv} bytes, each = </span><span class="vout">0x${H(pv)}</span><br><span class="sep"></span><span class="lbl">Block: </span><span class="vout">${hA(block)}</span>`});
 
-  // ── STEP 2: Key ──
-  out.push({
-    badge:'Key (AES-256)',badgeCls:'sb-gold',scanCls:'sc-gold',doneCls:'dn-gold',
-    title:'Your 256-bit Key → 32 Bytes',
-    why:'The secret key is read as 32 bytes. AES-256 requires exactly 256 bits = 32 bytes. The Key Schedule will expand this into 15 unique round keys. Every single character matters — changing just one character of the key produces a completely different ciphertext.',
-    glbl:'Key: 32 bytes = 256 bits',
-    before:kb.slice(0,16),after:kb.slice(0,16),
-    et:'Key characters → bytes (first 16 of 32)',
-    fm:kb.slice(0,16).map((b,i)=>{const c=b<32?'\\0':String.fromCharCode(b);return `<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> = <span class="vout">${H(b)}</span>`;}).join('<br>')+
-    `<br><span class="lbl">... bytes 16–31 also included (AES-256 = 32 total)</span>`
-  });
+  // Step 2 Key
+  out.push({badge:'Key AES-256',bc:'sd2',sc:'scd',dc:'dnd',title:'Your 256-bit Key → 32 Bytes',why:'The 32-byte key feeds the Key Schedule which generates 15 round keys. AES-256 has a unique Extra SubWord step in its key expansion. Changing just one character produces a completely different ciphertext.',glbl:'Key — 32 bytes = 256 bits',before:kb.slice(0,16),after:kb.slice(0,16),
+    et:'Key bytes (first 16 of 32)',fm:kb.slice(0,16).map((b,i)=>{const c=b<32?'\\0':String.fromCharCode(b);return `<span class="lbl">[${String(i).padStart(2)}] </span><span class="vin">'${c}'</span> = <span class="vout">${H(b)}</span>`;}).join('<br>')+`<br><span class="lbl">... + bytes 16–31 (AES-256 needs all 32)</span>`});
 
-  // ── STEP 3: Initial AddRoundKey ──
+  // Step 3 ARK0
   const after0=block.map((b,i)=>b^rk0[i]);
-  out.push({
-    badge:'AddRoundKey · Round 0',badgeCls:'sb-teal',scanCls:'sc-teal',doneCls:'dn-teal',
-    title:'Initial AddRoundKey — XOR with Key',
-    why:'Before any rounds begin, each plaintext byte is XOR-ed with the corresponding byte of Round Key 0 (your original key). This is called "initial whitening" — even before Round 1 starts, the data no longer looks like your original message.',
-    glbl:'State after XOR with Round Key 0',
-    before:block,after:after0,
-    et:'XOR: each plaintext byte ⊕ key byte',
-    fm:'',isARK:true,arkBefore:block,arkKey:rk0
-  });
+  out.push({badge:'AddRoundKey Round 0',bc:'st',sc:'sct',dc:'dnt',title:'Initial AddRoundKey — XOR with Key',why:'Before any rounds begin, every plaintext byte is XOR-ed with Round Key 0 (your original key). XOR: same bits → 0, different bits → 1. This "initial whitening" means Round 1 already starts on scrambled data.',glbl:'State after initial XOR',before:block,after:after0,isARK:true,arkBefore:block,arkKey:rk0,
+    et:'XOR for each byte — click any cell',fm:''});
 
-  // build running state
   let curSt=ts(after0.slice());
-  const rkF1=[]; for(let c=0;c<4;c++)for(let r=0;r<4;r++) rkF1.push(w[4+c][r]);
+  const rkF1=[];for(let c=0;c<4;c++)for(let r=0;r<4;r++)rkF1.push(w[4+c][r]);
 
-  // ── STEP 4: SubBytes R1 ── (ASCII HINT APPEARS HERE)
-  const bSub=fs(cS(curSt)), aSub=bSub.map(b=>SB[b]);
-  out.push({
-    badge:'SubBytes · Round 1',badgeCls:'sb-ora',scanCls:'sc-ora',doneCls:'dn-ora',
-    title:'Round 1 — SubBytes (S-Box Lookup)',
-    why:'Every byte is replaced by a different value using the S-Box — a fixed 256-entry lookup table. This is the non-linear step: without it, AES would be solvable with algebra. The S-Box was designed so that no mathematical relationship exists between inputs and outputs.',
-    glbl:'State after SubBytes (each byte substituted)',
-    before:bSub,after:aSub,
-    et:'S-Box lookup for each byte',
-    fm:'',isSUB:true,showAsciiSbox:true
-  });
+  // Step 4 SubBytes
+  const bSub=fs(cS(curSt)),aSub=bSub.map(b=>SB[b]);
+  out.push({badge:'SubBytes Round 1',bc:'so',sc:'sco',dc:'dno',title:'Round 1 — SubBytes',why:'Every byte replaced via S-Box lookup. High nibble = row, low nibble = column. This introduces non-linearity: without it AES would be solvable with algebra. The S-Box was designed to resist all known algebraic attacks.',glbl:'State after SubBytes',before:bSub,after:aSub,isSUB:true,
+    et:'S-Box lookup — click any cell',fm:'',showSboxHint:true});
   for(let r=0;r<4;r++)for(let c=0;c<4;c++)curSt[r][c]=SB[curSt[r][c]];
 
-  // ── STEP 5: ShiftRows R1 ──
-  const bShift=fs(cS(curSt));
-  const stSh=cS(curSt);for(let r=1;r<4;r++){const row=stSh[r].slice();for(let c=0;c<4;c++)stSh[r][c]=row[(c+r)%4];}
-  const aShift=fs(stSh);
-  out.push({
-    badge:'ShiftRows · Round 1',badgeCls:'sb-grn',scanCls:'sc-grn',doneCls:'dn-grn',
-    title:'Round 1 — ShiftRows',
-    why:'Each row of the 4×4 state matrix rotates left by its row number. Row 0 stays. Row 1 moves 1 left. Row 2 moves 2. Row 3 moves 3. This distributes bytes into different columns so MixColumns can blend bytes from different original positions.',
-    glbl:'State after ShiftRows (rows rotated)',
-    before:bShift,after:aShift,
-    et:'Row-by-row rotation',
-    fm:[0,1,2,3].map(r=>{
-      const rb=[0,1,2,3].map(c=>H(bShift[r*4+c]));
-      const ra=[0,1,2,3].map(c=>H(aShift[r*4+c]));
-      return `<span class="lbl">Row ${r} (shift ${r}): </span><span class="vin">${rb.join(' ')}</span> → <span class="vout">${ra.join(' ')}</span>`;
-    }).join('<br>')
-  });
+  // Step 5 ShiftRows
+  const bSh=fs(cS(curSt));const stSh=cS(curSt);for(let r=1;r<4;r++){const row=stSh[r].slice();for(let c=0;c<4;c++)stSh[r][c]=row[(c+r)%4];}const aSh=fs(stSh);
+  out.push({badge:'ShiftRows Round 1',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 — ShiftRows',why:'Each row rotates left by its row number. Row 0: no shift. Row 1: 1 left. Row 2: 2 left. Row 3: 3 left. This moves bytes into different column positions so MixColumns can blend bytes from many original positions — providing diffusion.',glbl:'State after ShiftRows',before:bSh,after:aSh,isSH:true,
+    et:'Row shifts — click any cell',fm:[0,1,2,3].map(r=>`<span class="lbl">Row ${r} (shift ${r}): </span><span class="vin">${[0,1,2,3].map(c=>H(bSh[r*4+c])).join(' ')}</span> → <span class="vout">${[0,1,2,3].map(c=>H(aSh[r*4+c])).join(' ')}</span>`).join('<br>')});
   for(let r=1;r<4;r++){const row=curSt[r].slice();for(let c=0;c<4;c++)curSt[r][c]=row[(c+r)%4];}
 
-  // ── STEP 6: MixColumns R1 ──
-  const bMix=fs(cS(curSt));
-  const stMx=cS(curSt);
-  for(let c=0;c<4;c++){const[a,b,d,e]=[stMx[0][c],stMx[1][c],stMx[2][c],stMx[3][c]];stMx[0][c]=gm(2,a)^gm(3,b)^d^e;stMx[1][c]=a^gm(2,b)^gm(3,d)^e;stMx[2][c]=a^b^gm(2,d)^gm(3,e);stMx[3][c]=gm(3,a)^b^d^gm(2,e);}
-  const aMix=fs(stMx);
-  const col0=[0,1,2,3].map(r=>bMix[r*4]);
-  out.push({
-    badge:'MixColumns · Round 1',badgeCls:'sb-pur',scanCls:'sc-pur',doneCls:'dn-pur',
-    title:'Round 1 — MixColumns',
-    why:'Each column of 4 bytes is multiplied by a fixed matrix in GF(2⁸) — Galois Field arithmetic where addition is XOR. Every output byte now depends on all 4 input bytes of its column. Combined with ShiftRows, this means after 2 rounds every output bit depends on every input bit.',
-    glbl:'State after MixColumns (column blending)',
-    before:bMix,after:aMix,
-    et:'Column 0 — exact GF(2⁸) calculation',
-    fm:`<span class="lbl">Col 0 input:   </span><span class="vin">${col0.map(H).join(' ')}</span><br>
-<span class="sep"></span>
-<span class="lbl">out[0] = 2·${H(col0[0])} ⊕ 3·${H(col0[1])} ⊕ ${H(col0[2])} ⊕ ${H(col0[3])}</span><br>
-<span class="lbl">       = </span><span class="vop">${H(gm(2,col0[0]))}</span> ⊕ <span class="vop">${H(gm(3,col0[1]))}</span> ⊕ <span class="vop">${H(col0[2])}</span> ⊕ <span class="vop">${H(col0[3])}</span><br>
-<span class="lbl">       = </span><span class="vout">${H(aMix[0])}</span><br>
-<span class="sep"></span>
-<span class="lbl">Rule: 2·x = x<<1; if x≥0x80 then ⊕ 0x1B</span><br>
-<span class="lbl">Rule: 3·x = (2·x) ⊕ x</span><br>
-<span class="sep"></span>
-<span class="lbl">Col 0 output:  </span><span class="vout">${[0,1,2,3].map(r=>H(aMix[r*4])).join(' ')}</span>`
-  });
+  // Step 6 MixColumns
+  const bMx=fs(cS(curSt));const stMx=cS(curSt);for(let c=0;c<4;c++){const[a,b,d,e]=[stMx[0][c],stMx[1][c],stMx[2][c],stMx[3][c]];stMx[0][c]=gm(2,a)^gm(3,b)^d^e;stMx[1][c]=a^gm(2,b)^gm(3,d)^e;stMx[2][c]=a^b^gm(2,d)^gm(3,e);stMx[3][c]=gm(3,a)^b^d^gm(2,e);}const aMx=fs(stMx);
+  const col0=[0,1,2,3].map(r=>bMx[r*4]);
+  out.push({badge:'MixColumns Round 1',bc:'sp',sc:'scp',dc:'dnp',title:'Round 1 — MixColumns',why:'Each column multiplied by a fixed matrix in GF(2⁸). Every output byte depends on all 4 input bytes of its column. Combined with ShiftRows, after 2 rounds every single output bit depends on every input bit — the "avalanche effect". Skipped in Round 14.',glbl:'State after MixColumns',before:bMx,after:aMx,isMX:true,
+    et:'Column 0 — exact calculation',fm:`<span class="lbl">Col 0 input: </span><span class="vin">${col0.map(H).join(' ')}</span><br><span class="sep"></span><span class="lbl">out[0] = 2·${H(col0[0])} ⊕ 3·${H(col0[1])} ⊕ ${H(col0[2])} ⊕ ${H(col0[3])}</span><br><span class="lbl">       = </span><span class="vop">${H(gm(2,col0[0]))}</span> ⊕ <span class="vop">${H(gm(3,col0[1]))}</span> ⊕ <span class="vop">${H(col0[2])}</span> ⊕ <span class="vop">${H(col0[3])}</span> = <span class="vout">${H(aMx[0])}</span><br><span class="lbl">Rule: 2·x = shift left; if x≥0x80 then ⊕0x1B</span><br><span class="lbl">Rule: 3·x = (2·x) ⊕ x</span>`});
   for(let c=0;c<4;c++){const[a,b,d,e]=[curSt[0][c],curSt[1][c],curSt[2][c],curSt[3][c]];curSt[0][c]=gm(2,a)^gm(3,b)^d^e;curSt[1][c]=a^gm(2,b)^gm(3,d)^e;curSt[2][c]=a^b^gm(2,d)^gm(3,e);curSt[3][c]=gm(3,a)^b^d^gm(2,e);}
 
-  // ── STEP 7: AddRoundKey R1 ──
-  const bArk1=fs(cS(curSt)), aArk1=bArk1.map((b,i)=>b^rkF1[i]);
-  out.push({
-    badge:'AddRoundKey · Round 1',badgeCls:'sb-teal',scanCls:'sc-teal',doneCls:'dn-teal',
-    title:'Round 1 — AddRoundKey (XOR with Round Key 1)',
-    why:'Every byte of the state is XOR-ed with Round Key 1. XOR is the secret ingredient: same → 0, different → 1. Without the key, this step cannot be reversed. This is what ties your secret key to the ciphertext — change one bit of the key and the entire output changes.',
-    glbl:'State after XOR with Round Key 1',
-    before:bArk1,after:aArk1,
-    et:'Bit-by-bit XOR: state ⊕ round key 1',
-    fm:'',isARK:true,arkBefore:bArk1,arkKey:rkF1
-  });
+  // Step 7 ARK1
+  const bA1=fs(cS(curSt)),aA1=bA1.map((b,i)=>b^rkF1[i]);
+  out.push({badge:'AddRoundKey Round 1',bc:'st',sc:'sct',dc:'dnt',title:'Round 1 — AddRoundKey (XOR Round Key 1)',why:'State XOR-ed with Round Key 1. This is where the secret key directly affects the data. Change one bit of the key and the entire output changes. XOR is also self-inverse: encrypt then decrypt with same key gives back the original.',glbl:'State after XOR with Round Key 1',before:bA1,after:aA1,isARK:true,arkBefore:bA1,arkKey:rkF1,
+    et:'XOR each byte with round key 1',fm:''});
   for(let c=0;c<4;c++)for(let r=0;r<4;r++)curSt[r][c]^=w[4+c][r];
 
-  // ── STEP 8: Rounds 2–14 ──
-  const stR2=fs(cS(curSt));
-  for(let rnd=2;rnd<=nr;rnd++){
-    for(let r=0;r<4;r++)for(let c=0;c<4;c++)curSt[r][c]=SB[curSt[r][c]];
-    for(let r=1;r<4;r++){const row=curSt[r].slice();for(let c=0;c<4;c++)curSt[r][c]=row[(c+r)%4];}
-    if(rnd<nr){for(let c=0;c<4;c++){const[a,b,d,e]=[curSt[0][c],curSt[1][c],curSt[2][c],curSt[3][c]];curSt[0][c]=gm(2,a)^gm(3,b)^d^e;curSt[1][c]=a^gm(2,b)^gm(3,d)^e;curSt[2][c]=a^b^gm(2,d)^gm(3,e);curSt[3][c]=gm(3,a)^b^d^gm(2,e);}}
-    for(let c=0;c<4;c++)for(let r=0;r<4;r++)curSt[r][c]^=w[rnd*4+c][r];
-  }
-  const cipherState=fs(curSt);
-  out.push({
-    badge:'Rounds 2–14',badgeCls:'sb-dark',scanCls:'sc-pur',doneCls:'dn-pur',
-    title:'Rounds 2–14 — AES-256 Completes',
-    why:'Rounds 2 through 14 repeat the same four steps (SubBytes → ShiftRows → MixColumns → AddRoundKey) with Round Keys 2 through 14. Round 14 skips MixColumns. Each round uses a unique key derived by the Key Schedule. After 14 rounds, the data is fully encrypted.',
-    glbl:'Final state after all 14 rounds',
-    before:stR2,after:cipherState,
-    et:'13 more rounds — same operations, new keys',
-    fm:`<span class="lbl">Rounds 2–13: SubBytes → ShiftRows → MixColumns → AddRoundKey</span><br>
-<span class="lbl">Round 14:    SubBytes → ShiftRows → AddRoundKey (no MixColumns)</span><br>
-<span class="sep"></span>
-${Array.from({length:4},(_,i)=>`<span class="lbl">Round Key ${i+2}: </span><span class="vkey">${hA([...Array(4)].flatMap((_,c)=>[...Array(4)].map((_,r)=>w[(i+2)*4+c][r])).slice(0,8))}...</span>`).join('<br>')}<br>
-<span class="sep"></span>
-<span class="lbl">After 14 rounds:</span><br><span class="vout">${hA(cipherState)}</span>`
-  });
+  // Step 8 Rounds 2-14
+  const stR2=fs(cS(curSt));for(let rnd=2;rnd<=nr;rnd++){for(let r=0;r<4;r++)for(let c=0;c<4;c++)curSt[r][c]=SB[curSt[r][c]];for(let r=1;r<4;r++){const row=curSt[r].slice();for(let c=0;c<4;c++)curSt[r][c]=row[(c+r)%4];}if(rnd<nr){for(let c=0;c<4;c++){const[a,b,d,e]=[curSt[0][c],curSt[1][c],curSt[2][c],curSt[3][c]];curSt[0][c]=gm(2,a)^gm(3,b)^d^e;curSt[1][c]=a^gm(2,b)^gm(3,d)^e;curSt[2][c]=a^b^gm(2,d)^gm(3,e);curSt[3][c]=gm(3,a)^b^d^gm(2,e);}}for(let c=0;c<4;c++)for(let r=0;r<4;r++)curSt[r][c]^=w[rnd*4+c][r];}
+  const cipher=fs(curSt);
+  out.push({badge:'Rounds 2–14',bc:'sk',sc:'scp',dc:'dnp',title:'Rounds 2–14 — AES-256 Completes',why:'Rounds 2–13 repeat: SubBytes → ShiftRows → MixColumns → AddRoundKey with keys 2–13. Round 14 (final) skips MixColumns — intentional for symmetric decryption. After 14 rounds, the data is completely encrypted.',glbl:`Final state after all 14 rounds`,before:stR2,after:cipher,
+    et:'13 more rounds with unique keys',fm:`<span class="lbl">Rounds 2–13: SubBytes → ShiftRows → MixColumns → AddRoundKey</span><br><span class="lbl">Round 14:   SubBytes → ShiftRows → AddRoundKey (no MixColumns)</span><br><span class="sep"></span>${Array.from({length:4},(_,i)=>`<span class="lbl">Round Key ${i+2}: </span><span class="vkey">${hA([...Array(4)].flatMap((_,c)=>[...Array(4)].map((_,r)=>w[(i+2)*4+c][r])).slice(0,8))}...</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">Result: </span><span class="vout">${hA(cipher)}</span>`});
 
-  // ── STEP 9: Output ──
-  out.push({
-    badge:'Ciphertext',badgeCls:'sb-teal',scanCls:'sc-teal',doneCls:'dn-teal',
-    title:'Final Ciphertext',
-    why:'The state matrix is read column by column to produce 16 bytes of ciphertext. It is statistically indistinguishable from random noise. Only the person holding the exact 256-bit key can run AES-256 decryption in reverse to recover the original message.',
-    glbl:'Encrypted output — 16 bytes',
-    before:cipherState,after:cipherState,
-    et:'Reading state matrix column by column',
-    fm:`${[0,1,2,3].map(c=>`<span class="lbl">Col ${c}: </span><span class="vout">${[0,1,2,3].map(r=>H(ts(cipherState)[r][c])).join(' ')}</span>`).join('<br>')}<br>
-<span class="sep"></span>
-<span class="lbl">Ciphertext: </span><span class="vout" style="font-size:.9rem;font-weight:700">${hA(cipherState)}</span><br>
-<span class="sep"></span>
-<span class="lbl">To decrypt: run same steps in reverse with same key.</span>`
-  });
+  // Step 9 Output
+  out.push({badge:'Ciphertext',bc:'st',sc:'sct',dc:'dnt',title:'Final Ciphertext',why:'After 14 rounds, the state matrix is read column by column to produce 16 bytes. The result looks like random noise. Only the exact 256-bit key used to encrypt can reverse the process.',glbl:'Encrypted output — 16 bytes',before:cipher,after:cipher,
+    et:'State matrix read column by column',fm:`${[0,1,2,3].map(c=>`<span class="lbl">Col ${c}: </span><span class="vout">${[0,1,2,3].map(r=>H(ts(cipher)[r][c])).join(' ')}</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">Ciphertext: </span><span class="vout" style="font-size:.9rem;font-weight:700">${hA(cipher)}</span><br><span class="sep"></span><span class="lbl">Decrypt: same key, reverse operations.</span>`});
 
   return out;
 }
 
-// ═══════════════════════════════════════════════════
-// RENDER ENGINE
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════
 function startEnc(){
-  const plain=document.getElementById('pIn').value;
-  if(!plain){alert('Enter a message.');return;}
-  const kb=getKey();
-  steps=buildSteps(plain,kb);
-  lastCipher=encFull(plain,kb);
+  const plain=document.getElementById('pIn').value;if(!plain)return;
+  const kb=getKey();steps=buildSteps(plain,kb);lastCipher=encFull(plain,kb);
   curIdx=0;isPlaying=false;clearTimeout(playTimer);
-  buildTrack();
-  document.getElementById('sv-player').style.display='block';
-  document.getElementById('out-block').classList.remove('show');
-  document.getElementById('dec-box').style.display='none';
+  buildTrack();document.getElementById('player').style.display='block';
+  document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';
   renderStep(0);
-  setTimeout(()=>document.getElementById('cipher-flow').scrollIntoView({behavior:'smooth',block:'start'}),120);
+  setTimeout(()=>document.getElementById('flow-sec').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
 
+const TRACK_LABELS=['Input','Padding','Key','ARK 0','SubBytes','ShiftRows','MixCols','ARK 1','Rnds 2–14','Output'];
 function buildTrack(){
-  const t=document.getElementById('flow-track');t.innerHTML='';
-  const labels=['Input','Padding','Key','ARK0','SubBytes','ShiftRows','MixCols','ARK1','Rnds 2–14','Output'];
-  steps.forEach((_,i)=>{
-    if(i>0){const l=document.createElement('div');l.className='ft-line';l.id=`ftl${i-1}`;t.appendChild(l);}
-    const d=document.createElement('div');d.className='ft-dot';d.id=`ftd${i}`;d.onclick=()=>goTo(i);
-    d.innerHTML=`<div class="ft-circ">${i+1}</div><div class="ft-lbl">${labels[i]||'Step'}</div>`;
-    t.appendChild(d);
-  });
+  const t=document.getElementById('ftrack');t.innerHTML='';
+  steps.forEach((_,i)=>{if(i>0){const l=document.createElement('div');l.className='ftline';l.id=`ftl${i-1}`;t.appendChild(l);}
+  const d=document.createElement('div');d.className='ftd';d.id=`ftd${i}`;d.onclick=()=>goTo(i);
+  d.innerHTML=`<div class="ftc">${i+1}</div><div class="ftlbl">${TRACK_LABELS[i]||''}</div>`;t.appendChild(d);});
 }
 
 function goTo(i){stopPlay();curIdx=i;renderStep(i);}
+let animT=null;
 
-let animTimer=null;
 function renderStep(idx){
-  clearTimeout(animTimer);
+  clearTimeout(animT);
   const s=steps[idx];
-  // update track
-  steps.forEach((_,i)=>{
-    const d=document.getElementById(`ftd${i}`);if(!d)return;
-    d.className='ft-dot'+(i<idx?' done':i===idx?' active':'');
-    if(i>0){const l=document.getElementById(`ftl${i-1}`);if(l)l.className='ft-line'+(i<=idx?' done':'');}
-  });
-  // flip animation
-  const card=document.getElementById('step-card');
-  card.classList.remove('flip-in','flip-out');
-  card.classList.add('active');
-  void card.offsetWidth;
-  card.classList.add('flip-in');
+  steps.forEach((_,i)=>{const d=document.getElementById(`ftd${i}`);if(!d)return;d.className='ftd'+(i<idx?' done':i===idx?' active':'');if(i>0){const l=document.getElementById(`ftl${i-1}`);if(l)l.className='ftline'+(i<=idx?' done':'');}});
 
-  // show/hide sbox hint
-  const sboxSec=document.getElementById('sbox-sec');
-  if(s.showAsciiSbox){
-    sboxSec.style.outline='3px solid var(--gold)';
-    sboxSec.style.borderRadius='8px';
-    sboxSec.scrollIntoView&&false; // don't auto-scroll, just highlight
-  } else {
-    sboxSec.style.outline='';
-    sboxSec.style.borderRadius='';
-  }
+  const card=document.getElementById('scard');
+  card.className='scard active flip';void card.offsetWidth;
 
-  // build card content
-  let html=`<div class="step-badge ${s.badgeCls}">${s.badge}</div>
-<div class="step-title">${s.title}</div>
-<div class="step-why">${s.why}</div>`;
+  // S-Box section highlight on SubBytes
+  const sbs=document.getElementById('sbox-sec');
+  sbs.style.outline=s.showSboxHint?'3px solid var(--gold)':'';
+  sbs.style.borderRadius=s.showSboxHint?'4px':'';
 
-  if(s.showAscii){
-    html+=`<div style="margin-bottom:14px"><div class="ascii-trigger" onclick="toggleAscii()" style="display:inline-flex"><span>▶ ASCII Table — see character codes</span></div><div id="ascii-popup" class="ascii-table-popup"><h4>ASCII Reference</h4><p style="font-size:.76rem;color:var(--muted);margin-bottom:10px">AES converts each character to its ASCII number. Example: 'H'=72=0x48</p><div class="ascii-grid" id="ascii-grid"></div></div></div>`;
-  }
-  if(s.showAsciiSbox){
-    html+=`<div style="margin-bottom:14px;padding:10px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:10px;font-size:.82rem;color:var(--gold)"><strong>S-Box hint:</strong> SubBytes uses the S-Box lookup table — <a href="#sbox-sec" style="color:var(--gold);font-weight:700">scroll up to the S-Box section</a> to see the full table. The cell that matches your byte will be used now.</div>`;
-  }
+  let html=`<div class="sbadge ${s.bc}">${s.badge}</div><div class="stitle">${s.title}</div><div class="swhy">${s.why}</div>`;
+  if(s.showAscii)html+=`<div style="position:relative;display:inline-block;margin-bottom:14px"><div class="ascii-hint" onclick="toggleAscii('ap-s','ah-s')">▶ ASCII Table — character reference</div><div class="ascii-pop" id="ap-s"><h4>ASCII Reference</h4><div class="ascii-grid" id="ag-s"></div></div></div>`;
+  if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> The lookup table is in the Theory section above. <a href="#sbox-sec" style="color:var(--gold);font-weight:700">Scroll up to see it →</a></div>`;
 
-  html+=`<div class="step-body">
-    <div>
-      <div class="sgrid-label" id="sc-glbl">${s.glbl}</div>
-      <div class="sgrid" id="sc-grid"></div>
-    </div>
-    <div class="step-explain">
-      <div class="se-label" id="sc-et">${s.et}</div>
-      <div class="se-fm" id="sc-fm">${s.fm}</div>
-    </div>
-  </div>`;
+  html+=`<div class="sbody"><div><div class="sg-lbl" id="sc-lbl">${s.glbl}</div><div class="sgrid" id="sc-grid"></div></div><div class="sexpl"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm}</div></div></div>`;
   card.innerHTML=html;
 
-  if(s.showAscii) buildAsciiGrid();
-
-  // build grid
+  if(s.showAscii)buildAsciiGrid('ag-s');
   buildGrid(s);
 
-  // counter
-  document.getElementById('sv-ctr').textContent=`Step ${idx+1} of ${steps.length}`;
-  document.getElementById('btn-prev').disabled=idx===0;
-  document.getElementById('btn-next').textContent=idx===steps.length-1?'Finish':'Next Step';
-  document.getElementById('btn-next').disabled=false;
-  document.getElementById('sv-pbfill').style.width=`${(idx/(steps.length-1))*100}%`;
-
-  if(idx===steps.length-1&&lastCipher){
-    document.getElementById('out-block').classList.add('show');
-    document.getElementById('out-cipher').textContent=hA(lastCipher);
-  }
+  document.getElementById('pctr').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('btnprev').disabled=idx===0;
+  document.getElementById('btnnxt').textContent=idx===steps.length-1?'Finish':'Next';
+  document.getElementById('btnnxt').disabled=false;
+  document.getElementById('pbf').style.width=`${(idx/(steps.length-1))*100}%`;
+  if(idx===steps.length-1&&lastCipher){document.getElementById('out-blk').classList.add('show');document.getElementById('out-val').textContent=hA(lastCipher);}
+  updateMapLinks();
 }
 
 function buildGrid(s){
-  const grid=document.getElementById('sc-grid');if(!grid)return;
-  grid.innerHTML='';
+  const grid=document.getElementById('sc-grid');if(!grid)return;grid.innerHTML='';
   s.before.forEach((bv,i)=>{
-    const c=document.createElement('div');
-    c.className='scell dim';c.id=`sc${i}`;
+    const c=document.createElement('div');c.className='scell dim';c.id=`sc${i}`;
     c.innerHTML=`<span>${H(bv)}</span><small>[${i}]</small>`;
-    c.onclick=()=>{clearTimeout(animTimer);showCellDetail(s,i);highlightCell(s,i);};
+    c.onclick=()=>{clearTimeout(animT);highlightCell(s,i);showCellDetail(s,i);};
     grid.appendChild(c);
   });
-  // show first cell formula immediately
   showCellDetail(s,0);
-  // animate cell by cell
   let i=0;
   function nx(){
-    if(i>0){
-      const pc=document.getElementById(`sc${i-1}`);
-      if(pc){pc.className=`scell ${s.doneCls}`;pc.innerHTML=`<span>${H(s.after[i-1])}</span><small>[${i-1}]</small>`;}
-    }
+    if(i>0){const pc=document.getElementById(`sc${i-1}`);if(pc){pc.className=`scell ${s.dc}`;pc.innerHTML=`<span>${H(s.after[i-1])}</span><small>[${i-1}]</small>`;}}
     if(i<16){
       const c=document.getElementById(`sc${i}`);
-      if(c){
-        c.className=`scell ${s.scanCls}`;
-        if(s.before[i]!==s.after[i]){
-          c.innerHTML=`<span class="cell-from">${H(s.before[i])}</span><span class="cell-arr">→</span><span class="cell-to">${H(s.after[i])}</span>`;
-        } else {
-          c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;
-        }
-      }
-      showCellDetail(s,i);
-      i++;
-      animTimer=setTimeout(nx,900);
-    } else {
-      const fm=document.getElementById('sc-fm');
-      if(fm&&s.fm) fm.innerHTML=s.fm;
-      const et=document.getElementById('sc-et');
-      if(et) et.textContent='All 16 bytes processed — result:';
-    }
+      if(c){c.className=`scell ${s.sc}`;if(s.before[i]!==s.after[i])c.innerHTML=`<span class="cf">${H(s.before[i])}</span><span class="ca"> ${H(s.after[i])}</span>`;else c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}
+      showCellDetail(s,i);i++;animT=setTimeout(nx,900);
+    } else {const fm=document.getElementById('sc-fm');if(fm&&s.fm)fm.innerHTML=s.fm;const et=document.getElementById('sc-et');if(et)et.textContent='All 16 bytes processed';}
   }
   setTimeout(nx,400);
 }
 
 function highlightCell(s,idx){
-  for(let i=0;i<16;i++){
-    const c=document.getElementById(`sc${i}`);if(!c)continue;
-    if(i<idx){c.className=`scell ${s.doneCls}`;c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}
-    else if(i===idx){
-      c.className=`scell ${s.scanCls}`;
-      if(s.before[i]!==s.after[i])c.innerHTML=`<span class="cell-from">${H(s.before[i])}</span><span class="cell-arr">→</span><span class="cell-to">${H(s.after[i])}</span>`;
-      else c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;
-    } else {c.className='scell dim';c.innerHTML=`<span>${H(s.before[i])}</span><small>[${i}]</small>`;}
-  }
+  for(let i=0;i<16;i++){const c=document.getElementById(`sc${i}`);if(!c)continue;if(i<idx){c.className=`scell ${s.dc}`;c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}else if(i===idx){c.className=`scell ${s.sc}`;if(s.before[i]!==s.after[i])c.innerHTML=`<span class="cf">${H(s.before[i])}</span><span class="ca"> ${H(s.after[i])}</span>`;else c.innerHTML=`<span>${H(s.after[i])}</span><small>[${i}]</small>`;}else{c.className='scell dim';c.innerHTML=`<span>${H(s.before[i])}</span><small>[${i}]</small>`;}}
 }
 
 function showCellDetail(s,idx){
-  const et=document.getElementById('sc-et');
-  const fm=document.getElementById('sc-fm');
-  if(!et||!fm)return;
+  const et=document.getElementById('sc-et'),fm=document.getElementById('sc-fm');if(!et||!fm)return;
   const bv=s.before[idx],av=s.after[idx];
-
   if(s.isARK){
-    const kv=bv^av;
-    const bvb=B8(bv),kvb=B8(kv),rvb=B8(av);
-    let bitCols='';
-    for(let bit=7;bit>=0;bit--){
-      const ba=(bv>>bit)&1,bk=(kv>>bit)&1,br=(av>>bit)&1;
-      const same=ba===bk;
-      bitCols+=`<td class="${same?'xr-rule-same':'xr-rule-diff'}">${ba}⊕${bk}=${br}</td>`;
-    }
-    et.textContent=`Byte [${idx}] — XOR operation`;
-    fm.innerHTML=`<div class="cell-hero"><span class="ch-from">${H(bv)}</span><span class="ch-arr">──XOR──▶</span><span class="ch-to">${H(av)}</span></div>
-<div style="overflow-x:auto"><table class="xor-table">
-<tr><td class="xr-lbl">State  </td>${[...bvb].map(b=>`<td class="xr-state">${b}</td>`).join('')}<td class="xr-lbl" style="padding-left:8px">= 0x${H(bv)}</td></tr>
-<tr><td class="xr-lbl">Key    </td>${[...kvb].map(b=>`<td class="xr-key">${b}</td>`).join('')}<td class="xr-lbl" style="padding-left:8px">= 0x${H(kv)}</td></tr>
-<tr><td class="xr-lbl">Rule   </td>${bitCols}<td class="xr-lbl" style="padding-left:8px;font-size:.58rem">≠→1, =→0</td></tr>
-<tr><td class="xr-lbl">Result </td>${[...rvb].map(b=>`<td class="xr-result">${b}</td>`).join('')}<td class="xr-lbl" style="padding-left:8px">= 0x${H(av)}</td></tr>
-</table></div>
-<span class="sep"></span>
-<span class="vin">0x${H(bv)}</span> ⊕ <span class="vkey">0x${H(kv)}</span> = <span class="vout">0x${H(av)}</span>&nbsp;&nbsp;<span class="lbl">← encrypt</span><br>
-<span class="vout">0x${H(av)}</span> ⊕ <span class="vkey">0x${H(kv)}</span> = <span class="vin">0x${H(bv)}</span>&nbsp;&nbsp;<span class="lbl">← decrypt (same op!)</span>`;
+    const kv=bv^av,bvb=B8(bv),kvb=B8(kv),rvb=B8(av);
+    let bc='';for(let bit=7;bit>=0;bit--){const ba=(bv>>bit)&1,bk=(kv>>bit)&1,br=(av>>bit)&1;bc+=`<td class="${ba===bk?'xsm':'xd'}">${ba}⊕${bk}=${br}</td>`;}
+    et.textContent=`Byte [${idx}] — XOR`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">──XOR──▶</span><span class="ch-t">${H(av)}</span></div><div style="overflow-x:auto"><table class="xort"><tr><td class="xlbl">State</td>${[...bvb].map(b=>`<td class="xs">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(bv)}</td></tr><tr><td class="xlbl">Key</td>${[...kvb].map(b=>`<td class="xk">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(kv)}</td></tr><tr><td class="xlbl">Rule</td>${bc}<td class="xlbl" style="padding-left:6px;font-size:.58rem">≠→1,=→0</td></tr><tr><td class="xlbl">Result</td>${[...rvb].map(b=>`<td class="xr">${b}</td>`).join('')}<td class="xlbl" style="padding-left:6px">0x${H(av)}</td></tr></table></div><span class="sep"></span><span class="vin">0x${H(bv)}</span> ⊕ <span class="vkey">0x${H(kv)}</span> = <span class="vout">0x${H(av)}</span>&nbsp;&nbsp;<span class="lbl">encrypt</span><br><span class="vout">0x${H(av)}</span> ⊕ <span class="vkey">0x${H(kv)}</span> = <span class="vin">0x${H(bv)}</span>&nbsp;&nbsp;<span class="lbl">decrypt (same op!)</span>`;
     return;
   }
-
   if(s.isSUB){
     const row=bv>>4,col=bv&0xf;
     et.textContent=`Byte [${idx}] — S-Box lookup`;
-    fm.innerHTML=`<div class="cell-hero"><span class="ch-from">${H(bv)}</span><span class="ch-arr">──S-Box──▶</span><span class="ch-to">${H(av)}</span></div>
-<span class="lbl">Input: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span><br>
-<div class="nibble-row">
-<div class="nbbox nb-hi"><div class="nb-lbl">High nibble</div><div class="nb-val">${row}</div><div class="nb-sub">left digit → ROW ${row}</div></div>
-<div class="nbbox nb-lo"><div class="nb-lbl">Low nibble</div><div class="nb-val">${col}</div><div class="nb-sub">right digit → COL ${col}</div></div>
-</div>
-<span class="lbl">S-Box[${row}][${col}] = </span><span class="vout">0x${H(av)}</span><br>
-<span class="lbl">0x${H(bv)} → <strong style="color:var(--teal)">0x${H(av)}</strong></span>`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">──S-Box──▶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Input: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span><br><div class="nb-row2"><div class="nb2 nhi"><div class="nbl2" style="color:var(--ora)">High nibble</div><div class="nbv2" style="color:var(--ora)">${row}</div><div class="nbs">→ Row ${row}</div></div><div class="nb2 nlo"><div class="nbl2" style="color:var(--pur)">Low nibble</div><div class="nbv2" style="color:var(--pur)">${col}</div><div class="nbs">→ Col ${col}</div></div></div><span class="lbl">S-Box[${row}][${col}] = </span><span class="vout">0x${H(av)}</span>`;
     return;
   }
-
-  if(s.badge.includes('ShiftRows')){
-    const rowN=Math.floor(idx/4),colN=idx%4;
-    const srcCol=(colN+rowN)%4;
-    et.textContent=`Byte [${idx}] — Row ${rowN} rotation`;
-    fm.innerHTML=`<div class="cell-hero"><span class="ch-from">${H(bv)}</span><span class="ch-arr">──shift ${rowN}──▶</span><span class="ch-to">${H(av)}</span></div>
-<span class="lbl">Row ${rowN} → shift left ${rowN} position${rowN!==1?'s':''}</span><br>
-<span class="lbl">Col ${colN} now holds what was at col </span><span class="vop">${srcCol}</span><br>
-<span class="sep"></span>
-<span class="lbl">Before: </span><span class="vin">${[0,1,2,3].map(c=>H(s.before[rowN*4+c])).join(' ')}</span><br>
-<span class="lbl">After:  </span><span class="vout">${[0,1,2,3].map(c=>H(s.after[rowN*4+c])).join(' ')}</span>`;
+  if(s.isSH){
+    const rowN=Math.floor(idx/4),colN=idx%4,srcCol=(colN+rowN)%4;
+    et.textContent=`Byte [${idx}] — Row ${rowN} shift`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">──shift ${rowN}──▶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Row ${rowN} shifts left by ${rowN}</span><br><span class="lbl">Col ${colN} ← col ${srcCol} (value </span><span class="vin">0x${H(s.before[rowN*4+srcCol])}</span><span class="lbl">)</span><br><span class="sep"></span><span class="lbl">Before: </span><span class="vin">${[0,1,2,3].map(c=>H(s.before[rowN*4+c])).join(' ')}</span><br><span class="lbl">After:  </span><span class="vout">${[0,1,2,3].map(c=>H(s.after[rowN*4+c])).join(' ')}</span>`;
     return;
   }
-
-  if(s.badge.includes('MixColumns')){
-    const colN=idx%4,rowO=Math.floor(idx/4);
-    const colIn=[0,1,2,3].map(r=>s.before[r*4+colN]);
-    const cf=[[2,3,1,1],[1,2,3,1],[1,1,2,3],[3,1,1,2]][rowO];
+  if(s.isMX){
+    const colN=idx%4,rowO=Math.floor(idx/4);const colIn=[0,1,2,3].map(r=>s.before[r*4+colN]);const cf=[[2,3,1,1],[1,2,3,1],[1,1,2,3],[3,1,1,2]][rowO];
     et.textContent=`Byte [${idx}] — Column ${colN} mix`;
-    fm.innerHTML=`<div class="cell-hero"><span class="ch-from">${H(bv)}</span><span class="ch-arr">──GF(2⁸)──▶</span><span class="ch-to">${H(av)}</span></div>
-<span class="lbl">Col ${colN}: </span><span class="vin">${colIn.map(H).join(' ')}</span><br>
-<span class="lbl">Row ${rowO}: ${cf[0]}·a₀ ⊕ ${cf[1]}·a₁ ⊕ ${cf[2]}·a₂ ⊕ ${cf[3]}·a₃</span><br>
-<span class="sep"></span>
-${cf.map((c,j)=>`<span class="vop">${c}·${H(colIn[j])} = ${H(gm(c,colIn[j]))}</span>`).join('<br>')}<br>
-<span class="sep"></span>
-<span class="lbl">XOR all = </span><span class="vout">${H(av)}</span>`;
+    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">──GF(2⁸)──▶</span><span class="ch-t">${H(av)}</span></div><span class="lbl">Col ${colN}: </span><span class="vin">${colIn.map(H).join(' ')}</span><br><span class="lbl">Row ${rowO}: ${cf[0]}·a₀⊕${cf[1]}·a₁⊕${cf[2]}·a₂⊕${cf[3]}·a₃</span><br><span class="sep"></span>${cf.map((c,j)=>`<span class="vop">${c}·${H(colIn[j])}=${H(gm(c,colIn[j]))}</span>`).join('<br>')}<br><span class="sep"></span><span class="lbl">XOR all = </span><span class="vout">${H(av)}</span>`;
     return;
   }
-
-  // generic
   et.textContent=`Byte [${idx}]`;
-  fm.innerHTML=`<div class="cell-hero"><span class="ch-from">${H(bv)}</span><span class="ch-arr">──▶</span><span class="ch-to">${H(av)}</span></div>${s.fm}`;
+  fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">──▶</span><span class="ch-t">${H(av)}</span></div>${s.fm}`;
 }
 
-function stepNav(dir){
-  stopPlay();
-  const n=curIdx+dir;if(n<0||n>=steps.length)return;
-  curIdx=n;renderStep(curIdx);
-}
-function togglePlay(){if(isPlaying)stopPlay();else startPlay();}
-function startPlay(){
-  if(curIdx>=steps.length-1)return;
-  isPlaying=true;
-  document.getElementById('btn-play').textContent='Pause';
-  document.getElementById('btn-stop').disabled=false;
-  sched();
-}
-function sched(){
-  if(!isPlaying||curIdx>=steps.length-1){stopPlay();return;}
-  playTimer=setTimeout(()=>{curIdx++;renderStep(curIdx);sched();},playSpd);
-}
-function stopPlay(){
-  isPlaying=false;clearTimeout(playTimer);
-  document.getElementById('btn-play').textContent='Play';
-  document.getElementById('btn-stop').disabled=true;
-}
-function setSpd(ms,el){playSpd=ms;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function stepNav(dir){stopPlay();const n=curIdx+dir;if(n<0||n>=steps.length)return;curIdx=n;renderStep(curIdx);}
+function togglePlay(){if(isPlaying)stopPlay();else{if(curIdx>=steps.length-1)return;isPlaying=true;document.getElementById('btnplay').textContent='Pause';document.getElementById('btnstop').disabled=false;sched();}}
+function sched(){if(!isPlaying||curIdx>=steps.length-1){stopPlay();return;}playTimer=setTimeout(()=>{curIdx++;renderStep(curIdx);sched();},playSp);}
+function stopPlay(){isPlaying=false;clearTimeout(playTimer);document.getElementById('btnplay').textContent='Play';document.getElementById('btnstop').disabled=true;}
+function setSp(ms,el){playSp=ms;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function runDec(){if(!lastCipher){alert('Encrypt first.');return;}const kb=getKey();const r=decFull(lastCipher,kb);document.getElementById('dec-box').style.display='block';document.getElementById('dec-txt').textContent=`"${r}"`;}
+function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';lastCipher=null;steps=[];}
+function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;}
 
-function runDec(){
-  if(!lastCipher){alert('Encrypt first.');return;}
-  const kb=getKey();
-  const r=decFull(lastCipher,kb);
-  document.getElementById('dec-box').style.display='block';
-  document.getElementById('dec-text').textContent=`"${r}"`;
+// ══════════════════════════════════════════
+// MAP NAV
+// ══════════════════════════════════════════
+function toggleMN(id){
+  const body=document.getElementById(id);
+  const idx=id.replace('mn','');
+  const icon=document.getElementById('mni'+idx);
+  body.classList.toggle('open');
+  icon.textContent=body.classList.contains('open')?'▼':'▶';
 }
-function clrAll(){
-  stopPlay();
-  document.getElementById('pIn').value='';document.getElementById('kIn').value='';
-  document.getElementById('sv-player').style.display='none';
-  document.getElementById('out-block').classList.remove('show');
-  document.getElementById('dec-box').style.display='none';
-  document.getElementById('step-card').innerHTML='<div style="text-align:center;padding:40px;color:var(--muted)"><div style="font-family:\'Fraunces\',serif;font-size:1.1rem;margin-bottom:8px">Enter your text above and press <strong>Encrypt</strong></div><div style="font-size:.85rem">Each step will show exactly what happens to every byte of your data.</div></div>';
-  document.getElementById('flow-track').innerHTML='';
-  lastCipher=null;steps=[];
-}
-function rndKey(){
-  const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';
-  let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];
-  document.getElementById('kIn').value=k;
-}
-
-// ═══════════════════════════════════════════════════
-// ASCII TABLE
-// ═══════════════════════════════════════════════════
-function buildAsciiGrid(){
-  const g=document.getElementById('ascii-grid');if(!g)return;g.innerHTML='';
-  const chars=' !"#$%&\'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~';
-  chars.split('').forEach(c=>{
-    const code=c.charCodeAt(0);
-    const d=document.createElement('div');d.className='ascii-cell';
-    d.innerHTML=`<div class="ac-char">${c==' '?'SP':c}</div><div class="ac-num">${code}<br>${H(code)}</div>`;
-    d.title=`'${c}' = ${code} = 0x${H(code)}`;
-    g.appendChild(d);
-  });
-}
-function toggleAscii(){
-  const p=document.getElementById('ascii-popup');
-  if(!p)return;
-  if(!p.querySelector('#ascii-grid')||!document.getElementById('ascii-grid')){
-    buildAsciiGrid();
-  }
-  p.classList.toggle('show');
-  buildAsciiGrid();
-}
-
-// ═══════════════════════════════════════════════════
-// KEY SCHEDULE
-// ═══════════════════════════════════════════════════
-const kst=[
-  '<strong>Original Key (256 bits = 32 bytes):</strong> Your 32-byte secret split into 8 words W[0]–W[7]. This forms Round Key 0 directly and is used in the initial AddRoundKey. AES-256 needs 15 round keys total, so 60 four-byte words must be generated.',
-  '<strong>W[0..7] — Round Key 0:</strong> First 8 words = your original key. Used in initial AddRoundKey (Round 0). This "whitens" the plaintext before any rounds start.',
-  '<strong>RotWord:</strong> The last word W[i-1] is rotated left by 1 byte. [a₀,a₁,a₂,a₃] → [a₁,a₂,a₃,a₀]. Happens every 8th word. Ensures every byte position contributes to key derivation.',
-  '<strong>SubWord:</strong> S-Box applied to each of the 4 bytes of the rotated word. Introduces non-linearity — without this step, the key schedule would be linear and crackable with algebra.',
-  '<strong>XOR with Rcon:</strong> First byte XOR-ed with round constant. AES-256 Rcon values: 01 02 04 08 10 20 40 80 1B 36 6C D8 AB 4D. Breaks patterns and prevents related-key attacks.',
-  '<strong>Extra SubWord (AES-256 ONLY):</strong> When i%8 === 4, SubWord is applied again without RotWord or Rcon. This extra step only exists in AES-256 — it is what makes AES-256 key schedule fundamentally different from AES-128 and AES-192.',
-  '<strong>W[8..15] — Round Key 1:</strong> W[8]=W[0]⊕temp, W[9]=W[1]⊕W[8], etc. Process continues until W[59], producing all 15 round keys needed for 14 rounds.',
-  '<strong>W[56..59] — Round Key 14:</strong> Final round key. After generating 60 words (W[0]–W[59]), AES-256 has all 15 round keys (each 128 bits = 4 words). Round Key 14 is used in the final round.'
-];
-function ksS(i,el){
-  document.querySelectorAll('#kspl .kb').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  const ex=document.getElementById('ksex');
-  ex.style.opacity='0';
-  setTimeout(()=>{ex.innerHTML=kst[i];ex.style.opacity='1';},150);
-}
-
-// ═══════════════════════════════════════════════════
-// ROUNDS ANIMATION
-// ═══════════════════════════════════════════════════
-function animRounds(){
-  const rc=document.getElementById('rwchips');
-  rc.innerHTML='<span style="font-size:.72rem;font-weight:700;color:var(--muted);margin-right:4px;padding-top:2px">Rounds:</span>';
-  const chips=[];
-  for(let i=0;i<=14;i++){
-    const c=document.createElement('span');
-    c.className='rw-chip';
-    c.textContent=i===0?'Init':`R${i}`;
-    if(i===14) c.classList.add('special');
-    rc.appendChild(c);chips.push(c);
-  }
-  let i=0;function tk(){if(i<chips.length){chips[i].classList.add('lit');i++;setTimeout(tk,200);}}tk();
-}
-
-// ═══════════════════════════════════════════════════
-// SIDE NAV
-// ═══════════════════════════════════════════════════
-function toggleSidenav(){
-  const btn=document.getElementById('sn-btn');
-  const panel=document.getElementById('sn-panel');
-  btn.classList.toggle('open');
-  panel.classList.toggle('open');
-}
-// highlight active section
-const snItems=document.querySelectorAll('.sn-item');
-function updateSnav(){
-  const sections=['about','keygen','round-diag','sbox-sec','cipher-flow','team'];
+function updateMapLinks(){
+  const sections=['about','keygen','sbox-sec','rnd-sec','prac-sec','flow-sec','team'];
   let cur='';
-  sections.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&el.getBoundingClientRect().top<window.innerHeight*0.5)cur=id;
-  });
-  snItems.forEach(a=>{
-    a.classList.toggle('active',a.getAttribute('href')==='#'+cur);
-  });
+  sections.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<window.innerHeight*.55)cur=id;});
+  document.querySelectorAll('.mn-link').forEach(a=>{const href=a.getAttribute('href').replace('#','');a.classList.toggle('cur',href===cur);});
 }
 
-// ═══════════════════════════════════════════════════
-// FULL S-BOX TABLE
-// ═══════════════════════════════════════════════════
-function buildFullSbox(){
-  const t=document.getElementById('sboxt-full');
-  // header row
-  const hr=document.createElement('tr');
-  hr.appendChild(Object.assign(document.createElement('th'),{textContent:''}));
-  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent='×'+c.toString(16).toUpperCase();hr.appendChild(th);}
-  t.appendChild(hr);
-  for(let row=0;row<16;row++){
-    const tr=document.createElement('tr');
-    const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase()+'×';tr.appendChild(th);
-    for(let col=0;col<16;col++){
-      const td=document.createElement('td');
-      const v=SB[row*16+col];
-      td.textContent=v.toString(16).toUpperCase().padStart(2,'0');
-      td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} → 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;
-      tr.appendChild(td);
-    }
-    t.appendChild(tr);
-  }
-}
-
-// ═══════════════════════════════════════════════════
-// SCROLL
-// ═══════════════════════════════════════════════════
+// ══════════════════════════════════════════
+// SCROLL + INIT
+// ══════════════════════════════════════════
 window.addEventListener('scroll',()=>{
   const pct=window.scrollY/(document.body.scrollHeight-window.innerHeight)*100;
   document.getElementById('prog').style.width=pct+'%';
   document.querySelectorAll('.fi').forEach(el=>{if(el.getBoundingClientRect().top<window.innerHeight-50)el.classList.add('on');});
-  updateSnav();
+  updateMapLinks();
 });
-// close sidenav when clicking outside
-document.addEventListener('click',e=>{
-  const sn=document.getElementById('sidenav');
-  if(!sn.contains(e.target)){
-    document.getElementById('sn-btn').classList.remove('open');
-    document.getElementById('sn-panel').classList.remove('open');
-  }
-});
-
-// INIT
+document.addEventListener('click',e=>{if(!e.target.closest('.ascii-pop')&&!e.target.closest('.ascii-hint'))document.querySelectorAll('.ascii-pop').forEach(p=>p.classList.remove('show'));});
 setTimeout(()=>{document.querySelectorAll('.fi').forEach(el=>{if(el.getBoundingClientRect().top<window.innerHeight-50)el.classList.add('on');});},100);
-buildFullSbox();
-buildAsciiGrid();
-// init round chips
-const rwc=document.getElementById('rwchips');
-if(rwc){
-  rwc.innerHTML='<span style="font-size:.72rem;font-weight:700;color:var(--muted);margin-right:4px;padding-top:2px">Rounds:</span>';
-  for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rw-chip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('special');rwc.appendChild(c);}
-}
+
+buildFullSbox();initXorBits();buildAsciiGrid('ag1');buildAsciiGrid('ag-m');
+const rc=document.getElementById('rchips');if(rc){for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rchip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('sp');rc.appendChild(c);}}
 </script>
 </body>
 </html>
