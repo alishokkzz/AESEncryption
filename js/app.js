@@ -392,23 +392,20 @@ function createSideTools(){
   const left=document.createElement('aside');
   left.className='stage-tools left';
   left.id='tool-left';
-  left.innerHTML=`<div class="tool-title">AES Calculator</div>
-    <div class="tool-card"><label>Rule: text to hex</label><p class="tool-note">For each character, find its ASCII number, then convert that number to base 16. Example: a = 97 decimal = 0x61.</p></div>
+  left.innerHTML=`<div class="tool-title">Calculator</div>
+    <div class="tool-card"><label>Rule: normal calculation</label><p class="tool-note">Use this for quick arithmetic while solving practice tasks. Type two numbers, choose +, -, *, or /, then press Calculate.</p></div>
     <div class="tool-card">
-      <label>Calculator mode</label>
+      <label>Operation</label>
       <select id="calc-mode" class="calc-select">
-        <option value="ascii">Text -> HEX bytes</option>
-        <option value="xor">Byte operation: A xor B</option>
-        <option value="sbox">AES substitution value</option>
-        <option value="gf">AES field product</option>
-        <option value="d2h">Decimal -> HEX</option>
-        <option value="h2d">HEX -> Decimal</option>
-        <option value="bin">HEX -> Binary</option>
+        <option value="add">+</option>
+        <option value="sub">-</option>
+        <option value="mul">*</option>
+        <option value="div">/</option>
       </select>
-      <input id="calc-a" value="ali chort" placeholder="A / text">
-      <input id="calc-b" value="49" placeholder="B, if needed">
+      <input id="calc-a" type="number" value="12" placeholder="First number">
+      <input id="calc-b" type="number" value="4" placeholder="Second number">
       <button class="chk-btn calc-run" onclick="runCalculator()">Calculate</button>
-      <div class="tool-result" id="calc-result">61 6C 69 20 63 68 6F 72 74</div>
+      <div class="tool-result" id="calc-result">16</div>
     </div>
     <div class="tool-card"><label>History</label><div class="calc-history" id="calc-history"></div></div>
     <div class="tool-card"><label>ASCII table</label><div class="mini-ref" id="tool-ascii-table"></div></div>
@@ -438,18 +435,13 @@ function createSideTools(){
 
 function runCalculator(save=true){
   const modeEl=document.getElementById('calc-mode'),aEl=document.getElementById('calc-a'),bEl=document.getElementById('calc-b');
-  const mode=modeEl?modeEl.value:'ascii';
-  const a=(aEl?aEl.value:'').trim();
-  const b=(bEl?bEl.value:'').trim();
-  const hx=x=>(parseInt(x||'0',16)&255);
-  let label='',result='';
-  if(mode==='ascii'){label=`Text "${a}"`;result=[...a].map(c=>H(c.charCodeAt(0))).join(' ')||'00';}
-  if(mode==='xor'){const av=hx(a),bv=hx(b);label=`${H(av)} XOR ${H(bv)}`;result=H(av^bv);}
-  if(mode==='sbox'){const av=hx(a);label=`S-Box[${H(av)}]`;result=H(SB[av]);}
-  if(mode==='gf'){const av=hx(a),bv=hx(b);label=`GF ${H(av)} * ${H(bv)}`;result=H(gm(av,bv));}
-  if(mode==='d2h'){const av=parseInt(a||'0',10)&255;label=`DEC ${av}`;result=H(av);}
-  if(mode==='h2d'){const av=hx(a);label=`HEX ${H(av)}`;result=String(av);}
-  if(mode==='bin'){const av=hx(a);label=`BIN ${H(av)}`;result=B8(av);}
+  const mode=modeEl?modeEl.value:'add';
+  const a=Number(aEl?aEl.value:0);
+  const b=Number(bEl?bEl.value:0);
+  const ops={add:['+',a+b],sub:['-',a-b],mul:['*',a*b],div:['/',b===0?'Cannot divide by zero':a/b]};
+  const picked=ops[mode]||ops.add;
+  const result=typeof picked[1]==='number'?Number(picked[1].toFixed(8)).toString():picked[1];
+  const label=`${a} ${picked[0]} ${b}`;
   const out=document.getElementById('calc-result');if(out)out.textContent=result;
   if(save&&label){
     calcHistory.unshift(`${label} = ${result}`);
