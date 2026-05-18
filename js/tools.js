@@ -17,5 +17,5 @@ function processXorCompute() {
 
 function processSboxFetch() {
     let b = parseInt(document.getElementById("tool-sb-in").value, 16) || 0;
-    document.getElementById("tool-sb-out").textContent = SBOX[b].toString(16).toUpperCase().padStart(2, '0');
+    document.getElementById("tool-sb-out").textContent = SB[b].toString(16).toUpperCase().padStart(2, '0');
 }

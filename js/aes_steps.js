@@ -26,7 +26,7 @@ function createAESSteps(text, keyStr) {
         let rTitle = `Round ${r}`;
         
         // SubBytes
-        for(let i=0; i<16; i++) state[i] = SBOX[state[i]];
+        for(let i=0; i<16; i++) state[i] = SB[state[i]];
         pushStep("SubBytes", rTitle, state, "Each byte in the matrix mapped through the non-linear AES Substitution Box (S-Box).", "map-sb");
 
         // ShiftRows
@@ -55,7 +55,7 @@ function createAESSteps(text, keyStr) {
     }
 
     // Final Round 14 (No MixColumns)
-    for(let i=0; i<16; i++) state[i] = SBOX[state[i]];
+    for(let i=0; i<16; i++) state[i] = SB[state[i]];
     pushStep("SubBytes", "Round 14 (Final)", state, "Final pass byte-by-byte substitution lookup map.", "map-sb");
 
     let s14 = [...state];

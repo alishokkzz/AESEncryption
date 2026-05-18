@@ -192,17 +192,17 @@
       <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;margin-top:14px;margin-bottom:4px">
         <div style="text-align:center">
           <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'H'</div>
-          <input class="hinput" id="t1a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <input class="hinput" id="t1a" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()">
           <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
         </div>
         <div style="text-align:center">
           <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'e'</div>
-          <input class="hinput" id="t1b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <input class="hinput" id="t1b" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()">
           <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
         </div>
         <div style="text-align:center">
           <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:var(--ora);margin-bottom:6px">'l'</div>
-          <input class="hinput" id="t1c" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()">
+          <input class="hinput" id="t1c" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()">
           <div style="font-size:.68rem;color:var(--muted);margin-top:3px">hex</div>
         </div>
         <div style="font-size:.78rem;color:var(--muted);line-height:1.6;max-width:240px;padding-bottom:6px">Tip: 'H'=72 decimal. Divide by 16: 72Г·16=4 remainder 8 в†’ 0x48</div>
@@ -236,9 +236,9 @@
         <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:.62rem;color:var(--muted);width:54px;flex-shrink:0">Result:</span>
           <div class="bit-strip" id="b0r"></div>
-          <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--teal);margin-left:4px" id="b0hex">= ??</span>
+          <span style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--teal);margin-left:4px" id="b0hex">= x</span>
         </div>
-        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Now type the hex result: <input class="hinput" id="t2a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Now type the hex result: <input class="hinput" id="t2a" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
       </div>
 
       <!-- Byte 1 -->
@@ -257,7 +257,7 @@
           <div class="bit-strip" id="b1r"></div>
           <span style="font-size:.64rem;color:var(--muted);margin-left:6px">в†ђ click each blank bit</span>
         </div>
-        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Type the hex result: <input class="hinput" id="t2b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+        <div style="margin-top:8px;font-size:.78rem;color:var(--muted)">Type the hex result: <input class="hinput" id="t2b" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
       </div>
 
       <button class="chk-btn" onclick="chkT2()">Check</button>
@@ -277,7 +277,7 @@
             <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">1</div><div style="font-size:.6rem;color:var(--muted)">в†’ Row 1</div></div>
             <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">9</div><div style="font-size:.6rem;color:var(--muted)">в†’ Col 9</div></div>
           </div>
-          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[1][9] = <input class="hinput" id="t3a" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[1][9] = <input class="hinput" id="t3a" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
         <div>
           <div style="font-size:.78rem;font-weight:700;color:var(--muted);margin-bottom:10px">Byte: <span style="color:var(--ora);font-family:'DM Mono',monospace;font-size:1rem">0xA0</span></div>
@@ -285,7 +285,7 @@
             <div class="nb hi"><div class="nbl" style="color:var(--ora)">High nibble</div><div class="nbv" style="color:var(--ora)">A</div><div style="font-size:.6rem;color:var(--muted)">в†’ Row 10</div></div>
             <div class="nb lo"><div class="nbl" style="color:var(--pur)">Low nibble</div><div class="nbv" style="color:var(--pur)">0</div><div style="font-size:.6rem;color:var(--muted)">в†’ Col 0</div></div>
           </div>
-          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[A][0] = <input class="hinput" id="t3b" maxlength="2" placeholder="??" oninput="this.value=this.value.toUpperCase()"></div>
+          <div style="margin-top:10px;font-size:.82rem;color:var(--muted)">S-Box[A][0] = <input class="hinput" id="t3b" maxlength="2" placeholder="x" oninput="this.value=this.value.toUpperCase()"></div>
         </div>
       </div>
       <button class="chk-btn" onclick="chkT3()">Check</button>
@@ -300,16 +300,16 @@
       <div class="task-hint">ShiftRows rotates each row cyclically left. Row 0 в†’ shift 0 (stays). Row 1 в†’ shift 1 (first element moves to end). Row 2 в†’ shift 2. Row 3 в†’ shift 3.</div>
       <div style="font-family:'DM Mono',monospace;font-size:.88rem;background:var(--bg2);padding:14px 15px;border-radius:9px;border:1px solid var(--bdr);margin-bottom:14px;line-height:2">
         <div><span style="color:var(--muted);font-size:.66rem">Row 0 (shift 0): </span><span style="color:var(--ora)">D4 E0 B8 1E</span><span style="color:var(--muted);font-size:.66rem"> в†’ stays same</span></div>
-        <div><span style="color:var(--muted);font-size:.66rem">Row 1 (shift 1): </span><span style="color:var(--grn)">27 BF B4 41</span><span style="color:var(--muted);font-size:.66rem"> в†’ after shift: ???</span></div>
+        <div><span style="color:var(--muted);font-size:.66rem">Row 1 (shift 1): </span><span style="color:var(--grn)">27 BF B4 41</span><span style="color:var(--muted);font-size:.66rem"> в†’ after shift: -</span></div>
         <div><span style="color:var(--muted);font-size:.66rem">Row 2 (shift 2): </span><span style="color:var(--pur)">11 98 5D 52</span></div>
         <div><span style="color:var(--muted);font-size:.66rem">Row 3 (shift 3): </span><span style="color:var(--gold)">AE F1 E5 30</span></div>
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
         <span style="font-size:.8rem;color:var(--muted);font-weight:600">Row 1 result:</span>
-        <input class="hinput" id="t4a" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
-        <input class="hinput" id="t4b" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
-        <input class="hinput" id="t4c" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
-        <input class="hinput" id="t4d" maxlength="2" placeholder="??" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4a" maxlength="2" placeholder="x" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4b" maxlength="2" placeholder="x" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4c" maxlength="2" placeholder="x" style="width:58px" oninput="this.value=this.value.toUpperCase()">
+        <input class="hinput" id="t4d" maxlength="2" placeholder="x" style="width:58px" oninput="this.value=this.value.toUpperCase()">
       </div>
       <button class="chk-btn" onclick="chkT4()">Check</button>
       <button class="rvl-btn" onclick="rvlT4()">Show Answer</button>
@@ -317,20 +317,20 @@
       <div class="fb no" id="t4no">Not quite. Shift left by 1: [a b c d] в†’ [b c d a]. The first element 'a' wraps to the end. So [27 BF B4 41] в†’ [BF B4 41 27].</div>
     </div>
 
-    <div class="ibox fi" style="margin-top:4px">All 4 tasks done? Now watch the computer run the <strong>full AES-256 encryption</strong> on your own input вЂ” all 14 rounds, every byte explained.</div>
+    <div class="ibox fi" style="margin-top:4px">All 4 tasks done? Now use your own input in Practice. The site will teach one complete AES round scheme and ask you to calculate one value before each next step.</div>
   </div>
 </section>
 
 <!-- в•ђв•ђв•ђ FULL FLOW в•ђв•ђв•ђ -->
 <section class="flow-sec" id="flow-sec">
   <div class="sec">
-    <div class="stag fi">Full AES-256 Encryption</div>
-    <h2 class="sh fi">One Input в†’ All 14 Rounds</h2>
-    <p class="sd fi">Enter your message and 32-character key. The same bytes flow through every single step вЂ” each one picks up exactly where the previous left off.</p>
+    <div class="stag fi">AES-256 Practice</div>
+    <h2 class="sh fi">One Input -> One Full AES Round Scheme</h2>
+    <p class="sd fi">Enter your message and 32-character key. You must calculate one small AES value before moving to the next step.</p>
 
     <div class="flow-inp fi">
       <div class="fi-title">Your Input</div>
-      <div class="fi-sub">Enter once вЂ” traced through the complete AES-256 algorithm.</div>
+      <div class="fi-sub">Enter once. The walkthrough teaches the AES scheme step by step.</div>
       <div class="fi-row">
         <div class="fg">
           <label>Message (max 15 chars)</label>
@@ -366,15 +366,7 @@
       <div class="p-ctrl">
         <div class="pctr" id="pctr">Step 1 of ?</div>
         <button class="cbtn" onclick="stepNav(-1)" id="btnprev" disabled>Prev</button>
-        <button class="cbtn play" id="btnplay" onclick="togglePlay()">Play</button>
-        <button class="cbtn stop" id="btnstop" onclick="stopPlay()" disabled>Stop</button>
         <button class="cbtn nxt" onclick="stepNav(1)" id="btnnxt">Next</button>
-      </div>
-      <div class="spd">
-        <label>Speed:</label>
-        <button class="spb on" onclick="setSp(2500,this)">Slow</button>
-        <button class="spb" onclick="setSp(1000,this)">Medium</button>
-        <button class="spb" onclick="setSp(350,this)">Fast</button>
       </div>
     </div>
     <div class="out-blk" id="out-blk"><div class="out-lbl">Ciphertext вЂ” AES-256 encrypted</div><div class="out-val" id="out-val">вЂ”</div></div>
