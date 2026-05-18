@@ -339,10 +339,45 @@ let encryptionComplete=false;
 const calcHistory=[];
 let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
 const AES_SIDE_CARDS={
-  interesting:{title:'Interesting card',body:'AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.'},
-  theory:{title:'Theory card',body:'AES-256 uses 16-byte blocks, a 32-byte key, 14 rounds, PKCS#7 padding here, ECB mode here, and HEX output.'},
-  hint:{title:'Hint card',body:'For manual checks, track one byte: text -> hex, XOR with key byte, S-Box substitution, row shift, then column mix.'}
+  interesting:[
+    'AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.',
+    'The AES S-Box was built from finite-field math, not chosen randomly. It is designed to make algebraic attacks hard.',
+    'AES always works on a 16-byte block. Even a short word is padded before encryption.',
+    'Changing one key character should change many ciphertext bytes. This is called the avalanche effect.',
+    'AES became a U.S. federal standard in 2001 after an open international competition.',
+    'SubBytes gives confusion, while ShiftRows and MixColumns help diffusion.',
+    'The final AES round skips MixColumns, but still uses SubBytes, ShiftRows, and AddRoundKey.',
+    'XOR is its own inverse: if A xor K = B, then B xor K = A.',
+    'The same plaintext encrypted with the same key in ECB gives the same ciphertext block.',
+    'AES-256 has 14 rounds because Nk + 6 = 8 + 6.'
+  ],
+  theory:[
+    'AES-256 uses a 256-bit key, which means exactly 32 bytes in this site.',
+    'The state matrix is 4 rows by 4 columns. Each cell is one byte.',
+    'Round 0 only applies AddRoundKey before the normal rounds begin.',
+    'Rounds 1-13 use SubBytes, ShiftRows, MixColumns, and AddRoundKey.',
+    'Round 14 is the final AES-256 round and skips MixColumns.',
+    'PKCS#7 padding fills the last block. If 5 bytes are missing, each padding byte is 0x05.',
+    'SubBytes replaces each byte using the S-Box table.',
+    'ShiftRows rotates row 0 by 0, row 1 by 1, row 2 by 2, and row 3 by 3.',
+    'MixColumns treats each column as finite-field values and mixes all four bytes.',
+    'AddRoundKey XORs each state byte with the matching round-key byte.'
+  ],
+  hint:[
+    'For manual checks, track one byte: text -> hex, XOR with key byte, S-Box substitution, row shift, then column mix.',
+    'When converting text to hex, first find the ASCII decimal value, then convert decimal to base 16.',
+    'For XOR, write both bytes as 8 bits. Same bits give 0, different bits give 1.',
+    'For S-Box lookup, the first hex digit is the row and the second hex digit is the column.',
+    'For ShiftRows, draw the 4x4 state as rows before moving values.',
+    'For MixColumns, click the byte in the practice grid to see the GF multiplication detail.',
+    'If the key check fails, count characters. AES-256 here needs exactly 32.',
+    'If Result is locked, finish every Student Check in Practice first.',
+    'Use AES Map when you forget where the current step sits in the full scheme.',
+    'For the final round question, remember: no MixColumns.'
+  ]
 };
+let aesSideType='interesting';
+const aesSideIndex={interesting:0,theory:0,hint:0};
 
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
@@ -392,10 +427,9 @@ function createStageControls(){
       <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
       <div class="ai-helper-panel" id="ai-helper-panel">
         <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>AES Buddy</strong><small>Ask inside the lesson</small></div></div>
-        <p id="ai-helper-text">I can remind you what the current AES step means without leaving the site.</p>
-        <button onclick="askAiHelper('step')">Explain current step</button>
-        <button onclick="askAiHelper('hint')">Give a small hint</button>
-        <button onclick="askAiHelper('key')">Check key rule</button>
+        <div class="ai-chat-log" id="ai-chat-log"><div class="ai-msg bot">Hi, I am AES Buddy. Ask me about key, S-Box, XOR, rounds, padding, or the current step.</div></div>
+        <div class="ai-chat-input"><input id="ai-question" placeholder="Ask about AES..." onkeydown="if(event.key==='Enter')sendAiQuestion()"><button onclick="sendAiQuestion()">Send</button></div>
+        <div class="ai-quick"><button onclick="askAiHelper('step')">Current step</button><button onclick="askAiHelper('hint')">Hint</button><button onclick="askAiHelper('key')">Key rule</button></div>
       </div>
     </div>`;
   document.body.appendChild(bar);
@@ -406,12 +440,39 @@ function closeStageMenu(){const bar=document.getElementById('stagebar');if(bar)b
 function toggleAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.toggle('open');}
 function closeAiHelper(){const wrap=document.getElementById('ai-helper-wrap');if(wrap)wrap.classList.remove('open');}
 function askAiHelper(kind){
-  const box=document.getElementById('ai-helper-text');if(!box)return;
   const stage=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0];
   const current=steps[curIdx];
-  if(kind==='step')box.textContent=current?`${current.badge}: ${current.why}`:`You are in ${stage.label}. ${stage.note}`;
-  if(kind==='hint')box.textContent=current&&current.challenge?current.challenge.hint:'Follow the stage order, then use AES Map when you need to see where this step sits.';
-  if(kind==='key')box.textContent='AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.';
+  if(kind==='step')appendAiMessage('bot',current?`${current.badge}: ${current.why}`:`You are in ${stage.label}. ${stage.note}`);
+  if(kind==='hint')appendAiMessage('bot',current&&current.challenge?current.challenge.hint:'Follow the stage order, then use AES Map when you need to see where this step sits.');
+  if(kind==='key')appendAiMessage('bot','AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.');
+}
+function appendAiMessage(role,text){
+  const log=document.getElementById('ai-chat-log');if(!log)return;
+  const msg=document.createElement('div');
+  msg.className=`ai-msg ${role}`;
+  msg.textContent=text;
+  log.appendChild(msg);
+  log.scrollTop=log.scrollHeight;
+}
+function sendAiQuestion(){
+  const input=document.getElementById('ai-question');if(!input)return;
+  const q=input.value.trim();if(!q)return;
+  appendAiMessage('user',q);
+  input.value='';
+  appendAiMessage('bot',answerAiQuestion(q));
+}
+function answerAiQuestion(q){
+  const low=q.toLowerCase(),current=steps[curIdx];
+  if(low.includes('key')||low.includes('256'))return 'For AES-256, the key must be 32 bytes. This site accepts 32 characters, then each character becomes one key byte.';
+  if(low.includes('sbox')||low.includes('s-box')||low.includes('subbyte'))return 'S-Box means substitution. Take a byte like 0x53: row is 5, column is 3, and the table gives the replacement byte.';
+  if(low.includes('xor')||low.includes('addround'))return 'XOR compares bits: same gives 0, different gives 1. AddRoundKey is just state byte XOR round-key byte.';
+  if(low.includes('shift'))return 'ShiftRows rotates rows left. Row 0 stays, row 1 moves left 1, row 2 moves left 2, row 3 moves left 3.';
+  if(low.includes('mix'))return 'MixColumns mixes each column using GF(2^8), so each output byte depends on all four bytes of that column.';
+  if(low.includes('padding')||low.includes('pkcs'))return 'PKCS#7 padding adds N bytes with value N. If 4 bytes are missing, AES adds 04 04 04 04.';
+  if(low.includes('round'))return 'AES-256 has 14 rounds: Round 0 AddRoundKey, rounds 1-13 full steps, and round 14 without MixColumns.';
+  if(low.includes('result')||low.includes('cipher'))return 'The ciphertext is shown only after you finish the Practice checks. Then you can compare it on the Result page.';
+  if(low.includes('current')||low.includes('step'))return current?`${current.badge}: ${current.why}`:'Open Practice and I can explain the active AES step.';
+  return 'Good question. Try naming the AES part you mean: key, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, or result.';
 }
 
 function createSideTools(){
@@ -448,7 +509,7 @@ function createSideTools(){
       <button data-side-card="theory" onclick="setAesSideCard('theory')">Theory</button>
       <button data-side-card="hint" onclick="setAesSideCard('hint')">Hint</button>
     </div>
-    <div class="tool-card aes-remind-card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p></div>
+    <div class="tool-card aes-remind-card" onclick="nextAesSideCard()" title="Click for another card"><label id="aes-side-title">Interesting card</label><p class="tool-note" id="aes-side-body">AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.</p><small id="aes-side-count">1 / 10 - click card</small></div>
     <div class="tool-card"><label>Practice rule</label><p class="tool-note">Tools on the left only help calculate. The encrypted result is produced by the AES practice flow after all checks are finished.</p></div>
     <ol class="tool-list">
       <li>Text becomes bytes.</li>
@@ -467,11 +528,19 @@ function createSideTools(){
 }
 
 function setAesSideCard(type){
-  const card=AES_SIDE_CARDS[type]||AES_SIDE_CARDS.interesting;
+  aesSideType=type;
+  const list=AES_SIDE_CARDS[type]||AES_SIDE_CARDS.interesting;
+  const bodyText=list[aesSideIndex[type]||0];
   const title=document.getElementById('aes-side-title'),body=document.getElementById('aes-side-body');
-  if(title)title.textContent=card.title;
-  if(body)body.textContent=card.body;
+  if(title)title.textContent=`${type.charAt(0).toUpperCase()+type.slice(1)} card`;
+  if(body)body.textContent=bodyText;
+  const count=document.getElementById('aes-side-count');if(count)count.textContent=`${(aesSideIndex[type]||0)+1} / ${list.length} - click card`;
   document.querySelectorAll('[data-side-card]').forEach(btn=>btn.classList.toggle('active',btn.dataset.sideCard===type));
+}
+function nextAesSideCard(){
+  const list=AES_SIDE_CARDS[aesSideType]||AES_SIDE_CARDS.interesting;
+  aesSideIndex[aesSideType]=((aesSideIndex[aesSideType]||0)+1)%list.length;
+  setAesSideCard(aesSideType);
 }
 
 function formatCalc(n){
