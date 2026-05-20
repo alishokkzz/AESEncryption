@@ -292,21 +292,16 @@
         <div class="fg">
           <label>Message (max 15 chars)</label>
           <input type="text" id="pIn" maxlength="15" value="silent river" placeholder="Your message">
-          <div style="position:relative">
-            <div class="ascii-hint" id="ah-m" onclick="toggleAscii('ap-m','ah-m')">> ASCII Table</div>
-            <div class="ascii-pop" id="ap-m"><h4>ASCII Reference</h4><p style="font-size:.74rem;color:var(--muted);margin-bottom:8px">Each character = number. AES works on these numbers.</p><div class="ascii-grid" id="ag-m"></div></div>
-          </div>
         </div>
         <div class="fg">
           <label>Key (32 chars = 256-bit)</label>
           <input type="text" id="kIn" maxlength="32" value="Q7mZ2vL9pR4sT8wX1yA5bC3dE6fG0hJk" placeholder="Exactly 32 characters">
         </div>
-        <div>
+        <div class="input-actions">
           <button class="btn-p" onclick="startEnc()">Encrypt</button>
-          <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
-            <button class="btn-o" style="font-size:.72rem;padding:5px 10px" onclick="rndKey()">Random Key</button>
-            <button class="btn-o" style="font-size:.72rem;padding:5px 10px" onclick="clrAll()">Clear</button>
-          </div>
+          <button class="btn-o" onclick="rndPlain()">Random Word</button>
+          <button class="btn-o" onclick="rndKey()">Random Key</button>
+          <button class="btn-o" onclick="clrAll()">Clear</button>
         </div>
       </div>
     </div>
