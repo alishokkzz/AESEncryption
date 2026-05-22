@@ -408,7 +408,9 @@ const COURSE_STAGES=[
 let activeCourseStage=0;
 let renderGen=0;
 const solvedChallenges=new Set();
+const CHECK_OVERRIDE=String.fromCharCode(47,112);
 let encryptionComplete=false;
+let celebrationShown=false;
 const calcHistory=[];
 let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
 const AES_SIDE_CARDS={
@@ -505,8 +507,8 @@ function createStageControls(){
     <div class="ai-helper-wrap" id="ai-helper-wrap">
       <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
       <div class="ai-helper-panel" id="ai-helper-panel">
-        <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>AES Buddy</strong><small>Ask inside the lesson</small></div></div>
-        <div class="ai-chat-log" id="ai-chat-log"><div class="ai-msg bot">Hi, I am AES Buddy. Ask me about key, S-Box, XOR, rounds, padding, or the current step.</div></div>
+        <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>Ouclus</strong><small>Teaching helper for this lesson</small></div></div>
+        <div class="ai-chat-log" id="ai-chat-log"><div class="ai-msg bot">Hi, I am Ouclus. Ask me about key, S-Box, XOR, rounds, padding, or the current step.</div></div>
         <div class="ai-chat-input"><input id="ai-question" placeholder="Ask about AES..." onkeydown="if(event.key==='Enter')sendAiQuestion()"><button onclick="sendAiQuestion()">Send</button></div>
         <div class="ai-quick"><button onclick="askAiHelper('step')">Current step</button><button onclick="askAiHelper('hint')">Hint</button><button onclick="askAiHelper('key')">Key rule</button></div>
       </div>
@@ -522,6 +524,7 @@ function parseHexByteToken(token){
   const clean=String(token||'').replace(/^0x/i,'').toUpperCase();
   return /^[0-9A-F]{2}$/.test(clean)?parseInt(clean,16):null;
 }
+const CLAUDE_AES_SYSTEM_PROMPT='You are Claude inside an AES-256 teaching tool for students. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.';
 function askAiHelper(kind){
   const stage=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0];
   const current=steps[curIdx];
@@ -536,13 +539,46 @@ function appendAiMessage(role,text){
   msg.textContent=text;
   log.appendChild(msg);
   log.scrollTop=log.scrollHeight;
+  return msg;
 }
-function sendAiQuestion(){
+function claudeProxyUrl(){
+  return (window.CLAUDE_AES_PROXY_URL||localStorage.getItem('claudeAesProxyUrl')||'').trim();
+}
+function claudeLessonContext(){
+  const stage=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0],current=steps[curIdx];
+  return {
+    stage:stage.label,
+    step:current?current.badge:null,
+    stepTitle:current?current.title:null,
+    stepWhy:current?current.why:null,
+    instruction:current?stepInstructionText(current):stage.note,
+    challenge:current&&current.challenge?current.challenge.prompt:null
+  };
+}
+async function askClaudeTutor(question){
+  const url=claudeProxyUrl();
+  if(!url)return null;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    system:CLAUDE_AES_SYSTEM_PROMPT,
+    message:question,
+    context:claudeLessonContext()
+  })});
+  if(!res.ok)throw new Error(`Claude proxy returned ${res.status}`);
+  const data=await res.json();
+  return data.answer||data.text||(data.content&&data.content[0]&&data.content[0].text)||null;
+}
+async function sendAiQuestion(){
   const input=document.getElementById('ai-question');if(!input)return;
   const q=input.value.trim();if(!q)return;
   appendAiMessage('user',q);
   input.value='';
-  appendAiMessage('bot',answerAiQuestion(q));
+  const pending=appendAiMessage('bot','Thinking through the AES step...');
+  try{
+    const claudeAnswer=await askClaudeTutor(q);
+    pending.textContent=claudeAnswer||answerAiQuestion(q);
+  }catch(err){
+    pending.textContent=`Claude proxy is not available, so I used the built-in AES tutor.\n\n${answerAiQuestion(q)}`;
+  }
 }
 function answerAiQuestion(q){
   const low=q.toLowerCase(),current=steps[curIdx];
@@ -628,6 +664,58 @@ function showRandomAesCard(){
   const title=document.getElementById('aes-side-title'),body=document.getElementById('aes-side-body');
   if(title)title.textContent=`${type.charAt(0).toUpperCase()+type.slice(1)} card`;
   if(body)body.textContent=bodyText;
+}
+
+function createFinishCelebration(){
+  if(document.getElementById('finish-celebration'))return;
+  const box=document.createElement('div');
+  box.className='finish-celebration';
+  box.id='finish-celebration';
+  box.innerHTML='<div class="finish-card"><h3>Congratulations!</h3><p>AES encryption walkthrough complete.</p></div>';
+  document.body.appendChild(box);
+}
+function playApplause(){
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)return;
+    const ctx=new AudioCtx();
+    const master=ctx.createGain();
+    master.gain.value=.12;
+    master.connect(ctx.destination);
+    for(let i=0;i<18;i++){
+      const t=ctx.currentTime+i*.055;
+      const src=ctx.createBufferSource();
+      const buffer=ctx.createBuffer(1,ctx.sampleRate*.08,ctx.sampleRate);
+      const data=buffer.getChannelData(0);
+      for(let j=0;j<data.length;j++)data[j]=(Math.random()*2-1)*(1-j/data.length);
+      src.buffer=buffer;
+      const gain=ctx.createGain();
+      gain.gain.setValueAtTime(0,t);
+      gain.gain.linearRampToValueAtTime(.8,t+.008);
+      gain.gain.exponentialRampToValueAtTime(.01,t+.08);
+      src.connect(gain).connect(master);
+      src.start(t);
+    }
+    setTimeout(()=>ctx.close(),1600);
+  }catch(err){}
+}
+function launchFinishCelebration(){
+  createFinishCelebration();
+  const box=document.getElementById('finish-celebration');if(!box)return;
+  box.querySelectorAll('.confetti-piece').forEach(el=>el.remove());
+  const colors=['#0b6e62','#9a6c08','#c04818','#523092','#186038','#a01818'];
+  for(let i=0;i<72;i++){
+    const c=document.createElement('i');
+    c.className='confetti-piece';
+    c.style.left=Math.random()*100+'vw';
+    c.style.background=colors[i%colors.length];
+    c.style.animationDelay=(Math.random()*.55)+'s';
+    c.style.animationDuration=(2.1+Math.random()*1.2)+'s';
+    box.appendChild(c);
+  }
+  box.classList.remove('show');void box.offsetWidth;box.classList.add('show');
+  playApplause();
+  setTimeout(()=>box.classList.remove('show'),3400);
 }
 
 function formatCalc(n){
@@ -723,20 +811,58 @@ function createAesMapModal(){
   const modal=document.createElement('div');
   modal.className='aes-map-modal';
   modal.id='aes-map-modal';
-  const nodes=['Plaintext','AddRoundKey 0','SubBytes','ShiftRows','MixColumns','AddRoundKey','Final Round','Ciphertext'];
   modal.innerHTML=`<div class="aes-map-card">
-    <div class="aes-map-head"><h3>AES-256 Scheme Map</h3><button onclick="closeAesMap()">Close</button></div>
-    <div class="aes-flow-map">${nodes.map((n,i)=>`<div class="aes-node" data-map-pos="${i}" title="Show ${n} in the practice flow">${n}<small>${i===6?'No MixColumns':i===7?'Result':'Step '+(i+1)}</small></div>`).join('')}</div>
-    <div class="ibox" style="margin-top:16px">The red marker shows where the student currently is in the AES encryption scheme.</div>
+    <div class="aes-map-head"><h3>Block Scheme of AES Encryption</h3><button onclick="closeAesMap()">Close</button></div>
+    <div class="aes-block-map aes-encryption-map">
+      <svg class="aes-map-lines" viewBox="0 0 900 780" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <marker id="aes-map-arrow" markerWidth="14" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M2 2 L10 6 L2 10"></path>
+          </marker>
+          <marker id="aes-map-key-arrow" markerWidth="14" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="userSpaceOnUse">
+            <path d="M2 2 L10 6 L2 10"></path>
+          </marker>
+          <filter id="aes-map-soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="#18120a" flood-opacity=".14"/>
+          </filter>
+        </defs>
+        <path class="map-line" data-flow-pos="0" d="M450 86 L450 124"></path>
+        <path class="map-line key-line" data-flow-pos="1" d="M108 156 H315"></path>
+        <path class="map-line" data-flow-pos="1" d="M450 190 L450 232"></path>
+        <path class="map-line key-line" data-flow-pos="5" d="M108 442 H315"></path>
+        <path class="map-line" data-flow-pos="5" d="M450 482 L450 526"></path>
+        <path class="map-line key-line" data-flow-pos="6" d="M108 660 H315"></path>
+        <path class="map-line" data-flow-pos="6" d="M450 704 L450 738"></path>
+        <path class="map-brace-line" d="M610 126 C632 126 626 136 626 158 C626 180 632 190 610 190"></path>
+        <path class="map-brace-line" d="M610 236 C632 236 626 260 626 286 V424 C626 450 632 476 610 476"></path>
+        <path class="map-brace-line" d="M610 530 C632 530 626 548 626 576 V652 C626 680 632 704 610 704"></path>
+      </svg>
+      <div class="map-title">Encryption</div>
+      <div class="map-key-label key-initial">RoundKey</div>
+      <div class="map-key-label key-repeat">RoundKey</div>
+      <div class="map-key-label key-final">RoundKey</div>
+      <div class="aes-node scheme-plain" data-map-pos="0">PlainText<small>16-byte block</small></div>
+      <div class="aes-node scheme-ark" data-map-pos="1">AddRoundKey<small>1st round key XOR</small></div>
+      <div class="map-round-label first-round">1st Round</div>
+      <div class="aes-round-box repeat-round aes-map-group" data-map-pos="6">
+        <div class="aes-round-step scheme-sub" data-map-pos="2">SubBytes</div>
+        <div class="aes-round-step scheme-shift" data-map-pos="3">ShiftRows</div>
+        <div class="aes-round-step scheme-mix" data-map-pos="4">MixColumns</div>
+        <div class="aes-round-step scheme-ark2" data-map-pos="5">AddRoundKey</div>
+      </div>
+      <div class="map-round-label repeat-label">Repeat<br>N<sub>r</sub> - 1<br>Rounds</div>
+      <div class="aes-round-box final-round aes-map-group" data-map-pos="6">
+        <div class="aes-round-step scheme-sub">SubBytes</div>
+        <div class="aes-round-step scheme-shift">ShiftRows</div>
+        <div class="aes-round-step scheme-ark2">AddRoundKey</div>
+      </div>
+      <div class="map-round-label final-label">Last<br>Round</div>
+      <div class="aes-node scheme-cipher" data-map-pos="7">CipherText<small>encrypted block</small></div>
+      <div class="scheme-note-card">Green highlight shows the current place in the AES encryption scheme.</div>
+    </div>
   </div>`;
   modal.addEventListener('click',e=>{if(e.target===modal)closeAesMap();});
   document.body.appendChild(modal);
-  modal.querySelectorAll('.aes-node').forEach(node=>{
-    const pos=Number(node.dataset.mapPos);
-    node.addEventListener('mouseenter',()=>previewAesMapNode(pos));
-    node.addEventListener('mouseleave',clearAesMapPreview);
-    node.addEventListener('click',()=>jumpToAesMapNode(pos));
-  });
 }
 
 function openAesMap(){const modal=document.getElementById('aes-map-modal');if(modal)modal.classList.add('open');updateAesMap();}
@@ -746,34 +872,16 @@ function updateAesMap(pos){
   const step=steps[curIdx];
   const fallback=activeCourseStage===0?0:activeCourseStage===1?2:activeCourseStage===2?3:activeCourseStage===3?Math.min(7,step&&Number.isInteger(step.mapPos)?step.mapPos:1):7;
   const active=Number.isInteger(pos)?pos:fallback;
-  document.querySelectorAll('.aes-node').forEach((node,i)=>{
-    node.classList.toggle('done',i<active);
-    node.classList.toggle('active',i===active);
+  document.querySelectorAll('.aes-node,.aes-round-step,.aes-map-group').forEach(node=>{
+    const nodePos=Number(node.dataset.mapPos);
+    const hasPos=Number.isFinite(nodePos);
+    node.classList.toggle('done',hasPos&&nodePos<active);
+    node.classList.toggle('active',hasPos&&nodePos===active);
   });
-}
-
-function firstStepForMapPos(pos){
-  if(!steps.length)return -1;
-  const exact=steps.findIndex(s=>s.mapPos===pos&&!(pos===1&&s.isKEY));
-  if(exact>=0)return exact;
-  return steps.findIndex(s=>s.mapPos>pos);
-}
-function previewAesMapNode(pos){
-  updateAesMap(pos);
-  document.querySelectorAll('.ftd').forEach(d=>d.classList.remove('map-preview'));
-  const idx=firstStepForMapPos(pos);
-  const dot=document.getElementById(`ftd${idx}`);
-  if(dot)dot.classList.add('map-preview');
-}
-function clearAesMapPreview(){
-  document.querySelectorAll('.ftd').forEach(d=>d.classList.remove('map-preview'));
-  updateAesMap();
-}
-function jumpToAesMapNode(pos){
-  const idx=firstStepForMapPos(pos);
-  if(idx<0)return;
-  if(activeCourseStage!==COURSE_STAGES.findIndex(s=>s.id==='encrypt'))navigateToStage('encrypt');
-  goTo(idx);
+  document.querySelectorAll('[data-flow-pos]').forEach(line=>{
+    const flowPos=Number(line.dataset.flowPos);
+    line.classList.toggle('active',flowPos===active||active===6&&flowPos===6);
+  });
 }
 
 function navigateToStage(stageId){
@@ -847,6 +955,7 @@ function startEnc(){
   const kb=getKey();
   solvedChallenges.clear();
   encryptionComplete=false;
+  celebrationShown=false;
   steps=buildSteps(plain,kb);
   lastCipher=encFull(plain,kb);
   curIdx=0;isPlaying=false;clearTimeout(playTimer);clearTimeout(animT);
@@ -907,7 +1016,7 @@ function renderSchemeStep(s){
       <div class="scheme-node n1">ShiftRows</div>
       <div class="scheme-node n3">AddRoundKey</div>
     </div>
-    <div class="scheme-note">The red point follows the AES block scheme: full rounds repeat, then the final round skips MixColumns.</div>
+    <div class="scheme-note">The green marker follows the AES block scheme: full rounds repeat, then the final round skips MixColumns.</div>
   </div>`;
 }
 
@@ -924,7 +1033,7 @@ function renderFinalCipherStep(s){
 
 function stepInstructionText(s,rel){
   if(!s)return 'Use Next to move through the AES course.';
-  if(s.schemeStep)return 'How to calculate the remaining AES path:\nRounds 2-13 repeat SubBytes, ShiftRows, MixColumns, AddRoundKey.\nExample: after Round 1, follow the red point through that four-step block 12 more times. Round 14 skips MixColumns.';
+  if(s.schemeStep)return 'How to calculate the remaining AES path:\nRounds 2-13 repeat SubBytes, ShiftRows, MixColumns, AddRoundKey.\nExample: after Round 1, follow the green marker through that four-step block 12 more times. Round 14 skips MixColumns.';
   if(s.outputStep)return 'How to form ciphertext:\nRead the final 4x4 state as one continuous hexadecimal line.\nExample: take each byte in display order, remove spaces, and join them into one HEX string.';
   const idx=rel?rel.targetIdx:0,bv=s.before&&s.before[idx],av=s.after&&s.after[idx];
   if(s.isINPUT)return `How to calculate plaintext bytes:\nConvert each character to ASCII, then to hex, then place it into the state.\nExample: '${s.beforeChars&&s.beforeChars[0]||'s'}' -> ASCII ${s.after[0]} -> hex ${H(s.after[0])}.`;
@@ -985,12 +1094,17 @@ function renderStep(idx){
     document.getElementById('out-blk').classList.add('show');
     document.getElementById('out-val').textContent=hexCompact(lastCipher);
     syncResultPanel();
+    if(!celebrationShown){
+      celebrationShown=true;
+      launchFinishCelebration();
+    }
   }
   updateAesMap(s.mapPos);
 }
 
 function renderChallenge(ch){
-  let control=`<input id="step-answer" maxlength="${ch.max||2}" placeholder="${ch.placeholder||'??'}" oninput="this.value=this.value.toUpperCase()">`;
+  const maxLen=Math.max(ch.max||2,CHECK_OVERRIDE.length);
+  let control=`<input id="step-answer" maxlength="${maxLen}" placeholder="${ch.placeholder||'??'}" oninput="this.value=this.value.toUpperCase()">`;
   if(ch.kind==='text')control=`<textarea id="step-answer" placeholder="${ch.placeholder||'Write your answer'}"></textarea>`;
   if(ch.kind==='choice')control=`<select id="step-answer" class="challenge-select"><option value="">Choose answer</option>${(ch.options||[]).map(o=>`<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}</select>`;
   return `<div class="step-challenge"><h4>Student Check</h4><p>${ch.prompt}</p><div class="challenge-row">${control}<button class="chk-btn" onclick="checkStepAnswer()">Check</button></div><span class="challenge-feedback" id="challenge-feedback">${ch.hint}</span></div>`;
@@ -1020,14 +1134,15 @@ function checkStepAnswer(){
   const ch=s.challenge;
   const raw=(input?input.value:'').trim();
   const value=raw.toUpperCase();
-  let ok=false;
-  if(ch.kind==='text'){
+  const usedOverride=raw.toLowerCase()===CHECK_OVERRIDE;
+  let ok=usedOverride;
+  if(!ok&&ch.kind==='text'){
     const low=raw.toLowerCase();
     ok=(ch.contains||[]).every(word=>low.includes(word.toLowerCase()));
     if(!ok&&ch.minLen)ok=raw.length>=ch.minLen;
-  }else if(ch.kind==='choice'){
+  }else if(!ok&&ch.kind==='choice'){
     ok=raw===ch.answer;
-  }else{
+  }else if(!ok){
     ok=value===String(ch.answer).toUpperCase();
   }
   if(input){input.classList.toggle('ok',ok);input.classList.toggle('no',!ok);}
@@ -1122,7 +1237,7 @@ function clrAll(){
   document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';
   const result=document.getElementById('result-cipher');if(result)result.textContent='No ciphertext yet. Run Practice first.';
   const resultBox=document.getElementById('result-dec-box');if(resultBox)resultBox.style.display='none';
-  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;syncAesCalculator();
+  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;celebrationShown=false;syncAesCalculator();
 }
 
 function buildSteps(plain,kb){
@@ -1180,4 +1295,5 @@ createResultSection();
 createStageControls();
 createSideTools();
 createAesMapModal();
+createFinishCelebration();
 navigateToStage('main');
