@@ -107,16 +107,47 @@ function ksS(i,el){document.querySelectorAll('#kspl .kb').forEach(b=>b.classList
 // ------------------------------------------
 // ROUND ANIMATION
 // ------------------------------------------
-function animRounds(){const rc=document.getElementById('rchips');rc.innerHTML='';const chips=[];for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rchip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('sp');rc.appendChild(c);chips.push(c);}let i=0;function tk(){if(i<chips.length){chips[i].classList.add('lit');i++;setTimeout(tk,200);}}tk();}
+function animRounds(){const rc=document.getElementById('rchips');rc.innerHTML='';const chips=[];for(let i=0;i<=14;i++){const c=document.createElement('span');c.className='rchip';c.textContent=i===0?'Init':`R${i}`;if(i===14)c.classList.add('sp');rc.appendChild(c);chips.push(c);}let i=0;function tk(){if(i<chips.length){chips[i].classList.add('lit');i++;setTimeout(tk,animDelay(200));}}tk();}
 
 // ------------------------------------------
 // S-BOX TABLE
 // ------------------------------------------
 function buildFullSbox(){
   const t=document.getElementById('sboxt-full');
-  const hr=document.createElement('tr');hr.appendChild(Object.assign(document.createElement('th'),{textContent:''}));
-  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent='x'+c.toString(16).toUpperCase();hr.appendChild(th);}t.appendChild(hr);
-  for(let row=0;row<16;row++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase()+'x';tr.appendChild(th);for(let col=0;col<16;col++){const td=document.createElement('td');const v=SB[row*16+col];td.textContent=v.toString(16).toUpperCase().padStart(2,'0');td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} -> 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;tr.appendChild(td);}t.appendChild(tr);}
+  if(!t)return;
+  t.innerHTML='';
+  const hr=document.createElement('tr');hr.appendChild(Object.assign(document.createElement('th'),{textContent:'r\\c'}));
+  for(let c=0;c<16;c++){const th=document.createElement('th');th.textContent=c.toString(16).toUpperCase();hr.appendChild(th);}t.appendChild(hr);
+  for(let row=0;row<16;row++){
+    const tr=document.createElement('tr');const th=document.createElement('th');th.textContent=row.toString(16).toUpperCase();tr.appendChild(th);
+    for(let col=0;col<16;col++){
+      const td=document.createElement('td');const v=SB[row*16+col];
+      td.textContent=v.toString(16).toUpperCase().padStart(2,'0');
+      td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} -> 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;
+      td.onclick=()=>showSboxTheoryLookup(row,col);
+      tr.appendChild(td);
+    }
+    t.appendChild(tr);
+  }
+  setTimeout(()=>showSboxTheoryLookup(5,3),0);
+}
+
+function showSboxTheoryLookup(row,col){
+  const table=document.getElementById('sboxt-full');if(!table)return;
+  table.querySelectorAll('td,th').forEach(cell=>cell.classList.remove('active-cell','active-head'));
+  const trs=table.querySelectorAll('tr');
+  if(trs[0]&&trs[0].children[col+1])trs[0].children[col+1].classList.add('active-head');
+  if(trs[row+1]&&trs[row+1].children[0])trs[row+1].children[0].classList.add('active-head');
+  if(trs[row+1]&&trs[row+1].children[col+1])trs[row+1].children[col+1].classList.add('active-cell');
+  let demo=document.getElementById('sbox-demo');
+  if(!demo){
+    demo=document.createElement('div');
+    demo.id='sbox-demo';
+    demo.className='sbox-demo ibox fi on';
+    table.parentElement.insertAdjacentElement('afterend',demo);
+  }
+  const input=(row<<4)|col,out=SB[input];
+  demo.innerHTML=`<strong>${t('matrix.sboxLookup')}:</strong> 0x${H(input)} -> ${t('matrix.row')} ${row.toString(16).toUpperCase()} / ${t('matrix.col')} ${col.toString(16).toUpperCase()} -> <strong>0x${H(out)}</strong>`;
 }
 
 // ------------------------------------------
@@ -262,7 +293,7 @@ function stepLayout(s){return s&&s.layout==='row'?'row':'col';}
 function matrixIdx(s,row,col){return stepLayout(s)==='row'?row*4+col:col*4+row;}
 function matrixPos(s,idx){return stepLayout(s)==='row'?{row:Math.floor(idx/4),col:idx%4}:{row:idx%4,col:Math.floor(idx/4)};}
 function orderedStepIndices(s){const out=[];for(let r=0;r<4;r++)for(let c=0;c<4;c++)out.push(matrixIdx(s,r,c));return out;}
-function operationShortLabel(s){return s.isINPUT?'Text':s.isKEY?'Key':s.isARK?'XOR':s.isSUB?'S-Box':s.isSH?'Shift':s.isMX?'GF Mix':s.badge||'AES';}
+function operationShortLabel(s){return s.isINPUT?t('op.text'):s.isKEY?t('op.key'):s.isARK?t('op.xor'):s.isSUB?t('op.sbox'):s.isSH?t('op.shift'):s.isMX?t('op.mix'):s.badge||t('op.aes');}
 function keyByteFor(s,idx){return s.roundKey&&Number.isInteger(s.roundKey[idx])?s.roundKey[idx]:(s.before[idx]^s.after[idx]);}
 function targetIndexFor(s,idx,side='after'){
   if(s.isSH&&side==='before'){
@@ -284,6 +315,27 @@ function relatedCells(s,idx,side='after'){
     sourceIdx=matrixIdx(s,tp.row,tp.col);
   }
   return {targetIdx,sourceIdx,source,target,column,row:tp.row,col:tp.col};
+}
+function renderSboxLookupTable(inputByte){
+  const row=inputByte>>4,col=inputByte&0xf;
+  let html='<div class="sbox-lookup-scroll"><table class="sbox-lookup-table"><thead><tr><th>r\\c</th>';
+  for(let c=0;c<16;c++)html+=`<th class="${c===col?'active-head':''}">${c.toString(16).toUpperCase()}</th>`;
+  html+='</tr></thead><tbody>';
+  for(let r=0;r<16;r++){
+    html+=`<tr><th class="${r===row?'active-head':''}">${r.toString(16).toUpperCase()}</th>`;
+    for(let c=0;c<16;c++){
+      const active=r===row&&c===col;
+      html+=`<td class="${active?'active-cell':''}">${H(SB[r*16+c])}</td>`;
+    }
+    html+='</tr>';
+  }
+  return html+'</tbody></table></div>';
+}
+function focusMatrixByte(idx,side='after'){
+  const s=steps[curIdx];if(!s)return;
+  clearTimeout(animT);
+  highlightCell(s,idx,side);
+  showCellDetail(s,idx,side);
 }
 function setMatrixCellContent(el,s,idx,side){
   const bytes=side==='before'?s.before:s.after;
@@ -317,7 +369,7 @@ function matrixChangeText(s,rel){
   return `Byte [${rel.targetIdx}] changes from ${H(before)} to ${H(after)}.`;
 }
 function clearMatrixHighlights(){
-  document.querySelectorAll('[data-matrix-side]').forEach(el=>el.classList.remove('active','source','target','column-source','path-pulse'));
+  document.querySelectorAll('[data-matrix-side]').forEach(el=>el.classList.remove('active','source','target','column-source','key-source','path-pulse'));
 }
 function highlightCell(s,idx,side='after'){
   const rel=relatedCells(s,idx,side);
@@ -325,6 +377,7 @@ function highlightCell(s,idx,side='after'){
   rel.source.forEach(i=>{const el=document.getElementById(`scb${i}`);if(el)el.classList.add(s.isMX?'column-source':'source','path-pulse');});
   rel.target.forEach(i=>{const el=document.getElementById(`sca${i}`);if(el)el.classList.add('target','revealed','path-pulse');});
   const beforeActive=document.getElementById(`scb${rel.sourceIdx}`);if(beforeActive)beforeActive.classList.add('active','source');
+  const keyActive=document.getElementById(`sck${rel.targetIdx}`);if(keyActive)keyActive.classList.add('active','key-source','path-pulse');
   const afterActive=document.getElementById(`sca${rel.targetIdx}`);if(afterActive)afterActive.classList.add('active','target');
   const note=document.getElementById('matrix-change-note');if(note)note.textContent=matrixChangeText(s,rel);
   updateRoundDetail(s,rel.targetIdx,rel);
@@ -345,8 +398,20 @@ function showCellDetail(s,idx,side='after'){
   }
   if(s.isSUB){
     const row=bv>>4,col=bv&0xf;
-    et.textContent=`Byte [${targetIdx}] - S-Box lookup`;
-    fm.innerHTML=`<div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--S-Box--></span><span class="ch-t">${H(av)}</span></div><span class="lbl">Input: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span><br><div class="nb-row2"><div class="nb2 nhi"><div class="nbl2" style="color:var(--ora)">High nibble</div><div class="nbv2" style="color:var(--ora)">${row}</div><div class="nbs">-> Row ${row}</div></div><div class="nb2 nlo"><div class="nbl2" style="color:var(--pur)">Low nibble</div><div class="nbv2" style="color:var(--pur)">${col}</div><div class="nbs">-> Col ${col}</div></div></div><span class="lbl">S-Box[${row}][${col}] = </span><span class="vout">0x${H(av)}</span>`;
+    const prev=(targetIdx+15)%16,next=(targetIdx+1)%16;
+    et.textContent=`${t('matrix.byte')} [${targetIdx}] - ${t('matrix.sboxLookup')}`;
+    fm.innerHTML=`<div class="sbox-detail-card">
+      <div class="lookup-nav"><button onclick="focusMatrixByte(${prev},'after')">${t('matrix.prev')}</button><strong>${t('matrix.byte')} ${targetIdx+1}/16</strong><button onclick="focusMatrixByte(${next},'after')">${t('matrix.next')}</button></div>
+      <div class="ch"><span class="ch-f">${H(bv)}</span><span class="ch-a">--S-Box--></span><span class="ch-t">${H(av)}</span></div>
+      <span class="lbl">${t('matrix.input')}: </span><span class="vin">0x${H(bv)} = ${B8(bv)}</span>
+      <div class="nb-row2">
+        <div class="nb2 nhi"><div class="nbl2">${t('matrix.high')}</div><div class="nbv2">${row.toString(16).toUpperCase()}</div><div class="nbs">-> ${t('matrix.row')} ${row}</div></div>
+        <div class="nb2 nlo"><div class="nbl2">${t('matrix.low')}</div><div class="nbv2">${col.toString(16).toUpperCase()}</div><div class="nbs">-> ${t('matrix.col')} ${col}</div></div>
+      </div>
+      <div class="lookup-result"><span class="lbl">S-Box[${row.toString(16).toUpperCase()}][${col.toString(16).toUpperCase()}] = </span><span class="vout">0x${H(av)}</span></div>
+      <div class="lookup-title">${t('matrix.table')}</div>
+      ${renderSboxLookupTable(bv)}
+    </div>`;
     return;
   }
   if(s.isSH){
@@ -370,7 +435,7 @@ function togglePlay(){if(isPlaying)stopPlay();else{if(curIdx>=steps.length-1)ret
 function sched(){if(!isPlaying||curIdx>=steps.length-1){stopPlay();return;}playTimer=setTimeout(()=>{curIdx++;renderStep(curIdx);sched();},playSp);}
 function stopPlay(){isPlaying=false;clearTimeout(playTimer);document.getElementById('btnplay').textContent='Play';document.getElementById('btnstop').disabled=true;}
 function setSp(ms,el){playSp=ms;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
-function runDec(){if(!lastCipher){alert('Encrypt first.');return;}const kb=getKey();const r=decFull(lastCipher,kb);document.getElementById('dec-box').style.display='block';document.getElementById('dec-txt').textContent=`"${r}"`;}
+function runDec(){if(!lastCipher){alert(t('alert.encryptFirst'));return;}const kb=getKey();const r=decFull(lastCipher,kb);document.getElementById('dec-box').style.display='block';document.getElementById('dec-txt').textContent=`"${r}"`;}
 function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';lastCipher=null;steps=[];}
 function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;syncAesCalculator();}
 function rndPlain(){
@@ -413,6 +478,197 @@ let encryptionComplete=false;
 let celebrationShown=false;
 const calcHistory=[];
 let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
+let siteSettings={lang:'us',theme:'light',font:100,contrast:false,speed:1};
+const challengeAttempts=new Map();
+
+const I18N={
+  us:{
+    'nav.theory':'Theory','nav.practice':'Practice','nav.encrypt':'Encrypt','nav.team':'Team',
+    'brand.html':'AES<b>-256</b> Learn',
+    'hero.sup':'Interactive Learning Platform - Narxoz University',
+    'hero.title.html':'Learn<br><em>AES-256</em><br>By Doing',
+    'hero.desc':'Not a textbook. A hands-on course - you solve the first steps yourself, then the computer finishes the rest, byte by byte.',
+    'hero.start':'Start Practising','hero.read':'Read Theory First',
+    'stage.main':'Main','stage.theory':'Theory','stage.tasks':'Theory Tasks','stage.encrypt':'Practice','stage.result':'Result','stage.team':'Team',
+    'stage.main.note':'Welcome screen. Start here, then move step by step through AES-256.',
+    'stage.theory.note':'Theory stage: AES-256 properties, key schedule, S-Box, and round structure.',
+    'stage.tasks.note':'Interactive teaching tasks for manual AES calculations.',
+    'stage.encrypt.note':'Full AES-256 walkthrough using your own text and 32-character key.',
+    'stage.result.note':'Final ciphertext check and decrypt check.',
+    'stage.team.note':'Project team members and responsibilities.',
+    'btn.prev':'Prev','btn.next':'Next','btn.finish':'Finish','btn.check':'Check','btn.replay':'Replay animation','btn.settings':'Settings','btn.map':'AES Map','btn.backPractice':'Back to Practice','btn.decrypt':'Decrypt Check','btn.close':'Close','btn.send':'Send',
+    'settings.title':'Settings','settings.lang':'Language','settings.theme':'Night theme','settings.font':'Font size','settings.contrast':'High contrast','settings.speed':'Animation speed','settings.replay':'Replay current animation','settings.light':'Light','settings.night':'Night','settings.normal':'Normal','settings.on':'On','settings.off':'Off','settings.slow':'Slow','settings.default':'Default','settings.fast':'Fast','settings.faster':'Faster',
+    'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Teaching helper for this lesson','ai.hello':'Hi, I am Ouclus. Ask me about key, S-Box, XOR, rounds, padding, or the current step.','ai.placeholder':'Ask about AES...','ai.quick.step':'Current step','ai.quick.hint':'Hint','ai.quick.key':'Key rule','ai.thinking':'Thinking through the AES step...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in English. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
+    'ai.key.rule':'AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.',
+    'ai.fallback':'Claude proxy is not available, so I used the built-in AES tutor.',
+    'ai.xor':'0x{a} XOR 0x{b} = 0x{r}. Bits: {ab} xor {bb} = {rb}.',
+    'ai.ascii':'ASCII value: "{raw}" = decimal {n} = hex 0x{hex} = bits {bits}.',
+    'ai.sbox':'S-Box[0x{byte}]: row {row}, column {col} gives 0x{out}.',
+    'ai.key':'For AES-256, the key must be 32 bytes. This site accepts 32 characters, then each character becomes one key byte.',
+    'ai.history':'AES was selected by NIST after a public competition and standardized in 2001. The winning algorithm was Rijndael, designed by Joan Daemen and Vincent Rijmen.',
+    'ai.text':'ASCII maps a character to a number. Example: A is decimal 65, which is 0x41 in hex. AES encrypts those byte values, not letters directly.',
+    'ai.byte':'One byte is 8 bits. In hex, one byte is two hex digits: 0x00 through 0xFF.',
+    'ai.sbox.basic':'S-Box means substitution. Take a byte like 0x53: row is 5, column is 3, and the table gives the replacement byte.',
+    'ai.xor.basic':'XOR compares bits: same gives 0, different gives 1. AddRoundKey is just state byte XOR round-key byte.',
+    'ai.ecb':'ECB encrypts each block independently. It is easy for teaching, but real systems usually prefer modes like CBC, CTR, or GCM.',
+    'ai.gf':'GF(2^8) is AES finite-field math. MixColumns uses it so column bytes blend without leaving the 0x00-0xFF byte range.',
+    'ai.shift':'ShiftRows rotates rows left. Row 0 stays, row 1 moves left 1, row 2 moves left 2, row 3 moves left 3.',
+    'ai.mix':'MixColumns mixes each column using GF(2^8), so each output byte depends on all four bytes of that column.',
+    'ai.padding':'PKCS#7 padding adds N bytes with value N. If 4 bytes are missing, AES adds 04 04 04 04.',
+    'ai.round':'AES-256 has 14 rounds: Round 0 AddRoundKey, rounds 1-13 full steps, and round 14 without MixColumns.',
+    'ai.result':'The ciphertext is shown only after you finish the Practice checks. Then you can compare it on the Result page.',
+    'ai.default':'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.',
+    'student.check':'Student Check','student.correct':'Correct. You can go to the next step.','student.wrong':'Not yet. Attempt {n}/3. {hint}','student.revealed':'Answer shown after 3 mistakes. You can continue after reading the explanation.','student.answer':'Answer','student.explanation':'Explanation','student.showAnswer':'Show Answer',
+    'alert.enter':'Enter a message first.','alert.short':'For this teaching walkthrough, use up to 15 characters so one padded AES block can be shown in full detail.','alert.key':'AES-256 needs exactly 32 key characters = 256 bits. Current key length: {n}/32.','alert.result.locked':'Finish the AES Practice encryption first. Result opens after the final ciphertext step.','alert.checks':'Answer each Student Check before moving further.','alert.autoplay':'Auto play is disabled for Practice. Solve the Student Check to unlock each next AES step.','alert.encryptFirst':'Encrypt first.',
+    'result.stage':'Result Check','result.title':'Check the Encryption Result','result.desc':'Use this final stage to verify the ciphertext produced in Practice. Students stay inside the site and can decrypt with the same AES-256 key.','result.latest':'Latest AES-256 Output','result.sub':'The result updates after you run encryption in the Practice stage.','result.none':'No ciphertext yet. Run Practice first.','result.key':'Key','result.mode':'Mode','result.format':'Format','result.external':'Dont trust me check there',
+    'flow.title':'One Input -> One Full AES Round Scheme','flow.desc':'Enter your message and 32-character key. You must calculate one small AES value before moving to the next step.','flow.input':'Your Input','flow.sub':'Enter once. The walkthrough teaches the AES scheme step by step.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Message (max 15 chars)','flow.key':'Key (32 chars = 256-bit)','flow.encrypt':'Encrypt','flow.randomWord':'Random Word','flow.randomKey':'Random Key','flow.clear':'Clear','flow.empty.html':'Complete the practice tasks above, then enter your text and press <strong>Encrypt</strong>.','flow.cipher':'Ciphertext - AES-256 encrypted','flow.decrypted':'Decrypted:',
+    'matrix.hover':'Hover a byte to see exactly what changed.','matrix.before':'Before','matrix.key':'Round Key','matrix.result':'Result','matrix.xor':'XOR','matrix.equals':'=','matrix.byte':'Byte','matrix.prev':'Previous byte','matrix.next':'Next byte','matrix.sboxHint':'S-Box hint: high nibble is row, low nibble is column.','matrix.sboxLookup':'S-Box lookup','matrix.input':'Input','matrix.output':'Output','matrix.high':'High nibble','matrix.low':'Low nibble','matrix.row':'Row','matrix.col':'Col','matrix.table':'S-Box table navigation','matrix.click':'Hover or click any byte for the calculation',
+    'op.text':'Text','op.key':'Key','op.xor':'XOR','op.sbox':'S-Box','op.shift':'Shift','op.mix':'GF Mix','op.aes':'AES',
+    'step.counter':'Step {n} of {total}',
+    'step.input.badge':'Input','step.input.title':'Plaintext -> Bytes','step.input.why':'AES encrypts bytes. The left matrix shows your text, and the right matrix shows the byte values placed into the AES state.','step.input.left':'Plaintext','step.input.out':'Plaintext bytes','step.input.prompt':'Describe the conversion path before AES fills the state matrix. Use the words character, ASCII, and hex.','step.input.placeholder':'Character -> ...','step.input.hint':'Name the three representations in order.','step.input.sample':'Character -> ASCII number -> hex byte -> state matrix.',
+    'step.key.badge':'Key','step.key.title':'AES-256 Key Bytes','step.key.why':'AES-256 uses exactly 32 key bytes. The first 16 bytes form Round Key 0.','step.key.left':'Key text','step.key.out':'First 16 key bytes','step.key.prompt':'Why does this page require exactly 32 key characters for AES-256? Include both numbers.','step.key.placeholder':'32 characters because...','step.key.hint':'Each character becomes one byte, and 32 bytes make 256 bits.','step.key.sample':'32 characters become 32 bytes, and 32 bytes x 8 bits = 256 bits.',
+    'step.ark0.badge':'ARK 0','step.ark0.title':'Round 0 - AddRoundKey','step.ark0.why':'Before Round 1, each state byte is XORed with Round Key 0.','step.ark0.out':'State after Round 0 key','step.ark0.detail':'XOR each byte - click a cell','step.ark0.prompt':'Calculate AddRoundKey byte [{idx}] using the before state and Round Key 0. What hex byte is produced?','step.ark0.hint':'Use the same index in the state and round key, then XOR their 8 bits.',
+    'step.sub.badge':'SubBytes','step.sub.title':'Round 1 - SubBytes','step.sub.why':'Each byte is replaced through the AES S-Box. This is the substitution part of the AES scheme.','step.sub.out':'After SubBytes','step.sub.detail':'S-Box lookup - click a byte','step.sub.prompt':'Use the before matrix and S-Box to replace byte [{idx}]. What output hex byte is produced?','step.sub.hint':'Take the high hex digit as row and low hex digit as column.',
+    'step.shift.badge':'ShiftRows','step.shift.title':'Round 1 - ShiftRows','step.shift.why':'Rows rotate left by 0, 1, 2, and 3. This moves bytes between columns before MixColumns.','step.shift.out':'After ShiftRows','step.shift.detail':'Row movement - click a byte','step.shift.prompt':'In ShiftRows, a byte in row 1 starts at before column {col}. Which after column does it move to?','step.shift.hint':'Row 1 rotates left by one, so column c moves to c-1 with wraparound.',
+    'step.mix.badge':'MixColumns','step.mix.title':'Round 1 - MixColumns','step.mix.why':'Each column is mixed in GF(2^8). This is the diffusion part of the AES scheme.','step.mix.out':'After MixColumns','step.mix.detail':'GF(2^8) calculation - click a byte','step.mix.prompt':'For MixColumns output byte [{idx}], write its row coefficient pattern with no spaces. Example format: 2311.','step.mix.hint':'Rows use coefficient patterns 2311, 1231, 1123, and 3112.',
+    'step.ark1.badge':'ARK 1','step.ark1.title':'Round 1 - AddRoundKey','step.ark1.why':'Round 1 finishes by XORing the mixed state with Round Key 1.','step.ark1.out':'After Round Key 1','step.ark1.detail':'XOR with round key - click a byte','step.ark1.prompt':'Calculate Round 1 AddRoundKey byte [{idx}] from the mixed state and Round Key 1. What hex byte is produced?','step.ark1.hint':'Use the mixed-state byte and the Round Key 1 byte at the same index.',
+    'step.scheme.badge':'Scheme','step.scheme.title':'AES Scheme Continues','step.scheme.why':'AES-256 repeats the same four-step block scheme for Rounds 2-13, then uses a final Round 14 without MixColumns.','step.scheme.prompt':'Write which step the final AES round skips.','step.scheme.placeholder':'The final round skips...','step.scheme.hint':'Final round has no MixColumns.','step.scheme.sample':'The final round skips MixColumns.',
+    'step.output.badge':'Output','step.output.title':'Final Ciphertext','step.output.why':'The real AES-256 result is calculated by the full algorithm. The matrix is read into one continuous ciphertext line.','step.output.out':'Ciphertext bytes',
+    'explain.input':'AES cannot encrypt letters directly. First, each visible character is converted to an ASCII number. That number is written as a two-digit hexadecimal byte. The 16 bytes fill the AES state matrix, and padding bytes fill any empty cells.',
+    'explain.key':'AES-256 means the key has 256 bits. This page uses one character as one byte, so 32 characters become 32 bytes. Since each byte has 8 bits, 32 x 8 = 256 bits.',
+    'explain.ark':'AddRoundKey is byte-by-byte XOR. Choose the same index in the state matrix and the round-key matrix. Convert both bytes to bits, compare each bit, write 0 for same and 1 for different, then convert the result back to hex.',
+    'explain.sub':'SubBytes uses the S-Box table. Split the input byte into two hex digits. The first digit selects the row, the second digit selects the column. The table cell at that row and column is the replacement byte.',
+    'explain.shift':'ShiftRows moves bytes inside each row. Row 0 stays fixed, row 1 moves left by 1, row 2 by 2, and row 3 by 3. Values wrap around to the end of the same row.',
+    'explain.mix':'MixColumns uses a fixed coefficient row. For each output byte, multiply the four column bytes by the row coefficients in GF(2^8), then XOR the four products together.',
+    'explain.scheme':'AES-256 repeats the full round structure many times. The final round still has SubBytes, ShiftRows, and AddRoundKey, but it skips MixColumns.',
+    'explain.output':'The ciphertext is the final AES state written as one continuous hexadecimal string. Without the same 256-bit key, reversing it should be computationally infeasible.',
+    'instruction.default':'Use Next to move through the AES course.','instruction.title':'Instruction','instruction.scheme':'How to calculate the remaining AES path:\nRounds 2-13 repeat SubBytes, ShiftRows, MixColumns, AddRoundKey.\nExample: after Round 1, follow the green marker through that four-step block 12 more times. Round 14 skips MixColumns.','instruction.output':'How to form ciphertext:\nRead the final 4x4 state as one continuous hexadecimal line.\nExample: take each byte in display order, remove spaces, and join them into one HEX string.','instruction.input':'How to calculate plaintext bytes:\nConvert each character to ASCII, then to hex, then place it into the state.\nExample: "{ch}" -> ASCII {dec} -> hex {hex}.','instruction.key':'How to calculate key bytes:\nConvert each key character to one byte. AES-256 needs 32 key characters because 32 bytes x 8 bits = 256 bits.\nExample: K[0] -> {hex}.','instruction.ark':'How to calculate AddRoundKey:\nUse XOR at the same byte index: state byte XOR round-key byte = result.\nExample for [{idx}]: {before} XOR {key} = {after}. Same bits make 0; different bits make 1.','instruction.sub':'How to calculate SubBytes:\nUse the S-Box. The first hex digit is the row and the second is the column.\nExample for [{idx}]: input {byte}, row {row}, column {col}, output {after}.','instruction.shift':'How to calculate ShiftRows:\nRotate each row left by its row number.\nExample: row {row} moves left {row}, so before [{src}] lands at after [{dst}].','instruction.mix':'How to calculate MixColumns:\nEach output byte uses all four bytes in the same column with GF(2^8) multiplication.\nExample: column {col} contributes {bytes} to output [{idx}] = {after}.'
+  },
+  kz:{
+    'nav.theory':'Теория','nav.practice':'Тапсырма','nav.encrypt':'Шифрлау','nav.team':'Топ',
+    'brand.html':'AES<b>-256</b> Үйрену',
+    'hero.sup':'Интерактивті оқу платформасы - Narxoz University',
+    'hero.title.html':'AES-256<br><em>тәжірибе арқылы</em><br>үйрен',
+    'hero.desc':'Бұл тек оқулық емес. Алғашқы қадамдарды өзің есептейсің, кейін компьютер қалғанын байт бойынша көрсетеді.',
+    'hero.start':'Жаттығуды бастау','hero.read':'Алдымен теория',
+    'stage.main':'Басты','stage.theory':'Теория','stage.tasks':'Теория тапсырмалары','stage.encrypt':'Практика','stage.result':'Нәтиже','stage.team':'Топ',
+    'stage.main.note':'Бастау экраны. Осы жерден AES-256 бойынша қадамдап жүріңіз.',
+    'stage.theory.note':'Теория: AES-256 қасиеттері, кілт кеңейту, S-Box және раунд құрылымы.',
+    'stage.tasks.note':'AES есептеулеріне арналған интерактивті тапсырмалар.',
+    'stage.encrypt.note':'Өз мәтініңіз және 32 таңбалы кілтпен толық AES-256 walkthrough.',
+    'stage.result.note':'Соңғы ciphertext және decrypt тексеруі.',
+    'stage.team.note':'Жоба тобы және міндеттері.',
+    'btn.prev':'Артқа','btn.next':'Келесі','btn.finish':'Аяқтау','btn.check':'Тексеру','btn.replay':'Анимацияны қайталау','btn.settings':'Баптау','btn.map':'AES карта','btn.backPractice':'Практикаға оралу','btn.decrypt':'Decrypt тексеру','btn.close':'Жабу','btn.send':'Жіберу',
+    'settings.title':'Баптаулар','settings.lang':'Тіл','settings.theme':'Түнгі тема','settings.font':'Қаріп өлшемі','settings.contrast':'Жоғары контраст','settings.speed':'Анимация жылдамдығы','settings.replay':'Қазіргі анимацияны қайталау','settings.light':'Күндіз','settings.night':'Түн','settings.normal':'Қалыпты','settings.on':'Қосулы','settings.off':'Өшірулі','settings.slow':'Баяу','settings.default':'Қалыпты','settings.fast':'Жылдам','settings.faster':'Өте жылдам',
+    'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Осы сабақтың көмекшісі','ai.hello':'Сәлем, мен Ouclus. Кілт, S-Box, XOR, раундтар, padding немесе қазіргі қадам туралы сұра.','ai.placeholder':'AES туралы сұра...','ai.quick.step':'Қазіргі қадам','ai.quick.hint':'Кеңес','ai.quick.key':'Кілт ережесі','ai.thinking':'AES қадамын ойланып жатырмын...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in Kazakh. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
+    'ai.key.rule':'AES-256 үшін дәл 32 таңба керек. 32 байт x 8 бит = 256 бит.',
+    'ai.fallback':'Claude proxy қолжетімсіз, сондықтан кіріктірілген AES көмекшісін қолдандым.',
+    'ai.xor':'0x{a} XOR 0x{b} = 0x{r}. Биттер: {ab} xor {bb} = {rb}.',
+    'ai.ascii':'ASCII мәні: "{raw}" = ондық {n} = hex 0x{hex} = биттер {bits}.',
+    'ai.sbox':'S-Box[0x{byte}]: row {row}, column {col} -> 0x{out}.',
+    'ai.key':'AES-256 кілті 32 байт болуы керек. Бұл сайтта 32 таңба қабылданады, әр таңба бір key byte болады.',
+    'ai.history':'AES NIST ашық конкурсы арқылы таңдалып, 2001 жылы стандартталды. Жеңімпаз алгоритм Rijndael болды.',
+    'ai.text':'ASCII әр таңбаны санға айналдырады. Мысалы, A = decimal 65 = 0x41. AES әріптерді емес, байттарды шифрлайды.',
+    'ai.byte':'Бір байт 8 биттен тұрады. Hex түрінде бір байт екі таңба: 0x00 - 0xFF.',
+    'ai.sbox.basic':'S-Box substitution дегенді білдіреді. Мысалы 0x53: row 5, column 3, кесте ауыстыру байтын береді.',
+    'ai.xor.basic':'XOR биттерді салыстырады: бірдей болса 0, әртүрлі болса 1. AddRoundKey = state byte XOR round-key byte.',
+    'ai.ecb':'ECB әр блокты бөлек шифрлайды. Оқу үшін ыңғайлы, ал нақты жүйеде көбіне CBC, CTR немесе GCM қолданылады.',
+    'ai.gf':'GF(2^8) - AES finite-field математикасы. MixColumns осы арқылы column byte-тарын араластырады.',
+    'ai.shift':'ShiftRows қатарларды солға айналдырады: row 0 өзгермейді, row 1 бір орын, row 2 екі, row 3 үш орын жылжиды.',
+    'ai.mix':'MixColumns бір column ішіндегі төрт байтты араластырады, сондықтан әр output byte бәріне тәуелді болады.',
+    'ai.padding':'PKCS#7 padding N байт қосады, олардың мәні N болады. 4 байт жетпесе: 04 04 04 04.',
+    'ai.round':'AES-256-де 14 раунд бар: Round 0 AddRoundKey, rounds 1-13 толық қадамдар, round 14 MixColumns-сыз.',
+    'ai.result':'Ciphertext Practice тексерулерінен кейін ғана көрсетіледі. Кейін Result бетінде салыстыра аласыз.',
+    'ai.default':'Жақсы сұрақ. Мен AES тарихын, ASCII, байт, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode немесе current step түсіндіре аламын.',
+    'student.check':'Студент тексеруі','student.correct':'Дұрыс. Келесі қадамға өтуге болады.','student.wrong':'Әлі емес. Әрекет {n}/3. {hint}','student.revealed':'3 қателіктен кейін жауап көрсетілді. Түсіндірмені оқып, жалғастыра аласыз.','student.answer':'Жауап','student.explanation':'Түсіндірме','student.showAnswer':'Жауапты көрсету',
+    'alert.enter':'Алдымен хабарлама енгізіңіз.','alert.short':'Бұл walkthrough үшін 15 таңбаға дейін қолданыңыз, сонда бір padded AES block толық көрсетіледі.','alert.key':'AES-256 үшін дәл 32 key character = 256 бит керек. Қазіргі ұзындығы: {n}/32.','alert.result.locked':'Алдымен AES Practice шифрлауын аяқтаңыз. Result соңғы ciphertext қадамынан кейін ашылады.','alert.checks':'Алға жылжу үшін әр Student Check жауабын беріңіз.','alert.autoplay':'Practice кезінде auto play өшірулі. Әр қадамды ашу үшін Student Check шешіңіз.','alert.encryptFirst':'Алдымен шифрлаңыз.',
+    'result.stage':'Нәтижені тексеру','result.title':'Шифрлау нәтижесін тексеру','result.desc':'Practice ішінде алынған ciphertext осы жерде тексеріледі. Сол AES-256 кілтімен decrypt жасауға болады.','result.latest':'Соңғы AES-256 output','result.sub':'Practice шифрлауынан кейін нәтиже жаңарады.','result.none':'Ciphertext әлі жоқ. Алдымен Practice іске қосыңыз.','result.key':'Кілт','result.mode':'Режим','result.format':'Формат','result.external':'Маған сенбесең, сол жерде тексер',
+    'flow.title':'Бір input -> бір толық AES раунд схемасы','flow.desc':'Хабарлама мен 32 таңбалы кілт енгізіңіз. Әр келесі қадамға дейін бір шағын AES мәнін есептейсіз.','flow.input':'Сіздің input','flow.sub':'Бір рет енгізіңіз. Walkthrough AES схемасын қадамдап үйретеді.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Хабарлама (max 15 chars)','flow.key':'Кілт (32 chars = 256-bit)','flow.encrypt':'Шифрлау','flow.randomWord':'Кездейсоқ сөз','flow.randomKey':'Кездейсоқ кілт','flow.clear':'Тазалау','flow.empty.html':'Жоғарыдағы тапсырмаларды орындап, мәтінді енгізіп <strong>Encrypt</strong> басыңыз.','flow.cipher':'Ciphertext - AES-256 шифрланған','flow.decrypted':'Decrypt:',
+    'matrix.hover':'Нақты өзгерісті көру үшін byte үстіне апарыңыз.','matrix.before':'Бұрын','matrix.key':'Round Key','matrix.result':'Нәтиже','matrix.xor':'XOR','matrix.equals':'=','matrix.byte':'Byte','matrix.prev':'Алдыңғы byte','matrix.next':'Келесі byte','matrix.sboxHint':'S-Box кеңес: high nibble - row, low nibble - column.','matrix.sboxLookup':'S-Box lookup','matrix.input':'Input','matrix.output':'Output','matrix.high':'High nibble','matrix.low':'Low nibble','matrix.row':'Row','matrix.col':'Col','matrix.table':'S-Box table navigation','matrix.click':'Есептеуді көру үшін кез келген byte-ты hover/click жасаңыз',
+    'op.text':'Text','op.key':'Key','op.xor':'XOR','op.sbox':'S-Box','op.shift':'Shift','op.mix':'GF Mix','op.aes':'AES',
+    'step.counter':'Қадам {n}/{total}',
+    'step.input.badge':'Input','step.input.title':'Plaintext -> Bytes','step.input.why':'AES байттарды шифрлайды. Сол матрицада мәтін, оң матрицада AES state ішіндегі byte мәндері көрсетіледі.','step.input.left':'Plaintext','step.input.out':'Plaintext bytes','step.input.prompt':'AES state matrix толар алдында conversion жолын сипаттаңыз. character, ASCII және hex сөздерін қолданыңыз.','step.input.placeholder':'Character -> ...','step.input.hint':'Үш representation-ды ретімен атаңыз.','step.input.sample':'Character -> ASCII number -> hex byte -> state matrix.',
+    'step.key.badge':'Key','step.key.title':'AES-256 Key Bytes','step.key.why':'AES-256 дәл 32 key byte қолданады. Алғашқы 16 byte Round Key 0 болады.','step.key.left':'Key text','step.key.out':'Алғашқы 16 key byte','step.key.prompt':'Неге бұл page AES-256 үшін дәл 32 key character сұрайды? Екі санды да қосыңыз.','step.key.placeholder':'32 characters because...','step.key.hint':'Әр character бір byte болады, ал 32 byte = 256 bit.','step.key.sample':'32 characters -> 32 bytes, 32 bytes x 8 bits = 256 bits.',
+    'step.ark0.badge':'ARK 0','step.ark0.title':'Round 0 - AddRoundKey','step.ark0.why':'Round 1 басталмай тұрып, әр state byte Round Key 0 арқылы XOR жасалады.','step.ark0.out':'Round 0 key кейінгі state','step.ark0.detail':'Әр byte XOR - cell басыңыз','step.ark0.prompt':'Before state және Round Key 0 арқылы AddRoundKey byte [{idx}] есептеңіз. Қандай hex byte шығады?','step.ark0.hint':'State пен round key бір index-ін алып, 8 bit бойынша XOR жасаңыз.',
+    'step.sub.badge':'SubBytes','step.sub.title':'Round 1 - SubBytes','step.sub.why':'Әр byte AES S-Box арқылы ауыстырылады. Бұл AES схемасындағы substitution бөлігі.','step.sub.out':'SubBytes кейін','step.sub.detail':'S-Box lookup - byte басыңыз','step.sub.prompt':'Before matrix және S-Box арқылы byte [{idx}] ауыстырыңыз. Output hex byte қандай?','step.sub.hint':'Бірінші hex digit - row, екіншісі - column.',
+    'step.shift.badge':'ShiftRows','step.shift.title':'Round 1 - ShiftRows','step.shift.why':'Rows солға 0, 1, 2 және 3 орынға айналады. Бұл MixColumns алдында byte-тарды column арасында жылжытады.','step.shift.out':'ShiftRows кейін','step.shift.detail':'Row movement - byte басыңыз','step.shift.prompt':'ShiftRows кезінде row 1 ішіндегі byte before column {col}-дан басталады. Ол after column қайсысына барады?','step.shift.hint':'Row 1 солға бір орынға айналады, сондықтан column c -> c-1 wraparound.',
+    'step.mix.badge':'MixColumns','step.mix.title':'Round 1 - MixColumns','step.mix.why':'Әр column GF(2^8) ішінде араласады. Бұл AES схемасының diffusion бөлігі.','step.mix.out':'MixColumns кейін','step.mix.detail':'GF(2^8) calculation - byte басыңыз','step.mix.prompt':'MixColumns output byte [{idx}] үшін row coefficient pattern жазыңыз, бос орынсыз. Мысал: 2311.','step.mix.hint':'Rows coefficient patterns: 2311, 1231, 1123, 3112.',
+    'step.ark1.badge':'ARK 1','step.ark1.title':'Round 1 - AddRoundKey','step.ark1.why':'Round 1 mixed state пен Round Key 1 XOR жасаумен аяқталады.','step.ark1.out':'Round Key 1 кейін','step.ark1.detail':'Round key арқылы XOR - byte басыңыз','step.ark1.prompt':'Mixed state және Round Key 1 арқылы byte [{idx}] есептеңіз. Қандай hex byte шығады?','step.ark1.hint':'Mixed-state byte және Round Key 1 byte бір index бойынша қолданыңыз.',
+    'step.scheme.badge':'Scheme','step.scheme.title':'AES схемасы жалғасады','step.scheme.why':'AES-256 Rounds 2-13 үшін сол төрт қадамды қайталайды, ал final Round 14 MixColumns-сыз болады.','step.scheme.prompt':'Final AES round қай қадамды өткізіп жібереді?','step.scheme.placeholder':'The final round skips...','step.scheme.hint':'Final round ішінде MixColumns жоқ.','step.scheme.sample':'The final round skips MixColumns.',
+    'step.output.badge':'Output','step.output.title':'Final Ciphertext','step.output.why':'Нақты AES-256 нәтижесі толық алгоритм арқылы есептеледі. Matrix бір continuous ciphertext line ретінде оқылады.','step.output.out':'Ciphertext bytes',
+    'explain.input':'AES әріптерді тікелей шифрламайды. Алдымен әр character ASCII санына айналады. Сол сан екі таңбалы hexadecimal byte түрінде жазылады. 16 byte AES state matrix-ін толтырады, бос ұяшықтарды padding bytes толтырады.',
+    'explain.key':'AES-256 дегеніміз key ұзындығы 256 bit. Бұл бетте бір character бір byte болады, сондықтан 32 characters -> 32 bytes. Әр byte 8 bit: 32 x 8 = 256 bits.',
+    'explain.ark':'AddRoundKey - byte-by-byte XOR. State matrix және round-key matrix ішінен бірдей index таңдаңыз. Екі byte-ты bit-ке айналдырып, әр bit-ті салыстырыңыз: бірдей болса 0, әртүрлі болса 1. Кейін нәтижені hex-ке қайтарыңыз.',
+    'explain.sub':'SubBytes S-Box table қолданады. Input byte екі hex digit-ке бөлінеді. Бірінші digit row, екіншісі column таңдайды. Сол row және column ұяшығы replacement byte болады.',
+    'explain.shift':'ShiftRows әр row ішіндегі byte-тарды жылжытады. Row 0 өзгермейді, row 1 солға 1, row 2 солға 2, row 3 солға 3 орынға жылжиды. Мәндер row соңына wrap болады.',
+    'explain.mix':'MixColumns fixed coefficient row қолданады. Әр output byte үшін column-дағы төрт byte GF(2^8) ішінде coefficient арқылы көбейтіледі, кейін төрт product XOR жасалады.',
+    'explain.scheme':'AES-256 full round structure бірнеше рет қайталайды. Final round ішінде SubBytes, ShiftRows және AddRoundKey бар, бірақ MixColumns жоқ.',
+    'explain.output':'Ciphertext - final AES state-тің continuous hexadecimal string түрі. Сол 256-bit key болмаса, оны кері қайтару есептеу жағынан мүмкін емес болуы тиіс.',
+    'instruction.default':'AES course бойынша жүру үшін Next басыңыз.','instruction.title':'Нұсқаулық','instruction.scheme':'Қалған AES path қалай есептеледі:\nRounds 2-13 SubBytes, ShiftRows, MixColumns, AddRoundKey қайталайды.\nМысал: Round 1 кейін green marker сол four-step block арқылы тағы 12 рет жүреді. Round 14 MixColumns-ты өткізеді.','instruction.output':'Ciphertext қалай жасалады:\nFinal 4x4 state бір continuous hexadecimal line болып оқылады.\nМысал: әр byte-ты display order бойынша алып, spaces алып тастап, бір HEX string жасаңыз.','instruction.input':'Plaintext bytes қалай есептеледі:\nӘр character ASCII-ға, кейін hex-ке айналады, сосын state-ке қойылады.\nМысал: "{ch}" -> ASCII {dec} -> hex {hex}.','instruction.key':'Key bytes қалай есептеледі:\nӘр key character бір byte болады. AES-256 үшін 32 key character керек, өйткені 32 bytes x 8 bits = 256 bits.\nМысал: K[0] -> {hex}.','instruction.ark':'AddRoundKey қалай есептеледі:\nБірдей byte index қолданыңыз: state byte XOR round-key byte = result.\nМысал [{idx}]: {before} XOR {key} = {after}. Бірдей bits -> 0, different bits -> 1.','instruction.sub':'SubBytes қалай есептеледі:\nS-Box қолданыңыз. Бірінші hex digit row, екіншісі column.\nМысал [{idx}]: input {byte}, row {row}, column {col}, output {after}.','instruction.shift':'ShiftRows қалай есептеледі:\nӘр row өз row number бойынша солға айналады.\nМысал: row {row} солға {row}, сондықтан before [{src}] after [{dst}] болады.','instruction.mix':'MixColumns қалай есептеледі:\nӘр output byte бір column ішіндегі төрт byte-ты GF(2^8) multiplication арқылы қолданады.\nМысал: column {col} мәндері {bytes} output [{idx}] = {after}.'
+  },
+  ru:{
+    'nav.theory':'Теория','nav.practice':'Практика','nav.encrypt':'Шифровать','nav.team':'Команда',
+    'brand.html':'AES<b>-256</b> Учебник',
+    'hero.sup':'Интерактивная учебная платформа - Narxoz University',
+    'hero.title.html':'Изучай<br><em>AES-256</em><br>на практике',
+    'hero.desc':'Это не просто учебник. Ты решаешь первые шаги сам, а затем компьютер показывает остальное байт за байтом.',
+    'hero.start':'Начать практику','hero.read':'Сначала теория',
+    'stage.main':'Главная','stage.theory':'Теория','stage.tasks':'Задания','stage.encrypt':'Практика','stage.result':'Результат','stage.team':'Команда',
+    'stage.main.note':'Стартовый экран. Двигайтесь дальше по AES-256 шаг за шагом.',
+    'stage.theory.note':'Теория: свойства AES-256, расписание ключей, S-Box и структура раундов.',
+    'stage.tasks.note':'Интерактивные задания для ручных расчетов AES.',
+    'stage.encrypt.note':'Полный AES-256 walkthrough с вашим текстом и 32-символьным ключом.',
+    'stage.result.note':'Проверка итогового ciphertext и decrypt.',
+    'stage.team.note':'Участники проекта и роли.',
+    'btn.prev':'Назад','btn.next':'Далее','btn.finish':'Готово','btn.check':'Проверить','btn.replay':'Повторить анимацию','btn.settings':'Настройки','btn.map':'AES карта','btn.backPractice':'Назад к практике','btn.decrypt':'Проверить decrypt','btn.close':'Закрыть','btn.send':'Отправить',
+    'settings.title':'Настройки','settings.lang':'Язык','settings.theme':'Ночная тема','settings.font':'Размер шрифта','settings.contrast':'Высокий контраст','settings.speed':'Скорость анимации','settings.replay':'Повторить текущую анимацию','settings.light':'Светлая','settings.night':'Ночная','settings.normal':'Обычная','settings.on':'Вкл','settings.off':'Выкл','settings.slow':'Медленно','settings.default':'Обычно','settings.fast':'Быстро','settings.faster':'Очень быстро',
+    'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Помощник этого урока','ai.hello':'Привет, я Ouclus. Спроси меня про ключ, S-Box, XOR, раунды, padding или текущий шаг.','ai.placeholder':'Спроси про AES...','ai.quick.step':'Текущий шаг','ai.quick.hint':'Подсказка','ai.quick.key':'Правило ключа','ai.thinking':'Разбираю шаг AES...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in Russian. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
+    'ai.key.rule':'Для AES-256 здесь нужно ровно 32 символа. 32 байта x 8 бит = 256 бит.',
+    'ai.fallback':'Claude proxy недоступен, поэтому я использовал встроенного AES-помощника.',
+    'ai.xor':'0x{a} XOR 0x{b} = 0x{r}. Биты: {ab} xor {bb} = {rb}.',
+    'ai.ascii':'ASCII значение: "{raw}" = decimal {n} = hex 0x{hex} = биты {bits}.',
+    'ai.sbox':'S-Box[0x{byte}]: row {row}, column {col} дает 0x{out}.',
+    'ai.key':'Для AES-256 ключ должен быть 32 байта. Этот сайт принимает 32 символа, затем каждый символ становится одним байтом ключа.',
+    'ai.history':'AES был выбран NIST после открытого конкурса и стандартизирован в 2001 году. Победил алгоритм Rijndael.',
+    'ai.text':'ASCII сопоставляет символ с числом. Например, A = decimal 65 = 0x41. AES шифрует байты, а не буквы напрямую.',
+    'ai.byte':'Один байт содержит 8 бит. В hex один байт - это две цифры: 0x00 до 0xFF.',
+    'ai.sbox.basic':'S-Box означает substitution. Например 0x53: row 5, column 3, таблица дает заменяющий байт.',
+    'ai.xor.basic':'XOR сравнивает биты: одинаковые дают 0, разные дают 1. AddRoundKey - это state byte XOR round-key byte.',
+    'ai.ecb':'ECB шифрует каждый блок независимо. Для обучения удобно, но в реальных системах чаще используют CBC, CTR или GCM.',
+    'ai.gf':'GF(2^8) - конечное поле AES. MixColumns использует его, чтобы смешивать байты column в диапазоне 0x00-0xFF.',
+    'ai.shift':'ShiftRows вращает строки влево: row 0 остается, row 1 на 1, row 2 на 2, row 3 на 3.',
+    'ai.mix':'MixColumns смешивает каждый column, поэтому каждый output byte зависит от всех четырех байтов column.',
+    'ai.padding':'PKCS#7 padding добавляет N байтов со значением N. Если не хватает 4 байта: 04 04 04 04.',
+    'ai.round':'В AES-256 14 раундов: Round 0 AddRoundKey, rounds 1-13 полные шаги, round 14 без MixColumns.',
+    'ai.result':'Ciphertext показывается только после Practice checks. Потом его можно сравнить на странице Result.',
+    'ai.default':'Хороший вопрос. Я могу объяснить историю AES, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode или текущий шаг.',
+    'student.check':'Проверка студента','student.correct':'Верно. Можно перейти к следующему шагу.','student.wrong':'Пока нет. Попытка {n}/3. {hint}','student.revealed':'Ответ показан после 3 ошибок. Прочитайте объяснение и продолжайте.','student.answer':'Ответ','student.explanation':'Объяснение','student.showAnswer':'Показать ответ',
+    'alert.enter':'Сначала введите сообщение.','alert.short':'Для этого walkthrough используйте до 15 символов, чтобы один padded AES block был показан полностью.','alert.key':'Для AES-256 нужно ровно 32 символа ключа = 256 бит. Текущая длина: {n}/32.','alert.result.locked':'Сначала завершите AES Practice encryption. Result откроется после финального ciphertext шага.','alert.checks':'Ответьте на каждый Student Check, чтобы двигаться дальше.','alert.autoplay':'Auto play отключен в Practice. Решайте Student Check, чтобы открывать следующий AES step.','alert.encryptFirst':'Сначала выполните шифрование.',
+    'result.stage':'Проверка результата','result.title':'Проверьте результат шифрования','result.desc':'На этом этапе можно проверить ciphertext из Practice и выполнить decrypt тем же AES-256 ключом.','result.latest':'Последний AES-256 output','result.sub':'Результат обновится после Practice encryption.','result.none':'Ciphertext пока нет. Сначала запустите Practice.','result.key':'Ключ','result.mode':'Режим','result.format':'Формат','result.external':'Не доверяешь мне - проверь там',
+    'flow.title':'Один input -> одна полная схема AES раунда','flow.desc':'Введите сообщение и 32-символьный ключ. Перед каждым следующим шагом нужно вычислить небольшое AES значение.','flow.input':'Ваш input','flow.sub':'Введите один раз. Walkthrough покажет AES схему по шагам.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Сообщение (max 15 chars)','flow.key':'Ключ (32 chars = 256-bit)','flow.encrypt':'Шифровать','flow.randomWord':'Случайное слово','flow.randomKey':'Случайный ключ','flow.clear':'Очистить','flow.empty.html':'Выполните задания выше, затем введите текст и нажмите <strong>Encrypt</strong>.','flow.cipher':'Ciphertext - AES-256 encrypted','flow.decrypted':'Decrypted:',
+    'matrix.hover':'Наведите на byte, чтобы увидеть точное изменение.','matrix.before':'До','matrix.key':'Round Key','matrix.result':'Результат','matrix.xor':'XOR','matrix.equals':'=','matrix.byte':'Byte','matrix.prev':'Предыдущий byte','matrix.next':'Следующий byte','matrix.sboxHint':'S-Box подсказка: high nibble - row, low nibble - column.','matrix.sboxLookup':'S-Box lookup','matrix.input':'Input','matrix.output':'Output','matrix.high':'High nibble','matrix.low':'Low nibble','matrix.row':'Row','matrix.col':'Col','matrix.table':'S-Box table navigation','matrix.click':'Наведите или нажмите любой byte для расчета',
+    'op.text':'Text','op.key':'Key','op.xor':'XOR','op.sbox':'S-Box','op.shift':'Shift','op.mix':'GF Mix','op.aes':'AES',
+    'step.counter':'Шаг {n} из {total}',
+    'step.input.badge':'Input','step.input.title':'Plaintext -> Bytes','step.input.why':'AES шифрует байты. Левая matrix показывает ваш текст, правая - byte values внутри AES state.','step.input.left':'Plaintext','step.input.out':'Plaintext bytes','step.input.prompt':'Опишите путь conversion до заполнения AES state matrix. Используйте слова character, ASCII и hex.','step.input.placeholder':'Character -> ...','step.input.hint':'Назовите три представления по порядку.','step.input.sample':'Character -> ASCII number -> hex byte -> state matrix.',
+    'step.key.badge':'Key','step.key.title':'AES-256 Key Bytes','step.key.why':'AES-256 использует ровно 32 key bytes. Первые 16 bytes образуют Round Key 0.','step.key.left':'Key text','step.key.out':'Первые 16 key bytes','step.key.prompt':'Почему страница требует ровно 32 key characters для AES-256? Укажите оба числа.','step.key.placeholder':'32 characters because...','step.key.hint':'Каждый character становится одним byte, а 32 bytes дают 256 bits.','step.key.sample':'32 characters become 32 bytes, and 32 bytes x 8 bits = 256 bits.',
+    'step.ark0.badge':'ARK 0','step.ark0.title':'Round 0 - AddRoundKey','step.ark0.why':'Перед Round 1 каждый state byte XOR-ится с Round Key 0.','step.ark0.out':'State после Round 0 key','step.ark0.detail':'XOR каждого byte - нажмите cell','step.ark0.prompt':'Вычислите AddRoundKey byte [{idx}] через before state и Round Key 0. Какой hex byte получится?','step.ark0.hint':'Используйте одинаковый index в state и round key, затем XOR их 8 bits.',
+    'step.sub.badge':'SubBytes','step.sub.title':'Round 1 - SubBytes','step.sub.why':'Каждый byte заменяется через AES S-Box. Это substitution часть AES схемы.','step.sub.out':'После SubBytes','step.sub.detail':'S-Box lookup - нажмите byte','step.sub.prompt':'Используйте before matrix и S-Box, чтобы заменить byte [{idx}]. Какой output hex byte получится?','step.sub.hint':'Первая hex digit - row, вторая - column.',
+    'step.shift.badge':'ShiftRows','step.shift.title':'Round 1 - ShiftRows','step.shift.why':'Rows вращаются влево на 0, 1, 2 и 3. Это перемещает bytes между columns перед MixColumns.','step.shift.out':'После ShiftRows','step.shift.detail':'Row movement - нажмите byte','step.shift.prompt':'В ShiftRows byte в row 1 начинается в before column {col}. В какой after column он перейдет?','step.shift.hint':'Row 1 вращается влево на один, значит column c переходит в c-1 с wraparound.',
+    'step.mix.badge':'MixColumns','step.mix.title':'Round 1 - MixColumns','step.mix.why':'Каждый column смешивается в GF(2^8). Это diffusion часть AES схемы.','step.mix.out':'После MixColumns','step.mix.detail':'GF(2^8) calculation - нажмите byte','step.mix.prompt':'Для MixColumns output byte [{idx}] напишите row coefficient pattern без пробелов. Пример: 2311.','step.mix.hint':'Rows используют coefficient patterns 2311, 1231, 1123 и 3112.',
+    'step.ark1.badge':'ARK 1','step.ark1.title':'Round 1 - AddRoundKey','step.ark1.why':'Round 1 заканчивается XOR mixed state с Round Key 1.','step.ark1.out':'После Round Key 1','step.ark1.detail':'XOR с round key - нажмите byte','step.ark1.prompt':'Вычислите Round 1 AddRoundKey byte [{idx}] из mixed state и Round Key 1. Какой hex byte получится?','step.ark1.hint':'Используйте mixed-state byte и Round Key 1 byte с тем же index.',
+    'step.scheme.badge':'Scheme','step.scheme.title':'AES схема продолжается','step.scheme.why':'AES-256 повторяет тот же four-step block для Rounds 2-13, затем использует final Round 14 без MixColumns.','step.scheme.prompt':'Напишите, какой step пропускает final AES round.','step.scheme.placeholder':'The final round skips...','step.scheme.hint':'В final round нет MixColumns.','step.scheme.sample':'The final round skips MixColumns.',
+    'step.output.badge':'Output','step.output.title':'Final Ciphertext','step.output.why':'Настоящий AES-256 результат вычисляется полным алгоритмом. Matrix читается как одна continuous ciphertext line.','step.output.out':'Ciphertext bytes',
+    'explain.input':'AES не шифрует буквы напрямую. Сначала каждый character превращается в ASCII number. Это число записывается как двухзначный hexadecimal byte. 16 bytes заполняют AES state matrix, а пустые cells заполняют padding bytes.',
+    'explain.key':'AES-256 означает, что key имеет 256 bits. На этой странице один character равен одному byte, поэтому 32 characters становятся 32 bytes. Каждый byte содержит 8 bits: 32 x 8 = 256 bits.',
+    'explain.ark':'AddRoundKey - это byte-by-byte XOR. Выберите одинаковый index в state matrix и round-key matrix. Переведите оба bytes в bits, сравните каждый bit: 0 для одинаковых, 1 для разных. Затем переведите результат обратно в hex.',
+    'explain.sub':'SubBytes использует S-Box table. Разделите input byte на две hex digits. Первая digit выбирает row, вторая digit выбирает column. Cell на пересечении дает replacement byte.',
+    'explain.shift':'ShiftRows перемещает bytes внутри каждой row. Row 0 не меняется, row 1 влево на 1, row 2 на 2, row 3 на 3. Значения заворачиваются в конец этой же row.',
+    'explain.mix':'MixColumns использует fixed coefficient row. Для каждого output byte четыре column bytes умножаются на coefficients в GF(2^8), затем четыре products XOR-ятся.',
+    'explain.scheme':'AES-256 много раз повторяет full round structure. Final round все еще содержит SubBytes, ShiftRows и AddRoundKey, но пропускает MixColumns.',
+    'explain.output':'Ciphertext - это final AES state, записанный как continuous hexadecimal string. Без того же 256-bit key его обратное восстановление должно быть вычислительно infeasible.',
+    'instruction.default':'Нажимайте Next, чтобы пройти AES course.','instruction.title':'Инструкция','instruction.scheme':'Как вычислять оставшийся AES path:\nRounds 2-13 повторяют SubBytes, ShiftRows, MixColumns, AddRoundKey.\nПример: после Round 1 зеленый маркер проходит этот four-step block еще 12 раз. Round 14 пропускает MixColumns.','instruction.output':'Как сформировать ciphertext:\nПрочитайте final 4x4 state как одну continuous hexadecimal line.\nПример: возьмите каждый byte в display order, уберите spaces и соедините в HEX string.','instruction.input':'Как вычислять plaintext bytes:\nПереведите каждый character в ASCII, затем в hex, затем поставьте в state.\nПример: "{ch}" -> ASCII {dec} -> hex {hex}.','instruction.key':'Как вычислять key bytes:\nКаждый key character становится одним byte. AES-256 требует 32 key characters, потому что 32 bytes x 8 bits = 256 bits.\nПример: K[0] -> {hex}.','instruction.ark':'Как вычислять AddRoundKey:\nИспользуйте один и тот же byte index: state byte XOR round-key byte = result.\nПример [{idx}]: {before} XOR {key} = {after}. Одинаковые bits дают 0, разные bits дают 1.','instruction.sub':'Как вычислять SubBytes:\nИспользуйте S-Box. Первая hex digit - row, вторая - column.\nПример [{idx}]: input {byte}, row {row}, column {col}, output {after}.','instruction.shift':'Как вычислять ShiftRows:\nВращайте каждую row влево на номер этой row.\nПример: row {row} движется влево на {row}, поэтому before [{src}] попадает в after [{dst}].','instruction.mix':'Как вычислять MixColumns:\nКаждый output byte использует все четыре bytes в same column с GF(2^8) multiplication.\nПример: column {col} берет {bytes} и дает output [{idx}] = {after}.'
+  }
+};
 const AES_SIDE_CARDS={
   interesting:[
     'AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.',
@@ -452,6 +708,199 @@ const AES_SIDE_CARDS={
   ]
 };
 
+const COURSE_STAGE_KEYS={
+  main:['stage.main','stage.main.note'],
+  theory:['stage.theory','stage.theory.note'],
+  tasks:['stage.tasks','stage.tasks.note'],
+  encrypt:['stage.encrypt','stage.encrypt.note'],
+  result:['stage.result','stage.result.note'],
+  team:['stage.team','stage.team.note']
+};
+
+const STATIC_I18N=[
+  ['.hbrand','brand.html','html'],
+  ['header .hlinks a[href="#about"]','nav.theory'],
+  ['header .hlinks a[href="#prac-sec"]','nav.practice'],
+  ['header .hlinks a[href="#flow-sec"]','nav.encrypt'],
+  ['header .hlinks a[href="#team"]','nav.team'],
+  ['.h-sup','hero.sup'],
+  ['.hero h1','hero.title.html','html'],
+  ['.hero-d','hero.desc'],
+  ['.hcta .btn-p','hero.start'],
+  ['.hcta .btn-o','hero.read'],
+  ['#flow-sec .sh','flow.title'],
+  ['#flow-sec .sd','flow.desc'],
+  ['#flow-sec .fi-title','flow.input'],
+  ['#flow-sec .fi-sub','flow.sub'],
+  ['#flow-sec .tool-note','flow.note.html','html'],
+  ['#flow-sec .fg:nth-child(1) label','flow.message'],
+  ['#flow-sec .fg:nth-child(2) label','flow.key'],
+  ['#flow-sec .input-actions .btn-p','flow.encrypt'],
+  ['#flow-sec .input-actions .btn-o:nth-child(2)','flow.randomWord'],
+  ['#flow-sec .input-actions .btn-o:nth-child(3)','flow.randomKey'],
+  ['#flow-sec .input-actions .btn-o:nth-child(4)','flow.clear'],
+  ['#out-blk .out-lbl','flow.cipher'],
+  ['#result-sec .stag','result.stage'],
+  ['#result-sec .sh','result.title'],
+  ['#result-sec .sd','result.desc'],
+  ['#result-sec .fi-title','result.latest'],
+  ['#result-sec .fi-sub','result.sub'],
+  ['#result-sec .result-meta div:nth-child(1) span','result.key'],
+  ['#result-sec .result-meta div:nth-child(2) span','result.mode'],
+  ['#result-sec .result-meta div:nth-child(3) span','result.format'],
+  ['#result-sec .btn-p','btn.backPractice'],
+  ['#result-sec .btn-o:nth-of-type(1)','btn.decrypt'],
+  ['#result-sec a.btn-o','result.external'],
+  ['#result-sec .btn-o:nth-of-type(2)','btn.map']
+];
+
+function t(key,vars={}){
+  const dict=I18N[siteSettings.lang]||I18N.us;
+  const text=dict[key]!==undefined?dict[key]:(I18N.us[key]!==undefined?I18N.us[key]:key);
+  return String(text).replace(/\{(\w+)\}/g,(_,name)=>vars[name]!==undefined?vars[name]:'');
+}
+function applyStaticTranslations(){
+  STATIC_I18N.forEach(([sel,key,mode])=>{
+    document.querySelectorAll(sel).forEach(el=>{
+      if(mode==='html')el.innerHTML=t(key);
+      else el.textContent=t(key);
+    });
+  });
+  const pLabel=document.querySelector('#flow-sec .fg:nth-child(1) label');
+  const kLabel=document.querySelector('#flow-sec .fg:nth-child(2) label');
+  if(pLabel)pLabel.textContent=t('flow.message');
+  if(kLabel)kLabel.textContent=t('flow.key');
+  const scard=document.getElementById('scard');
+  if(scard&&(!steps.length||!scard.classList.contains('active')))scard.innerHTML=`<div style="text-align:center;padding:38px;color:var(--muted);font-family:'Fraunces',serif;font-size:1rem">${t('flow.empty.html')}</div>`;
+  const outLbl=document.querySelector('#out-blk .out-lbl');if(outLbl)outLbl.textContent=t('flow.cipher');
+  const dec=document.querySelector('#dec-box strong');if(dec)dec.textContent=t('flow.decrypted');
+}
+function applyDynamicTranslations(){
+  COURSE_STAGES.forEach(stage=>{
+    const keys=COURSE_STAGE_KEYS[stage.id];
+    if(keys){stage.label=t(keys[0]);stage.note=t(keys[1]);}
+  });
+  document.querySelectorAll('[data-stage-btn]').forEach(btn=>{
+    const stage=COURSE_STAGES.find(s=>s.id===btn.dataset.stageBtn);
+    if(stage)btn.textContent=stage.label;
+  });
+  const active=COURSE_STAGES[activeCourseStage]||COURSE_STAGES[0];
+  const toggle=document.getElementById('stage-menu-toggle');if(toggle)toggle.textContent=active.label;
+  const prev=document.querySelector('.stagebar .stage-arrow:first-child');if(prev)prev.textContent=t('btn.prev');
+  const next=document.querySelector('.stagebar .stage-arrow:last-child');if(next)next.textContent=t('btn.next');
+  const map=document.querySelector('.stage-map-btn');if(map)map.textContent=t('btn.map');
+  const settings=document.querySelector('.stage-settings-btn');if(settings)settings.textContent=t('btn.settings');
+  const btnPrev=document.getElementById('btnprev');if(btnPrev)btnPrev.textContent=t('btn.prev');
+  const btnReplay=document.getElementById('btnreplay');if(btnReplay)btnReplay.textContent=t('btn.replay');
+  const speedLabel=document.getElementById('player-speed-label');if(speedLabel)speedLabel.textContent=t('settings.speed');
+  const playerSpeed=document.getElementById('player-speed');
+  if(playerSpeed){
+    const keys=['settings.slow','settings.default','settings.fast','settings.faster'];
+    [...playerSpeed.options].forEach((opt,i)=>opt.textContent=t(keys[i]||'settings.default'));
+  }
+  const aiBtn=document.querySelector('.ai-helper-btn span:last-child');if(aiBtn)aiBtn.textContent=t('ai.button');
+  const aiName=document.querySelector('.ai-helper-head strong');if(aiName)aiName.textContent=t('ai.name');
+  const aiSub=document.querySelector('.ai-helper-head small');if(aiSub)aiSub.textContent=t('ai.subtitle');
+  const aiInput=document.getElementById('ai-question');if(aiInput)aiInput.placeholder=t('ai.placeholder');
+  const aiSend=document.querySelector('.ai-chat-input button');if(aiSend)aiSend.textContent=t('btn.send');
+  const quick=document.querySelectorAll('.ai-quick button');
+  if(quick[0])quick[0].textContent=t('ai.quick.step');
+  if(quick[1])quick[1].textContent=t('ai.quick.hint');
+  if(quick[2])quick[2].textContent=t('ai.quick.key');
+  const firstBot=document.querySelector('#ai-chat-log .ai-msg.bot:first-child');
+  if(firstBot&&firstBot.dataset.seed!=='custom'){firstBot.textContent=t('ai.hello');firstBot.dataset.seed='custom';}
+  updateSettingsLabels();
+  updateSideInstruction(steps[curIdx]);
+}
+function applyTranslations(){
+  document.documentElement.lang=siteSettings.lang==='kz'?'kk':siteSettings.lang==='ru'?'ru':'en';
+  applyStaticTranslations();
+  applyDynamicTranslations();
+}
+function saveSettings(){
+  try{localStorage.setItem('aesLearnSettings',JSON.stringify(siteSettings));}catch(err){}
+}
+function loadSettings(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('aesLearnSettings')||'{}');
+    siteSettings=Object.assign(siteSettings,saved);
+  }catch(err){}
+}
+function applySettings(){
+  document.body.classList.toggle('theme-night',siteSettings.theme==='night');
+  document.body.classList.toggle('high-contrast',!!siteSettings.contrast);
+  document.documentElement.style.setProperty('--font-scale',String((siteSettings.font||100)/100));
+  document.documentElement.style.setProperty('--scheme-speed',`${Math.max(1.8,5.6/(siteSettings.speed||1))}s`);
+  document.documentElement.style.setProperty('--flip-speed',`${Math.max(.12,.36/(siteSettings.speed||1))}s`);
+  updateSettingsControls();
+  applyTranslations();
+}
+function setSiteSetting(key,value){
+  if(key==='font')value=Number(value)||100;
+  if(key==='speed')value=Number(value)||1;
+  if(key==='contrast')value=!!value;
+  siteSettings[key]=value;
+  saveSettings();
+  applySettings();
+  if(key==='lang'&&steps.length)rebuildLocalizedSteps();
+}
+function animDelay(ms){
+  return Math.max(25,Math.round(ms/(siteSettings.speed||1)));
+}
+function rebuildLocalizedSteps(){
+  const p=document.getElementById('pIn'),k=document.getElementById('kIn');
+  if(!p||!k||!steps.length||k.value.length!==32)return;
+  const oldIdx=curIdx;
+  steps=buildSteps(p.value,getKey());
+  curIdx=Math.min(oldIdx,steps.length-1);
+  buildTrack();
+  renderStep(curIdx);
+}
+function createSettingsPanel(){
+  if(document.getElementById('settings-panel'))return;
+  const panel=document.createElement('div');
+  panel.className='settings-panel';
+  panel.id='settings-panel';
+  panel.innerHTML=`<div class="settings-card">
+    <div class="settings-head"><strong id="settings-title"></strong><button onclick="toggleSettingsPanel(false)" aria-label="Close settings">x</button></div>
+    <label><span id="settings-lang-label"></span><select id="setting-lang" onchange="setSiteSetting('lang',this.value)"><option value="us">US</option><option value="kz">KZ</option><option value="ru">RU</option></select></label>
+    <label><span id="settings-theme-label"></span><select id="setting-theme" onchange="setSiteSetting('theme',this.value)"><option value="light" id="setting-theme-light"></option><option value="night" id="setting-theme-night"></option></select></label>
+    <label><span id="settings-font-label"></span><input id="setting-font" type="range" min="85" max="125" step="5" oninput="setSiteSetting('font',this.value)"><output id="setting-font-value"></output></label>
+    <label><span id="settings-contrast-label"></span><input id="setting-contrast" type="checkbox" onchange="setSiteSetting('contrast',this.checked)"></label>
+    <label><span id="settings-speed-label"></span><select id="setting-speed" onchange="setSiteSetting('speed',this.value)"><option value=".6" id="speed-slow"></option><option value="1" id="speed-default"></option><option value="1.6" id="speed-fast"></option><option value="2.4" id="speed-faster"></option></select></label>
+    <button class="btn-p settings-replay" onclick="replayCurrentAnimation()" id="settings-replay"></button>
+  </div>`;
+  document.body.appendChild(panel);
+}
+function updateSettingsLabels(){
+  const ids={
+    'settings-title':'settings.title','settings-lang-label':'settings.lang','settings-theme-label':'settings.theme','settings-font-label':'settings.font',
+    'settings-contrast-label':'settings.contrast','settings-speed-label':'settings.speed','settings-replay':'settings.replay',
+    'setting-theme-light':'settings.light','setting-theme-night':'settings.night','speed-slow':'settings.slow','speed-default':'settings.default',
+    'speed-fast':'settings.fast','speed-faster':'settings.faster'
+  };
+  Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
+}
+function updateSettingsControls(){
+  const lang=document.getElementById('setting-lang'),theme=document.getElementById('setting-theme'),font=document.getElementById('setting-font'),contrast=document.getElementById('setting-contrast'),speed=document.getElementById('setting-speed'),playerSpeed=document.getElementById('player-speed'),fv=document.getElementById('setting-font-value');
+  if(lang)lang.value=siteSettings.lang;
+  if(theme)theme.value=siteSettings.theme;
+  if(font)font.value=siteSettings.font;
+  if(contrast)contrast.checked=!!siteSettings.contrast;
+  if(speed)speed.value=String(siteSettings.speed);
+  if(playerSpeed)playerSpeed.value=String(siteSettings.speed);
+  if(fv)fv.textContent=`${siteSettings.font}%`;
+}
+function toggleSettingsPanel(force){
+  const panel=document.getElementById('settings-panel');if(!panel)return;
+  const open=typeof force==='boolean'?force:!panel.classList.contains('open');
+  panel.classList.toggle('open',open);
+}
+function replayCurrentAnimation(){
+  if(steps.length&&steps[curIdx])renderStep(curIdx);
+  else animRounds();
+}
+
 function hexCompact(bytes){
   return bytes.map(H).join('').toLowerCase();
 }
@@ -465,25 +914,25 @@ function createResultSection(){
   sec.className='result-sec';
   sec.id='result-sec';
   sec.innerHTML=`<div class="sec">
-    <div class="stag fi">Result Check</div>
-    <h2 class="sh fi">Check the Encryption Result</h2>
-    <p class="sd fi">Use this final stage to verify the ciphertext produced in Practice. Students stay inside the site and can decrypt with the same AES-256 key.</p>
+    <div class="stag fi">${t('result.stage')}</div>
+    <h2 class="sh fi">${t('result.title')}</h2>
+    <p class="sd fi">${t('result.desc')}</p>
     <div class="flow-inp fi">
-      <div class="fi-title">Latest AES-256 Output</div>
-      <div class="fi-sub">The result updates after you run encryption in the Practice stage.</div>
+      <div class="fi-title">${t('result.latest')}</div>
+      <div class="fi-sub">${t('result.sub')}</div>
       <div class="result-meta">
-        <div><span>Key</span><strong id="result-key">-</strong></div>
-        <div><span>Mode</span><strong id="result-mode-label">ECB</strong></div>
-        <div><span>Format</span><strong id="result-format-label">HEX</strong></div>
+        <div><span>${t('result.key')}</span><strong id="result-key">-</strong></div>
+        <div><span>${t('result.mode')}</span><strong id="result-mode-label">ECB</strong></div>
+        <div><span>${t('result.format')}</span><strong id="result-format-label">HEX</strong></div>
       </div>
-      <div class="out-val" id="result-cipher">No ciphertext yet.</div>
+      <div class="out-val" id="result-cipher">${t('result.none')}</div>
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-p" onclick="navigateToStage('encrypt')">Back to Practice</button>
-        <button class="btn-o" onclick="runDec();syncResultPanel()">Decrypt Check</button>
-        <a class="btn-o" href="https://anycript.com/crypto" target="_blank" rel="noopener">Dont trust me check there</a>
-        <button class="btn-o" onclick="openAesMap()">Open AES Map</button>
+        <button class="btn-p" onclick="navigateToStage('encrypt')">${t('btn.backPractice')}</button>
+        <button class="btn-o" onclick="runDec();syncResultPanel()">${t('btn.decrypt')}</button>
+        <a class="btn-o" href="https://anycript.com/crypto" target="_blank" rel="noopener">${t('result.external')}</a>
+        <button class="btn-o" onclick="openAesMap()">${t('btn.map')}</button>
       </div>
-      <div class="dec-box" id="result-dec-box" style="display:none"><strong>Decrypted:</strong> <span id="result-dec-txt">-</span></div>
+      <div class="dec-box" id="result-dec-box" style="display:none"><strong>${t('flow.decrypted')}</strong> <span id="result-dec-txt">-</span></div>
     </div>
   </div>`;
   const team=document.getElementById('team');
@@ -495,22 +944,23 @@ function createStageControls(){
   const bar=document.createElement('div');
   bar.className='stagebar';
   bar.id='stagebar';
-  bar.innerHTML=`<button class="stage-arrow" onclick="prevStage()">Prev</button>
+  bar.innerHTML=`<button class="stage-arrow" onclick="prevStage()">${t('btn.prev')}</button>
     <div class="stage-menu-wrap">
       <button class="stage-menu-toggle" id="stage-menu-toggle" onclick="toggleStageMenu()">Stages</button>
       <div class="stage-menu" id="stage-menu">
         ${COURSE_STAGES.map(s=>`<button data-stage-btn="${s.id}" onclick="navigateToStage('${s.id}');closeStageMenu()">${s.label}</button>`).join('')}
       </div>
     </div>
-    <button class="stage-map-btn" onclick="openAesMap()">AES Map</button>
-    <button class="stage-arrow" onclick="nextStage()">Next</button>
+    <button class="stage-map-btn" onclick="openAesMap()">${t('btn.map')}</button>
+    <button class="stage-settings-btn" onclick="toggleSettingsPanel()">${t('btn.settings')}</button>
+    <button class="stage-arrow" onclick="nextStage()">${t('btn.next')}</button>
     <div class="ai-helper-wrap" id="ai-helper-wrap">
-      <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>AI</span></button>
+      <button class="ai-helper-btn" onclick="toggleAiHelper()" aria-label="Open AI helper"><span class="octo"><i></i></span><span>${t('ai.button')}</span></button>
       <div class="ai-helper-panel" id="ai-helper-panel">
-        <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>Ouclus</strong><small>Teaching helper for this lesson</small></div></div>
-        <div class="ai-chat-log" id="ai-chat-log"><div class="ai-msg bot">Hi, I am Ouclus. Ask me about key, S-Box, XOR, rounds, padding, or the current step.</div></div>
-        <div class="ai-chat-input"><input id="ai-question" placeholder="Ask about AES..." onkeydown="if(event.key==='Enter')sendAiQuestion()"><button onclick="sendAiQuestion()">Send</button></div>
-        <div class="ai-quick"><button onclick="askAiHelper('step')">Current step</button><button onclick="askAiHelper('hint')">Hint</button><button onclick="askAiHelper('key')">Key rule</button></div>
+        <div class="ai-helper-head"><span class="octo big"><i></i></span><div><strong>${t('ai.name')}</strong><small>${t('ai.subtitle')}</small></div></div>
+        <div class="ai-chat-log" id="ai-chat-log"><div class="ai-msg bot">${t('ai.hello')}</div></div>
+        <div class="ai-chat-input"><input id="ai-question" placeholder="${t('ai.placeholder')}" onkeydown="if(event.key==='Enter')sendAiQuestion()"><button onclick="sendAiQuestion()">${t('btn.send')}</button></div>
+        <div class="ai-quick"><button onclick="askAiHelper('step')">${t('ai.quick.step')}</button><button onclick="askAiHelper('hint')">${t('ai.quick.hint')}</button><button onclick="askAiHelper('key')">${t('ai.quick.key')}</button></div>
       </div>
     </div>`;
   document.body.appendChild(bar);
@@ -530,7 +980,7 @@ function askAiHelper(kind){
   const current=steps[curIdx];
   if(kind==='step')appendAiMessage('bot',current?`${current.badge}: ${current.why}`:`You are in ${stage.label}. ${stage.note}`);
   if(kind==='hint')appendAiMessage('bot',current&&current.challenge?current.challenge.hint:'Follow the stage order, then use AES Map when you need to see where this step sits.');
-  if(kind==='key')appendAiMessage('bot','AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.');
+  if(kind==='key')appendAiMessage('bot',t('ai.key.rule'));
 }
 function appendAiMessage(role,text){
   const log=document.getElementById('ai-chat-log');if(!log)return;
@@ -559,7 +1009,7 @@ async function askClaudeTutor(question){
   const url=claudeProxyUrl();
   if(!url)return null;
   const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
-    system:CLAUDE_AES_SYSTEM_PROMPT,
+    system:t('ai.system')||CLAUDE_AES_SYSTEM_PROMPT,
     message:question,
     context:claudeLessonContext()
   })});
@@ -572,37 +1022,37 @@ async function sendAiQuestion(){
   const q=input.value.trim();if(!q)return;
   appendAiMessage('user',q);
   input.value='';
-  const pending=appendAiMessage('bot','Thinking through the AES step...');
+  const pending=appendAiMessage('bot',t('ai.thinking'));
   try{
     const claudeAnswer=await askClaudeTutor(q);
     pending.textContent=claudeAnswer||answerAiQuestion(q);
   }catch(err){
-    pending.textContent=`Claude proxy is not available, so I used the built-in AES tutor.\n\n${answerAiQuestion(q)}`;
+    pending.textContent=`${t('ai.fallback')}\n\n${answerAiQuestion(q)}`;
   }
 }
 function answerAiQuestion(q){
   const low=q.toLowerCase(),current=steps[curIdx];
   const xor=q.match(/(?:0x)?([0-9a-fA-F]{2})\s*(?:xor|\^)\s*(?:0x)?([0-9a-fA-F]{2})/);
-  if(xor){const a=parseInt(xor[1],16),b=parseInt(xor[2],16);return `0x${H(a)} XOR 0x${H(b)} = 0x${H(a^b)}. Bits: ${B8(a)} xor ${B8(b)} = ${B8(a^b)}.`;}
+  if(xor){const a=parseInt(xor[1],16),b=parseInt(xor[2],16);return t('ai.xor',{a:H(a),b:H(b),r:H(a^b),ab:B8(a),bb:B8(b),rb:B8(a^b)});}
   const ascii=q.match(/ascii\s+(0x[0-9a-fA-F]{2}|.)/i);
-  if(ascii){const raw=ascii[1],n=raw.toLowerCase().startsWith('0x')?parseInt(raw,16):raw.charCodeAt(0);return `ASCII value: "${raw}" = decimal ${n} = hex 0x${H(n)} = bits ${B8(n)}.`;}
+  if(ascii){const raw=ascii[1],n=raw.toLowerCase().startsWith('0x')?parseInt(raw,16):raw.charCodeAt(0);return t('ai.ascii',{raw,n,hex:H(n),bits:B8(n)});}
   const sbox=q.match(/s-?box\s*(?:of)?\s*(?:0x)?([0-9a-fA-F]{2})/i);
-  if(sbox){const n=parseInt(sbox[1],16);return `S-Box[0x${H(n)}]: row ${H(n)[0]}, column ${H(n)[1]} gives 0x${H(SB[n])}.`;}
-  if(low.includes('key')||low.includes('256'))return 'For AES-256, the key must be 32 bytes. This site accepts 32 characters, then each character becomes one key byte.';
-  if(low.includes('history')||low.includes('who made')||low.includes('when'))return 'AES was selected by NIST after a public competition and standardized in 2001. The winning algorithm was Rijndael, designed by Joan Daemen and Vincent Rijmen.';
-  if(low.includes('ascii')||low.includes('character')||low.includes('text'))return 'ASCII maps a character to a number. Example: A is decimal 65, which is 0x41 in hex. AES encrypts those byte values, not letters directly.';
-  if(low.includes('byte')||low.includes('bit'))return 'One byte is 8 bits. In hex, one byte is two hex digits: 0x00 through 0xFF.';
-  if(low.includes('sbox')||low.includes('s-box')||low.includes('subbyte'))return 'S-Box means substitution. Take a byte like 0x53: row is 5, column is 3, and the table gives the replacement byte.';
-  if(low.includes('xor')||low.includes('addround'))return 'XOR compares bits: same gives 0, different gives 1. AddRoundKey is just state byte XOR round-key byte.';
-  if(low.includes('ecb')||low.includes('mode'))return 'ECB encrypts each block independently. It is easy for teaching, but real systems usually prefer modes like CBC, CTR, or GCM.';
-  if(low.includes('gf')||low.includes('field'))return 'GF(2^8) is AES finite-field math. MixColumns uses it so column bytes blend without leaving the 0x00-0xFF byte range.';
-  if(low.includes('shift'))return 'ShiftRows rotates rows left. Row 0 stays, row 1 moves left 1, row 2 moves left 2, row 3 moves left 3.';
-  if(low.includes('mix'))return 'MixColumns mixes each column using GF(2^8), so each output byte depends on all four bytes of that column.';
-  if(low.includes('padding')||low.includes('pkcs'))return 'PKCS#7 padding adds N bytes with value N. If 4 bytes are missing, AES adds 04 04 04 04.';
-  if(low.includes('round'))return 'AES-256 has 14 rounds: Round 0 AddRoundKey, rounds 1-13 full steps, and round 14 without MixColumns.';
-  if(low.includes('result')||low.includes('cipher'))return 'The ciphertext is shown only after you finish the Practice checks. Then you can compare it on the Result page.';
+  if(sbox){const n=parseInt(sbox[1],16);return t('ai.sbox',{byte:H(n),row:H(n)[0],col:H(n)[1],out:H(SB[n])});}
+  if(low.includes('key')||low.includes('256'))return t('ai.key');
+  if(low.includes('history')||low.includes('who made')||low.includes('when'))return t('ai.history');
+  if(low.includes('ascii')||low.includes('character')||low.includes('text'))return t('ai.text');
+  if(low.includes('byte')||low.includes('bit'))return t('ai.byte');
+  if(low.includes('sbox')||low.includes('s-box')||low.includes('subbyte'))return t('ai.sbox.basic');
+  if(low.includes('xor')||low.includes('addround'))return t('ai.xor.basic');
+  if(low.includes('ecb')||low.includes('mode'))return t('ai.ecb');
+  if(low.includes('gf')||low.includes('field'))return t('ai.gf');
+  if(low.includes('shift'))return t('ai.shift');
+  if(low.includes('mix'))return t('ai.mix');
+  if(low.includes('padding')||low.includes('pkcs'))return t('ai.padding');
+  if(low.includes('round'))return t('ai.round');
+  if(low.includes('result')||low.includes('cipher'))return t('ai.result');
   if(low.includes('current')||low.includes('step'))return current?`${current.badge}: ${current.why}`:'Open Practice and I can explain the active AES step.';
-  return 'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.';
+  return t('ai.default');
 }
 
 function createSideTools(){
@@ -888,7 +1338,7 @@ function navigateToStage(stageId){
   const idx=typeof stageId==='number'?stageId:COURSE_STAGES.findIndex(s=>s.id===stageId);
   if(idx<0)return;
   if(COURSE_STAGES[idx].id==='result'&&!encryptionComplete){
-    alert('Finish the AES Practice encryption first. Result opens after the final ciphertext step.');
+    alert(t('alert.result.locked'));
     closeStageMenu();
     return;
   }
@@ -949,11 +1399,12 @@ function getKey(raw){
 function startEnc(){
   const plain=document.getElementById('pIn').value;
   const key=document.getElementById('kIn').value;
-  if(!plain){alert('Enter a message first.');return;}
-  if(plain.length>15){alert('For this teaching walkthrough, use up to 15 characters so one padded AES block can be shown in full detail.');return;}
-  if(key.length!==32){alert(`AES-256 needs exactly 32 key characters = 256 bits. Current key length: ${key.length}/32.`);return;}
+  if(!plain){alert(t('alert.enter'));return;}
+  if(plain.length>15){alert(t('alert.short'));return;}
+  if(key.length!==32){alert(t('alert.key',{n:key.length}));return;}
   const kb=getKey();
   solvedChallenges.clear();
+  challengeAttempts.clear();
   encryptionComplete=false;
   celebrationShown=false;
   steps=buildSteps(plain,kb);
@@ -976,20 +1427,42 @@ function goTo(i){
   stopPlay();
   if(i<=curIdx){curIdx=i;renderStep(i);return;}
   if(i===curIdx+1&&canLeaveCurrentStep()){curIdx=i;renderStep(i);return;}
-  alert('Answer each Student Check before moving further.');
+  alert(t('alert.checks'));
 }
 
 function renderMatrixCompare(s,showByteDetail){
+  if(s.isARK){
+    return `<div class="sbody matrix-only">
+      <div class="matrix-compare xor-compare">
+        <div class="matrix-panel">
+          <div class="sg-lbl">${s.leftLabel||t('matrix.before')}</div>
+          <div class="sgrid sgrid-before" id="sc-grid-before"></div>
+        </div>
+        <div class="matrix-symbol">${t('matrix.xor')}</div>
+        <div class="matrix-panel">
+          <div class="sg-lbl">${t('matrix.key')}</div>
+          <div class="sgrid sgrid-key" id="sc-grid-key"></div>
+        </div>
+        <div class="matrix-symbol equals">${t('matrix.equals')}</div>
+        <div class="matrix-panel">
+          <div class="sg-lbl" id="sc-lbl">${s.glbl||t('matrix.result')}</div>
+          <div class="sgrid sgrid-after" id="sc-grid-after"></div>
+        </div>
+      </div>
+      <div class="matrix-note wide" id="matrix-change-note">${t('matrix.hover')}</div>
+    </div>
+    ${showByteDetail?`<div class="sexpl byte-detail"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm||''}</div></div>`:''}`;
+  }
   return `<div class="sbody matrix-only">
     <div class="matrix-compare">
       <div class="matrix-panel">
-        <div class="sg-lbl">${s.leftLabel||'Before'}</div>
+        <div class="sg-lbl">${s.leftLabel||t('matrix.before')}</div>
         <div class="sgrid sgrid-before" id="sc-grid-before"></div>
       </div>
       <div class="matrix-flow">
         <div class="matrix-op-chip">${operationShortLabel(s)}</div>
         <div class="matrix-arrow-line"><span></span></div>
-        <div class="matrix-note" id="matrix-change-note">Hover a byte to see exactly what changed.</div>
+        <div class="matrix-note" id="matrix-change-note">${t('matrix.hover')}</div>
       </div>
       <div class="matrix-panel">
         <div class="sg-lbl" id="sc-lbl">${s.glbl}</div>
@@ -1032,27 +1505,27 @@ function renderFinalCipherStep(s){
 }
 
 function stepInstructionText(s,rel){
-  if(!s)return 'Use Next to move through the AES course.';
-  if(s.schemeStep)return 'How to calculate the remaining AES path:\nRounds 2-13 repeat SubBytes, ShiftRows, MixColumns, AddRoundKey.\nExample: after Round 1, follow the green marker through that four-step block 12 more times. Round 14 skips MixColumns.';
-  if(s.outputStep)return 'How to form ciphertext:\nRead the final 4x4 state as one continuous hexadecimal line.\nExample: take each byte in display order, remove spaces, and join them into one HEX string.';
+  if(!s)return t('instruction.default');
+  if(s.schemeStep)return t('instruction.scheme');
+  if(s.outputStep)return t('instruction.output');
   const idx=rel?rel.targetIdx:0,bv=s.before&&s.before[idx],av=s.after&&s.after[idx];
-  if(s.isINPUT)return `How to calculate plaintext bytes:\nConvert each character to ASCII, then to hex, then place it into the state.\nExample: '${s.beforeChars&&s.beforeChars[0]||'s'}' -> ASCII ${s.after[0]} -> hex ${H(s.after[0])}.`;
-  if(s.isKEY)return `How to calculate key bytes:\nConvert each key character to one byte. AES-256 needs 32 key characters because 32 bytes x 8 bits = 256 bits.\nExample: K[0] -> ${H(s.after[0])}.`;
+  if(s.isINPUT)return t('instruction.input',{ch:s.beforeChars&&s.beforeChars[0]||'s',dec:s.after[0],hex:H(s.after[0])});
+  if(s.isKEY)return t('instruction.key',{hex:H(s.after[0])});
   if(s.isARK){
     const kv=keyByteFor(s,idx),result=av;
-    return `How to calculate AddRoundKey:\nUse XOR at the same byte index: state byte XOR round-key byte = result.\nExample for [${idx}]: ${H(bv)} XOR ${H(kv)} = ${H(result)}. Same bits make 0; different bits make 1.`;
+    return t('instruction.ark',{idx,before:H(bv),key:H(kv),after:H(result)});
   }
   if(s.isSUB){
     const hx=H(bv);
-    return `How to calculate SubBytes:\nUse the S-Box. The first hex digit is the row and the second is the column.\nExample for [${idx}]: input ${hx}, row ${hx[0]}, column ${hx[1]}, output ${H(av)}.`;
+    return t('instruction.sub',{idx,byte:hx,row:hx[0],col:hx[1],after:H(av)});
   }
   if(s.isSH){
     const p=rel||relatedCells(s,idx,'after');
-    return `How to calculate ShiftRows:\nRotate each row left by its row number.\nExample: row ${p.row} moves left ${p.row}, so before [${p.sourceIdx}] lands at after [${p.targetIdx}].`;
+    return t('instruction.shift',{row:p.row,src:p.sourceIdx,dst:p.targetIdx});
   }
   if(s.isMX){
     const p=rel||relatedCells(s,idx,'after');
-    return `How to calculate MixColumns:\nEach output byte uses all four bytes in the same column with GF(2^8) multiplication.\nExample: column ${p.col} contributes ${p.source.map(i=>H(s.before[i])).join(', ')} to output [${p.targetIdx}] = ${H(s.after[p.targetIdx])}.`;
+    return t('instruction.mix',{col:p.col,bytes:p.source.map(i=>H(s.before[i])).join(', '),idx:p.targetIdx,after:H(s.after[p.targetIdx])});
   }
   return s.challenge?s.challenge.hint:s.why;
 }
@@ -1062,7 +1535,7 @@ function updateSideInstruction(s,rel){
   if(note)note.textContent=text;
   const title=document.getElementById('aes-instruction-title'),body=document.getElementById('aes-instruction-body');
   if(title&&body){
-    title.textContent='Instruction';
+    title.textContent=t('instruction.title');
     body.textContent=text;
   }
 }
@@ -1075,7 +1548,7 @@ function renderStep(idx){
   card.className='scard active flip';void card.offsetWidth;
   const sbs=document.getElementById('sbox-sec');if(sbs){sbs.style.outline=s.showSboxHint?'3px solid var(--gold)':'';sbs.style.borderRadius=s.showSboxHint?'4px':'';}
   let html=`<div class="sbadge ${s.bc}">${s.badge}</div><div class="stitle">${s.title}</div><div class="swhy">${s.why}</div>`;
-  if(s.showSboxHint)html+=`<div style="margin-bottom:14px;padding:9px 14px;background:#fef5dc;border:2px solid var(--gold);border-radius:9px;font-size:.8rem;color:var(--gold)"><strong>S-Box hint:</strong> high nibble is row, low nibble is column.</div>`;
+  if(s.showSboxHint)html+=`<div class="sbox-inline-hint"><strong>${t('matrix.sboxHint')}</strong></div>`;
   const showByteDetail=s.isARK||s.isSUB||s.isSH||s.isMX;
   if(s.schemeStep)html+=renderSchemeStep(s);
   else if(s.outputStep)html+=renderFinalCipherStep(s);
@@ -1084,9 +1557,9 @@ function renderStep(idx){
   card.innerHTML=html;
   if(!s.schemeStep&&!s.outputStep)buildGrid(s,renderGen);
   updateSideInstruction(s);
-  document.getElementById('pctr').textContent=`Step ${idx+1} of ${steps.length}`;
+  document.getElementById('pctr').textContent=t('step.counter',{n:idx+1,total:steps.length});
   document.getElementById('btnprev').disabled=idx===0;
-  document.getElementById('btnnxt').textContent=idx===steps.length-1?'Finish':'Next';
+  document.getElementById('btnnxt').textContent=idx===steps.length-1?t('btn.finish'):t('btn.next');
   document.getElementById('btnnxt').disabled=false;
   document.getElementById('pbf').style.width=`${steps.length>1?(idx/(steps.length-1))*100:100}%`;
   if(idx===steps.length-1&&lastCipher){
@@ -1107,7 +1580,46 @@ function renderChallenge(ch){
   let control=`<input id="step-answer" maxlength="${maxLen}" placeholder="${ch.placeholder||'??'}" oninput="this.value=this.value.toUpperCase()">`;
   if(ch.kind==='text')control=`<textarea id="step-answer" placeholder="${ch.placeholder||'Write your answer'}"></textarea>`;
   if(ch.kind==='choice')control=`<select id="step-answer" class="challenge-select"><option value="">Choose answer</option>${(ch.options||[]).map(o=>`<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('')}</select>`;
-  return `<div class="step-challenge"><h4>Student Check</h4><p>${ch.prompt}</p><div class="challenge-row">${control}<button class="chk-btn" onclick="checkStepAnswer()">Check</button></div><span class="challenge-feedback" id="challenge-feedback">${ch.hint}</span></div>`;
+  return `<div class="step-challenge"><h4>${t('student.check')}</h4><p>${ch.prompt}</p><div class="challenge-row">${control}<button class="chk-btn" onclick="checkStepAnswer()">${t('btn.check')}</button><button class="rvl-btn step-answer-btn" id="step-answer-btn" onclick="showStepAnswer()" style="display:none">${t('student.showAnswer')}</button></div><span class="challenge-feedback" id="challenge-feedback">${ch.hint}</span><div class="challenge-explain" id="challenge-explain"></div></div>`;
+}
+
+function challengeAnswerText(s){
+  const ch=s&&s.challenge;
+  if(!ch)return '';
+  if(ch.answer!==undefined)return String(ch.answer).toUpperCase();
+  return ch.sampleAnswer||ch.placeholder||ch.hint||'';
+}
+function challengeExplanation(s){
+  if(!s)return '';
+  if(s.isINPUT)return t('explain.input');
+  if(s.isKEY)return t('explain.key');
+  if(s.isARK)return t('explain.ark');
+  if(s.isSUB)return t('explain.sub');
+  if(s.isSH)return t('explain.shift');
+  if(s.isMX)return t('explain.mix');
+  if(s.schemeStep)return t('explain.scheme');
+  if(s.outputStep)return t('explain.output');
+  return s.why||'';
+}
+function writeChallengeExplanation(s,prefix=''){
+  const box=document.getElementById('challenge-explain');if(!box)return;
+  const answer=challengeAnswerText(s);
+  box.innerHTML=`${prefix?`<div class="challenge-reveal-note">${escHtml(prefix)}</div>`:''}<div><strong>${t('student.answer')}:</strong> <span class="vout">${escHtml(answer)}</span></div><div><strong>${t('student.explanation')}:</strong> ${escHtml(challengeExplanation(s))}</div>`;
+  box.classList.add('show');
+}
+function showStepAnswer(){
+  const s=steps[curIdx];if(!s||!s.challenge)return;
+  const input=document.getElementById('step-answer'),btn=document.getElementById('step-answer-btn'),fb=document.getElementById('challenge-feedback');
+  const answer=challengeAnswerText(s);
+  if(input){
+    input.value=answer;
+    input.classList.add('ok');
+    input.classList.remove('no');
+  }
+  if(btn)btn.style.display='inline-flex';
+  if(fb)fb.textContent=t('student.revealed');
+  solvedChallenges.add(curIdx);
+  writeChallengeExplanation(s,t('student.revealed'));
 }
 
 function updateRoundDetail(s,idx,rel=relatedCells(s,idx,'after')){
@@ -1146,8 +1658,22 @@ function checkStepAnswer(){
     ok=value===String(ch.answer).toUpperCase();
   }
   if(input){input.classList.toggle('ok',ok);input.classList.toggle('no',!ok);}
-  if(fb)fb.textContent=ok?'Correct. You can go to the next step.':`Not yet. ${s.challenge.hint}`;
-  if(ok)solvedChallenges.add(curIdx);
+  if(ok){
+    if(fb)fb.textContent=t('student.correct');
+    solvedChallenges.add(curIdx);
+    writeChallengeExplanation(s);
+  }else{
+    const tries=(challengeAttempts.get(curIdx)||0)+1;
+    challengeAttempts.set(curIdx,tries);
+    if(fb)fb.textContent=t('student.wrong',{n:tries,hint:s.challenge.hint});
+    if(tries>=3){showStepAnswer();return true;}
+    else{
+      const btn=document.getElementById('step-answer-btn');
+      if(btn)btn.style.display='none';
+      const box=document.getElementById('challenge-explain');
+      if(box){box.innerHTML='';box.classList.remove('show');}
+    }
+  }
   return ok;
 }
 
@@ -1158,9 +1684,9 @@ function canLeaveCurrentStep(){
 }
 
 function buildGrid(s,gen=renderGen){
-  const beforeGrid=document.getElementById('sc-grid-before'),afterGrid=document.getElementById('sc-grid-after');
+  const beforeGrid=document.getElementById('sc-grid-before'),afterGrid=document.getElementById('sc-grid-after'),keyGrid=document.getElementById('sc-grid-key');
   if(!beforeGrid||!afterGrid)return;
-  beforeGrid.innerHTML='';afterGrid.innerHTML='';
+  beforeGrid.innerHTML='';afterGrid.innerHTML='';if(keyGrid)keyGrid.innerHTML='';
   const order=orderedStepIndices(s);
   order.forEach(idx=>{
     const beforeCell=document.createElement('div');
@@ -1172,6 +1698,18 @@ function buildGrid(s,gen=renderGen){
     beforeCell.onmouseenter=()=>{const target=highlightCell(s,idx,'before');showCellDetail(s,target,'after');};
     beforeCell.onclick=()=>{clearTimeout(animT);const target=highlightCell(s,idx,'before');showCellDetail(s,target,'after');};
     beforeGrid.appendChild(beforeCell);
+
+    if(keyGrid&&s.isARK){
+      const keyCell=document.createElement('div');
+      keyCell.className='scell matrix-cell key-cell';
+      keyCell.id=`sck${idx}`;
+      keyCell.dataset.matrixSide='key';
+      keyCell.dataset.idx=idx;
+      keyCell.innerHTML=`<span>${H(keyByteFor(s,idx))}</span><small>[${idx}]</small>`;
+      keyCell.onmouseenter=()=>{highlightCell(s,idx,'after');showCellDetail(s,idx,'after');};
+      keyCell.onclick=()=>{clearTimeout(animT);highlightCell(s,idx,'after');showCellDetail(s,idx,'after');};
+      keyGrid.appendChild(keyCell);
+    }
 
     const afterCell=document.createElement('div');
     afterCell.className=`scell matrix-cell after-cell pending ${s.dc||''}`;
@@ -1195,13 +1733,13 @@ function buildGrid(s,gen=renderGen){
         cell.classList.add('revealed',s.sc);
       }
       highlightCell(s,idx,'after');showCellDetail(s,idx,'after');
-      i++;animT=setTimeout(nx,170);
+      i++;animT=setTimeout(nx,animDelay(170));
     }else{
       document.querySelectorAll('#sc-grid-after .after-cell').forEach(cell=>{cell.classList.remove('pending',s.sc);cell.classList.add('revealed',s.dc);});
       const et=document.getElementById('sc-et');if(et)et.textContent='Hover or click any byte for the calculation';
     }
   }
-  animT=setTimeout(nx,120);
+  animT=setTimeout(nx,animDelay(120));
 }
 
 function stepNav(dir){
@@ -1214,7 +1752,7 @@ function stepNav(dir){
 }
 function togglePlay(){
   stopPlay();
-  alert('Auto play is disabled for Practice. Solve the Student Check to unlock each next AES step.');
+  alert(t('alert.autoplay'));
 }
 function sched(){
   clearTimeout(playTimer);
@@ -1237,7 +1775,7 @@ function clrAll(){
   document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';
   const result=document.getElementById('result-cipher');if(result)result.textContent='No ciphertext yet. Run Practice first.';
   const resultBox=document.getElementById('result-dec-box');if(resultBox)resultBox.style.display='none';
-  lastCipher=null;steps=[];solvedChallenges.clear();encryptionComplete=false;celebrationShown=false;syncAesCalculator();
+  lastCipher=null;steps=[];solvedChallenges.clear();challengeAttempts.clear();encryptionComplete=false;celebrationShown=false;syncAesCalculator();
 }
 
 function buildSteps(plain,kb){
@@ -1249,51 +1787,54 @@ function buildSteps(plain,kb){
   const qArk=q(4,16),qSub=q(5,16),qShiftSrcCol=q(6,4),qMix=q(7,16),qArk1=q(8,16);
 
   const inputChars=Array.from({length:16},(_,i)=>i<pb.length?plain[i]:'pad');
-  add({badge:'Input',title:'Plaintext -> Bytes',why:'AES encrypts bytes. The left matrix shows your text, and the right matrix shows the byte values placed into the AES state.',leftLabel:'Plaintext',glbl:'Plaintext bytes',before:block,after:block,beforeChars:inputChars,isINPUT:true,mapPos:0,
-    challenge:{kind:'text',prompt:'Describe the conversion path before AES fills the state matrix. Use the words character, ASCII, and hex.',contains:['character','ascii','hex'],placeholder:'Character -> ...',hint:'Name the three representations in order.'}});
+  add({badge:t('step.input.badge'),title:t('step.input.title'),why:t('step.input.why'),leftLabel:t('step.input.left'),glbl:t('step.input.out'),before:block,after:block,beforeChars:inputChars,isINPUT:true,mapPos:0,
+    challenge:{kind:'text',prompt:t('step.input.prompt'),contains:['character','ascii','hex'],minLen:12,placeholder:t('step.input.placeholder'),hint:t('step.input.hint'),sampleAnswer:t('step.input.sample')}});
 
   const keyChars=kb.slice(0,16).map(b=>String.fromCharCode(b));
-  add({badge:'Key',bc:'sd2',sc:'scd',dc:'dnd',title:'AES-256 Key Bytes',why:'AES-256 uses exactly 32 key bytes. The first 16 bytes form Round Key 0.',leftLabel:'Key text',glbl:'First 16 key bytes',before:kb.slice(0,16),after:kb.slice(0,16),beforeChars:keyChars,isKEY:true,mapPos:1,
-    challenge:{kind:'text',prompt:'Why does this page require exactly 32 key characters for AES-256? Include both numbers.',contains:['32','256'],placeholder:'32 characters because...',hint:'Each character becomes one byte, and 32 bytes make 256 bits.'}});
+  add({badge:t('step.key.badge'),bc:'sd2',sc:'scd',dc:'dnd',title:t('step.key.title'),why:t('step.key.why'),leftLabel:t('step.key.left'),glbl:t('step.key.out'),before:kb.slice(0,16),after:kb.slice(0,16),beforeChars:keyChars,isKEY:true,mapPos:1,
+    challenge:{kind:'text',prompt:t('step.key.prompt'),contains:['32','256'],minLen:10,placeholder:t('step.key.placeholder'),hint:t('step.key.hint'),sampleAnswer:t('step.key.sample')}});
 
   let state=block.slice();
   let rk=roundKey(0),before=state.slice();state=state.map((b,i)=>b^rk[i]);
-  add({badge:'ARK 0',title:'Round 0 - AddRoundKey',why:'Before Round 1, each state byte is XORed with Round Key 0.',glbl:'State after Round 0 key',before,after:state.slice(),isARK:true,roundKey:rk.slice(),et:'XOR each byte - click a cell',fm:`Byte 0: 0x${H(before[0])} XOR 0x${H(rk[0])} = 0x${H(state[0])}`,mapPos:1,
-    challenge:{prompt:`Calculate AddRoundKey byte [${qArk}] using the before state and Round Key 0. What hex byte is produced?`,answer:H(state[qArk]),hint:'Use the same index in the state and round key, then XOR their 8 bits.'}});
+  add({badge:t('step.ark0.badge'),title:t('step.ark0.title'),why:t('step.ark0.why'),glbl:t('step.ark0.out'),before,after:state.slice(),isARK:true,roundKey:rk.slice(),et:t('step.ark0.detail'),fm:`Byte 0: 0x${H(before[0])} XOR 0x${H(rk[0])} = 0x${H(state[0])}`,mapPos:1,
+    challenge:{prompt:t('step.ark0.prompt',{idx:qArk}),answer:H(state[qArk]),hint:t('step.ark0.hint')}});
 
   let st=ts(state);
   before=fs(cS(st));for(let r=0;r<4;r++)for(let c=0;c<4;c++)st[r][c]=SB[st[r][c]];
   let after=fs(cS(st));
-  add({badge:'SubBytes',bc:'so',sc:'sco',dc:'dno',title:'Round 1 - SubBytes',why:'Each byte is replaced through the AES S-Box. This is the substitution part of the AES scheme.',glbl:'After SubBytes',before,after,isSUB:true,et:'S-Box lookup - click a byte',fm:`Byte 0: S-Box[0x${H(before[0])}] = 0x${H(after[0])}`,showSboxHint:true,mapPos:2,
-    challenge:{prompt:`Use the before matrix and S-Box to replace byte [${qSub}]. What output hex byte is produced?`,answer:H(after[qSub]),hint:'Take the high hex digit as row and low hex digit as column.'}});
+  add({badge:t('step.sub.badge'),bc:'so',sc:'sco',dc:'dno',title:t('step.sub.title'),why:t('step.sub.why'),glbl:t('step.sub.out'),before,after,isSUB:true,et:t('step.sub.detail'),fm:`Byte 0: S-Box[0x${H(before[0])}] = 0x${H(after[0])}`,showSboxHint:true,mapPos:2,
+    challenge:{prompt:t('step.sub.prompt',{idx:qSub}),answer:H(after[qSub]),hint:t('step.sub.hint')}});
 
   before=rowMajorFromState(st);for(let r=1;r<4;r++){const row=st[r].slice();for(let c=0;c<4;c++)st[r][c]=row[(c+r)%4];}
   after=rowMajorFromState(st);
   const qShiftAnswerCol=(qShiftSrcCol+3)%4;
-  add({badge:'ShiftRows',bc:'sg',sc:'scg',dc:'dng',title:'Round 1 - ShiftRows',why:'Rows rotate left by 0, 1, 2, and 3. This moves bytes between columns before MixColumns.',glbl:'After ShiftRows',before,after,isSH:true,layout:'row',et:'Row movement - click a byte',fm:[0,1,2,3].map(r=>`Row ${r}: ${[0,1,2,3].map(c=>H(before[r*4+c])).join(' ')} -> ${[0,1,2,3].map(c=>H(after[r*4+c])).join(' ')}`).join('<br>'),mapPos:3,
-    challenge:{max:1,prompt:`In ShiftRows, a byte in row 1 starts at before column ${qShiftSrcCol}. Which after column does it move to?`,answer:String(qShiftAnswerCol),hint:'Row 1 rotates left by one, so column c moves to c-1 with wraparound.'}});
+  add({badge:t('step.shift.badge'),bc:'sg',sc:'scg',dc:'dng',title:t('step.shift.title'),why:t('step.shift.why'),glbl:t('step.shift.out'),before,after,isSH:true,layout:'row',et:t('step.shift.detail'),fm:[0,1,2,3].map(r=>`Row ${r}: ${[0,1,2,3].map(c=>H(before[r*4+c])).join(' ')} -> ${[0,1,2,3].map(c=>H(after[r*4+c])).join(' ')}`).join('<br>'),mapPos:3,
+    challenge:{max:1,prompt:t('step.shift.prompt',{col:qShiftSrcCol}),answer:String(qShiftAnswerCol),hint:t('step.shift.hint')}});
 
   before=fs(cS(st));for(let c=0;c<4;c++){const[a,b,d,e]=[st[0][c],st[1][c],st[2][c],st[3][c]];st[0][c]=gm(2,a)^gm(3,b)^d^e;st[1][c]=a^gm(2,b)^gm(3,d)^e;st[2][c]=a^b^gm(2,d)^gm(3,e);st[3][c]=gm(3,a)^b^d^gm(2,e);}
   after=fs(cS(st));
   const mixCoeff=['2311','1231','1123','3112'][qMix%4];
-  add({badge:'MixColumns',bc:'sp',sc:'scp',dc:'dnp',title:'Round 1 - MixColumns',why:'Each column is mixed in GF(2^8). This is the diffusion part of the AES scheme.',glbl:'After MixColumns',before,after,isMX:true,et:'GF(2^8) calculation - click a byte',fm:`Column 0 output byte 0 = 0x${H(after[0])}`,mapPos:4,
-    challenge:{max:4,prompt:`For MixColumns output byte [${qMix}], write its row coefficient pattern with no spaces. Example format: 2311.`,answer:mixCoeff,hint:'Rows use coefficient patterns 2311, 1231, 1123, and 3112.'}});
+  add({badge:t('step.mix.badge'),bc:'sp',sc:'scp',dc:'dnp',title:t('step.mix.title'),why:t('step.mix.why'),glbl:t('step.mix.out'),before,after,isMX:true,et:t('step.mix.detail'),fm:`Column 0 output byte 0 = 0x${H(after[0])}`,mapPos:4,
+    challenge:{max:4,prompt:t('step.mix.prompt',{idx:qMix}),answer:mixCoeff,hint:t('step.mix.hint')}});
 
   before=fs(cS(st));rk=roundKey(1);for(let c=0;c<4;c++)for(let r=0;r<4;r++)st[r][c]^=w[4+c][r];
   after=fs(cS(st));
-  add({badge:'ARK 1',title:'Round 1 - AddRoundKey',why:'Round 1 finishes by XORing the mixed state with Round Key 1.',glbl:'After Round Key 1',before,after,isARK:true,roundKey:rk.slice(),et:'XOR with round key - click a byte',fm:`Round key 1: ${hA(rk)}`,mapPos:5,
-    challenge:{prompt:`Calculate Round 1 AddRoundKey byte [${qArk1}] from the mixed state and Round Key 1. What hex byte is produced?`,answer:H(after[qArk1]),hint:'Use the mixed-state byte and the Round Key 1 byte at the same index.'}});
+  add({badge:t('step.ark1.badge'),title:t('step.ark1.title'),why:t('step.ark1.why'),glbl:t('step.ark1.out'),before,after,isARK:true,roundKey:rk.slice(),et:t('step.ark1.detail'),fm:`Round key 1: ${hA(rk)}`,mapPos:5,
+    challenge:{prompt:t('step.ark1.prompt',{idx:qArk1}),answer:H(after[qArk1]),hint:t('step.ark1.hint')}});
 
-  add({badge:'Scheme',bc:'sk',sc:'scp',dc:'dnp',title:'AES Scheme Continues',why:'AES-256 repeats the same four-step block scheme for Rounds 2-13, then uses a final Round 14 without MixColumns.',before:after,after:after,schemeStep:true,mapPos:6,
-    challenge:{kind:'text',prompt:'Write which step the final AES round skips.',contains:['mix'],placeholder:'The final round skips...',hint:'Final round has no MixColumns.'}});
+  add({badge:t('step.scheme.badge'),bc:'sk',sc:'scp',dc:'dnp',title:t('step.scheme.title'),why:t('step.scheme.why'),before:after,after:after,schemeStep:true,mapPos:6,
+    challenge:{kind:'text',prompt:t('step.scheme.prompt'),contains:['mix'],placeholder:t('step.scheme.placeholder'),hint:t('step.scheme.hint'),sampleAnswer:t('step.scheme.sample')}});
 
-  add({badge:'Output',title:'Final Ciphertext',why:'The real AES-256 result is calculated by the full algorithm. The matrix is read into one continuous ciphertext line.',glbl:'Ciphertext bytes',before:cipher,after:cipher,outputStep:true,mapPos:7});
+  add({badge:t('step.output.badge'),title:t('step.output.title'),why:t('step.output.why'),glbl:t('step.output.out'),before:cipher,after:cipher,outputStep:true,mapPos:7});
   return out;
 }
 
+loadSettings();
 createResultSection();
 createStageControls();
 createSideTools();
 createAesMapModal();
 createFinishCelebration();
+createSettingsPanel();
+applySettings();
 navigateToStage('main');

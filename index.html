@@ -317,6 +317,15 @@
       <div class="p-ctrl">
         <div class="pctr" id="pctr">Step 1 of ?</div>
         <button class="cbtn" onclick="stepNav(-1)" id="btnprev" disabled>Prev</button>
+        <button class="cbtn" onclick="replayCurrentAnimation()" id="btnreplay">Replay animation</button>
+        <label class="anim-speed"><span id="player-speed-label">Speed</span>
+          <select id="player-speed" onchange="setSiteSetting('speed',this.value)">
+            <option value=".6">Slow</option>
+            <option value="1" selected>Default</option>
+            <option value="1.6">Fast</option>
+            <option value="2.4">Faster</option>
+          </select>
+        </label>
         <button class="cbtn nxt" onclick="stepNav(1)" id="btnnxt">Next</button>
       </div>
     </div>
