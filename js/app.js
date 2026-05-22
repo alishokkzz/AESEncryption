@@ -102,7 +102,7 @@ const kst=['<strong>Original Key (256 bits = 32 bytes):</strong> Your 32-byte se
 '<strong>Extra SubWord (AES-256 ONLY):</strong> When word index mod 8 = 4, an extra SubWord is applied without RotWord or Rcon. This step does NOT exist in AES-128 or AES-192. It is what makes AES-256 key expansion fundamentally different.',
 '<strong>W[8..15] - Round Key 1:</strong> W[8]=W[0] XOR temp, W[9]=W[1] XOR W[8], etc. This process repeats until W[59], generating all 15 round keys needed for the 14 rounds.',
 '<strong>W[56..59] - Round Key 14:</strong> The final round key. After 60 words total, AES-256 has all 15 unique 128-bit round keys ready for the encryption process.'];
-function ksS(i,el){document.querySelectorAll('#kspl .kb').forEach(b=>b.classList.remove('active'));el.classList.add('active');const ex=document.getElementById('ksex');ex.style.opacity='0';setTimeout(()=>{ex.innerHTML=kst[i];ex.style.opacity='1';},150);}
+function ksS(i,el){document.querySelectorAll('#kspl .kb').forEach(b=>b.classList.remove('active'));el.classList.add('active');const ex=document.getElementById('ksex');const texts=(typeof KEY_SCHEDULE_TEXT!=='undefined'&&KEY_SCHEDULE_TEXT[siteSettings.lang])||kst;ex.style.opacity='0';setTimeout(()=>{ex.innerHTML=texts[i]||kst[i];ex.style.opacity='1';},150);}
 
 // ------------------------------------------
 // ROUND ANIMATION
@@ -125,6 +125,7 @@ function buildFullSbox(){
       td.textContent=v.toString(16).toUpperCase().padStart(2,'0');
       td.title=`0x${(row*16+col).toString(16).toUpperCase().padStart(2,'0')} -> 0x${v.toString(16).toUpperCase().padStart(2,'0')}`;
       td.onclick=()=>showSboxTheoryLookup(row,col);
+      td.oncontextmenu=(e)=>{showSboxContextMenu(e,row,col);return false;};
       tr.appendChild(td);
     }
     t.appendChild(tr);
@@ -149,6 +150,40 @@ function showSboxTheoryLookup(row,col){
   const input=(row<<4)|col,out=SB[input];
   demo.innerHTML=`<strong>${t('matrix.sboxLookup')}:</strong> 0x${H(input)} -> ${t('matrix.row')} ${row.toString(16).toUpperCase()} / ${t('matrix.col')} ${col.toString(16).toUpperCase()} -> <strong>0x${H(out)}</strong>`;
 }
+function selectSboxIntersection(cell,row,col){
+  const table=cell&&cell.closest('table');if(!table)return;
+  table.querySelectorAll('td,th').forEach(el=>el.classList.remove('active-cell','active-head'));
+  const trs=table.querySelectorAll('tr');
+  if(trs[0]&&trs[0].children[col+1])trs[0].children[col+1].classList.add('active-head');
+  if(trs[row+1]&&trs[row+1].children[0])trs[row+1].children[0].classList.add('active-head');
+  if(trs[row+1]&&trs[row+1].children[col+1])trs[row+1].children[col+1].classList.add('active-cell');
+  if(table.id==='sboxt-full')showSboxTheoryLookup(row,col);
+}
+function hideSboxContextMenu(){
+  const pop=document.getElementById('sbox-popover');
+  if(pop)pop.classList.remove('show');
+}
+function showSboxContextMenu(event,row,col){
+  if(event)event.preventDefault();
+  let pop=document.getElementById('sbox-popover');
+  if(!pop){
+    pop=document.createElement('div');
+    pop.id='sbox-popover';
+    pop.className='sbox-popover';
+    document.body.appendChild(pop);
+  }
+  const input=(row<<4)|col,out=SB[input];
+  pop.innerHTML=`<strong>${t('matrix.sboxLookup')}</strong><span>${t('matrix.input')}: 0x${H(input)}</span><span>${t('matrix.row')}: ${row.toString(16).toUpperCase()} (${row})</span><span>${t('matrix.col')}: ${col.toString(16).toUpperCase()} (${col})</span><span>${t('matrix.output')}: 0x${H(out)}</span>`;
+  pop.classList.add('show');
+  const pad=12;
+  const rect=pop.getBoundingClientRect();
+  const x=Math.min((event?event.clientX:20)+pad,window.innerWidth-rect.width-pad);
+  const y=Math.min((event?event.clientY:20)+pad,window.innerHeight-rect.height-pad);
+  pop.style.left=Math.max(pad,x)+'px';
+  pop.style.top=Math.max(pad,y)+'px';
+}
+document.addEventListener('click',e=>{if(!e.target.closest('#sbox-popover'))hideSboxContextMenu();});
+window.addEventListener('scroll',hideSboxContextMenu,true);
 
 // ------------------------------------------
 // STEP BUILDER
@@ -325,7 +360,7 @@ function renderSboxLookupTable(inputByte){
     html+=`<tr><th class="${r===row?'active-head':''}">${r.toString(16).toUpperCase()}</th>`;
     for(let c=0;c<16;c++){
       const active=r===row&&c===col;
-      html+=`<td class="${active?'active-cell':''}">${H(SB[r*16+c])}</td>`;
+      html+=`<td class="${active?'active-cell':''}" onclick="selectSboxIntersection(this,${r},${c})" oncontextmenu="showSboxContextMenu(event,${r},${c});return false">${H(SB[r*16+c])}</td>`;
     }
     html+='</tr>';
   }
@@ -436,7 +471,7 @@ function sched(){if(!isPlaying||curIdx>=steps.length-1){stopPlay();return;}playT
 function stopPlay(){isPlaying=false;clearTimeout(playTimer);document.getElementById('btnplay').textContent='Play';document.getElementById('btnstop').disabled=true;}
 function setSp(ms,el){playSp=ms;document.querySelectorAll('.spb').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
 function runDec(){if(!lastCipher){alert(t('alert.encryptFirst'));return;}const kb=getKey();const r=decFull(lastCipher,kb);document.getElementById('dec-box').style.display='block';document.getElementById('dec-txt').textContent=`"${r}"`;}
-function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';lastCipher=null;steps=[];}
+function clrAll(){stopPlay();['pIn','kIn'].forEach(id=>document.getElementById(id).value='');document.getElementById('player').style.display='none';document.getElementById('out-blk').classList.remove('show');document.getElementById('dec-box').style.display='none';document.getElementById('ftrack').innerHTML='';document.getElementById('scard').innerHTML=`<div style="text-align:center;padding:38px;color:var(--muted);font-family:'Fraunces',serif;font-size:1rem">${t('flow.empty.html')}</div>`;lastCipher=null;steps=[];}
 function rndKey(){const ch='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$';let k='';for(let i=0;i<32;i++)k+=ch[Math.floor(Math.random()*ch.length)];document.getElementById('kIn').value=k;syncAesCalculator();}
 function rndPlain(){
   const words=['silent river','green signal','bright lock','cipher class','matrix byte','secure note','round shift','secret path','hidden block','crypto lab'];
@@ -478,8 +513,10 @@ let encryptionComplete=false;
 let celebrationShown=false;
 const calcHistory=[];
 let calcValue='0',calcStored=null,calcOp=null,calcReset=false;
-let siteSettings={lang:'us',theme:'light',font:100,contrast:false,speed:1};
+let siteSettings={lang:'us',theme:'light',font:100,contrast:false,speed:'medium'};
 const challengeAttempts=new Map();
+const scoredChallenges=new Set();
+let practiceScore=0;
 
 const I18N={
   us:{
@@ -497,7 +534,7 @@ const I18N={
     'stage.result.note':'Final ciphertext check and decrypt check.',
     'stage.team.note':'Project team members and responsibilities.',
     'btn.prev':'Prev','btn.next':'Next','btn.finish':'Finish','btn.check':'Check','btn.replay':'Replay animation','btn.settings':'Settings','btn.map':'AES Map','btn.backPractice':'Back to Practice','btn.decrypt':'Decrypt Check','btn.close':'Close','btn.send':'Send',
-    'settings.title':'Settings','settings.lang':'Language','settings.theme':'Night theme','settings.font':'Font size','settings.contrast':'High contrast','settings.speed':'Animation speed','settings.replay':'Replay current animation','settings.light':'Light','settings.night':'Night','settings.normal':'Normal','settings.on':'On','settings.off':'Off','settings.slow':'Slow','settings.default':'Default','settings.fast':'Fast','settings.faster':'Faster',
+    'settings.title':'Settings','settings.lang':'Language','settings.theme':'Night theme','settings.font':'Font size','settings.contrast':'High contrast','settings.speed':'Animation speed','settings.replay':'Replay current animation','settings.light':'Light','settings.night':'Night','settings.normal':'Normal','settings.on':'On','settings.off':'Off','settings.slow':'Slow','settings.default':'Medium','settings.fast':'Fast','settings.faster':'Faster',
     'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Teaching helper for this lesson','ai.hello':'Hi, I am Ouclus. Ask me about key, S-Box, XOR, rounds, padding, or the current step.','ai.placeholder':'Ask about AES...','ai.quick.step':'Current step','ai.quick.hint':'Hint','ai.quick.key':'Key rule','ai.thinking':'Thinking through the AES step...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in English. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
     'ai.key.rule':'AES-256 needs exactly 32 characters here. 32 bytes x 8 bits = 256 bits.',
     'ai.fallback':'Claude proxy is not available, so I used the built-in AES tutor.',
@@ -519,6 +556,7 @@ const I18N={
     'ai.result':'The ciphertext is shown only after you finish the Practice checks. Then you can compare it on the Result page.',
     'ai.default':'Good question. I can teach AES history, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode, or the current step.',
     'student.check':'Student Check','student.correct':'Correct. You can go to the next step.','student.wrong':'Not yet. Attempt {n}/3. {hint}','student.revealed':'Answer shown after 3 mistakes. You can continue after reading the explanation.','student.answer':'Answer','student.explanation':'Explanation','student.showAnswer':'Show Answer',
+    'score.points':'Points','score.attempts':'Attempts','score.correctDelta':'+30 points','score.incorrectDelta':'-10 points','score.final':'Final score','score.totalAttempts':'Total attempts','score.weakNone':'Strong run: no weak area detected from the Student Checks.','score.weakDetail':'Weak area: {skill}. This step needed {attempts} attempt(s), so review its explanation before the exam.','score.skill.input':'text to bytes','score.skill.key':'AES-256 key length','score.skill.xor':'AddRoundKey XOR','score.skill.sbox':'SubBytes S-Box','score.skill.shift':'ShiftRows','score.skill.mix':'MixColumns','score.skill.rounds':'round structure','score.skill.general':'AES basics',
     'alert.enter':'Enter a message first.','alert.short':'For this teaching walkthrough, use up to 15 characters so one padded AES block can be shown in full detail.','alert.key':'AES-256 needs exactly 32 key characters = 256 bits. Current key length: {n}/32.','alert.result.locked':'Finish the AES Practice encryption first. Result opens after the final ciphertext step.','alert.checks':'Answer each Student Check before moving further.','alert.autoplay':'Auto play is disabled for Practice. Solve the Student Check to unlock each next AES step.','alert.encryptFirst':'Encrypt first.',
     'result.stage':'Result Check','result.title':'Check the Encryption Result','result.desc':'Use this final stage to verify the ciphertext produced in Practice. Students stay inside the site and can decrypt with the same AES-256 key.','result.latest':'Latest AES-256 Output','result.sub':'The result updates after you run encryption in the Practice stage.','result.none':'No ciphertext yet. Run Practice first.','result.key':'Key','result.mode':'Mode','result.format':'Format','result.external':'Dont trust me check there',
     'flow.title':'One Input -> One Full AES Round Scheme','flow.desc':'Enter your message and 32-character key. You must calculate one small AES value before moving to the next step.','flow.input':'Your Input','flow.sub':'Enter once. The walkthrough teaches the AES scheme step by step.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Message (max 15 chars)','flow.key':'Key (32 chars = 256-bit)','flow.encrypt':'Encrypt','flow.randomWord':'Random Word','flow.randomKey':'Random Key','flow.clear':'Clear','flow.empty.html':'Complete the practice tasks above, then enter your text and press <strong>Encrypt</strong>.','flow.cipher':'Ciphertext - AES-256 encrypted','flow.decrypted':'Decrypted:',
@@ -559,7 +597,7 @@ const I18N={
     'stage.result.note':'Соңғы ciphertext және decrypt тексеруі.',
     'stage.team.note':'Жоба тобы және міндеттері.',
     'btn.prev':'Артқа','btn.next':'Келесі','btn.finish':'Аяқтау','btn.check':'Тексеру','btn.replay':'Анимацияны қайталау','btn.settings':'Баптау','btn.map':'AES карта','btn.backPractice':'Практикаға оралу','btn.decrypt':'Decrypt тексеру','btn.close':'Жабу','btn.send':'Жіберу',
-    'settings.title':'Баптаулар','settings.lang':'Тіл','settings.theme':'Түнгі тема','settings.font':'Қаріп өлшемі','settings.contrast':'Жоғары контраст','settings.speed':'Анимация жылдамдығы','settings.replay':'Қазіргі анимацияны қайталау','settings.light':'Күндіз','settings.night':'Түн','settings.normal':'Қалыпты','settings.on':'Қосулы','settings.off':'Өшірулі','settings.slow':'Баяу','settings.default':'Қалыпты','settings.fast':'Жылдам','settings.faster':'Өте жылдам',
+    'settings.title':'Баптаулар','settings.lang':'Тіл','settings.theme':'Түнгі тема','settings.font':'Қаріп өлшемі','settings.contrast':'Жоғары контраст','settings.speed':'Анимация жылдамдығы','settings.replay':'Қазіргі анимацияны қайталау','settings.light':'Күндіз','settings.night':'Түн','settings.normal':'Қалыпты','settings.on':'Қосулы','settings.off':'Өшірулі','settings.slow':'Баяу','settings.default':'Орташа','settings.fast':'Жылдам','settings.faster':'Өте жылдам',
     'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Осы сабақтың көмекшісі','ai.hello':'Сәлем, мен Ouclus. Кілт, S-Box, XOR, раундтар, padding немесе қазіргі қадам туралы сұра.','ai.placeholder':'AES туралы сұра...','ai.quick.step':'Қазіргі қадам','ai.quick.hint':'Кеңес','ai.quick.key':'Кілт ережесі','ai.thinking':'AES қадамын ойланып жатырмын...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in Kazakh. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
     'ai.key.rule':'AES-256 үшін дәл 32 таңба керек. 32 байт x 8 бит = 256 бит.',
     'ai.fallback':'Claude proxy қолжетімсіз, сондықтан кіріктірілген AES көмекшісін қолдандым.',
@@ -581,6 +619,7 @@ const I18N={
     'ai.result':'Ciphertext Practice тексерулерінен кейін ғана көрсетіледі. Кейін Result бетінде салыстыра аласыз.',
     'ai.default':'Жақсы сұрақ. Мен AES тарихын, ASCII, байт, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode немесе current step түсіндіре аламын.',
     'student.check':'Студент тексеруі','student.correct':'Дұрыс. Келесі қадамға өтуге болады.','student.wrong':'Әлі емес. Әрекет {n}/3. {hint}','student.revealed':'3 қателіктен кейін жауап көрсетілді. Түсіндірмені оқып, жалғастыра аласыз.','student.answer':'Жауап','student.explanation':'Түсіндірме','student.showAnswer':'Жауапты көрсету',
+    'score.points':'Ұпай','score.attempts':'Әрекет','score.correctDelta':'+30 ұпай','score.incorrectDelta':'-10 ұпай','score.final':'Қорытынды ұпай','score.totalAttempts':'Барлық әрекет','score.weakNone':'Жақсы нәтиже: Student Check бойынша әлсіз аймақ байқалмады.','score.weakDetail':'Әлсіз аймақ: {skill}. Бұл қадамға {attempts} әрекет кетті, емтиханға дейін түсіндірмесін қайталаңыз.','score.skill.input':'мәтінді byte-қа айналдыру','score.skill.key':'AES-256 key length','score.skill.xor':'AddRoundKey XOR','score.skill.sbox':'SubBytes S-Box','score.skill.shift':'ShiftRows','score.skill.mix':'MixColumns','score.skill.rounds':'round structure','score.skill.general':'AES негіздері',
     'alert.enter':'Алдымен хабарлама енгізіңіз.','alert.short':'Бұл walkthrough үшін 15 таңбаға дейін қолданыңыз, сонда бір padded AES block толық көрсетіледі.','alert.key':'AES-256 үшін дәл 32 key character = 256 бит керек. Қазіргі ұзындығы: {n}/32.','alert.result.locked':'Алдымен AES Practice шифрлауын аяқтаңыз. Result соңғы ciphertext қадамынан кейін ашылады.','alert.checks':'Алға жылжу үшін әр Student Check жауабын беріңіз.','alert.autoplay':'Practice кезінде auto play өшірулі. Әр қадамды ашу үшін Student Check шешіңіз.','alert.encryptFirst':'Алдымен шифрлаңыз.',
     'result.stage':'Нәтижені тексеру','result.title':'Шифрлау нәтижесін тексеру','result.desc':'Practice ішінде алынған ciphertext осы жерде тексеріледі. Сол AES-256 кілтімен decrypt жасауға болады.','result.latest':'Соңғы AES-256 output','result.sub':'Practice шифрлауынан кейін нәтиже жаңарады.','result.none':'Ciphertext әлі жоқ. Алдымен Practice іске қосыңыз.','result.key':'Кілт','result.mode':'Режим','result.format':'Формат','result.external':'Маған сенбесең, сол жерде тексер',
     'flow.title':'Бір input -> бір толық AES раунд схемасы','flow.desc':'Хабарлама мен 32 таңбалы кілт енгізіңіз. Әр келесі қадамға дейін бір шағын AES мәнін есептейсіз.','flow.input':'Сіздің input','flow.sub':'Бір рет енгізіңіз. Walkthrough AES схемасын қадамдап үйретеді.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Хабарлама (max 15 chars)','flow.key':'Кілт (32 chars = 256-bit)','flow.encrypt':'Шифрлау','flow.randomWord':'Кездейсоқ сөз','flow.randomKey':'Кездейсоқ кілт','flow.clear':'Тазалау','flow.empty.html':'Жоғарыдағы тапсырмаларды орындап, мәтінді енгізіп <strong>Encrypt</strong> басыңыз.','flow.cipher':'Ciphertext - AES-256 шифрланған','flow.decrypted':'Decrypt:',
@@ -621,7 +660,7 @@ const I18N={
     'stage.result.note':'Проверка итогового ciphertext и decrypt.',
     'stage.team.note':'Участники проекта и роли.',
     'btn.prev':'Назад','btn.next':'Далее','btn.finish':'Готово','btn.check':'Проверить','btn.replay':'Повторить анимацию','btn.settings':'Настройки','btn.map':'AES карта','btn.backPractice':'Назад к практике','btn.decrypt':'Проверить decrypt','btn.close':'Закрыть','btn.send':'Отправить',
-    'settings.title':'Настройки','settings.lang':'Язык','settings.theme':'Ночная тема','settings.font':'Размер шрифта','settings.contrast':'Высокий контраст','settings.speed':'Скорость анимации','settings.replay':'Повторить текущую анимацию','settings.light':'Светлая','settings.night':'Ночная','settings.normal':'Обычная','settings.on':'Вкл','settings.off':'Выкл','settings.slow':'Медленно','settings.default':'Обычно','settings.fast':'Быстро','settings.faster':'Очень быстро',
+    'settings.title':'Настройки','settings.lang':'Язык','settings.theme':'Ночная тема','settings.font':'Размер шрифта','settings.contrast':'Высокий контраст','settings.speed':'Скорость анимации','settings.replay':'Повторить текущую анимацию','settings.light':'Светлая','settings.night':'Ночная','settings.normal':'Обычная','settings.on':'Вкл','settings.off':'Выкл','settings.slow':'Медленно','settings.default':'Средне','settings.fast':'Быстро','settings.faster':'Очень быстро',
     'ai.button':'AI','ai.name':'Ouclus','ai.subtitle':'Помощник этого урока','ai.hello':'Привет, я Ouclus. Спроси меня про ключ, S-Box, XOR, раунды, padding или текущий шаг.','ai.placeholder':'Спроси про AES...','ai.quick.step':'Текущий шаг','ai.quick.hint':'Подсказка','ai.quick.key':'Правило ключа','ai.thinking':'Разбираю шаг AES...','ai.system':'You are Claude inside an AES-256 teaching tool for students. Answer in Russian. Teach step by step, be concise, use the current AES stage context, explain calculations with small examples, never give unrelated content, and encourage the student to inspect the matrices and solve Student Checks themselves.',
     'ai.key.rule':'Для AES-256 здесь нужно ровно 32 символа. 32 байта x 8 бит = 256 бит.',
     'ai.fallback':'Claude proxy недоступен, поэтому я использовал встроенного AES-помощника.',
@@ -643,6 +682,7 @@ const I18N={
     'ai.result':'Ciphertext показывается только после Practice checks. Потом его можно сравнить на странице Result.',
     'ai.default':'Хороший вопрос. Я могу объяснить историю AES, ASCII, bytes, key size, XOR, S-Box, ShiftRows, MixColumns, padding, rounds, ECB mode или текущий шаг.',
     'student.check':'Проверка студента','student.correct':'Верно. Можно перейти к следующему шагу.','student.wrong':'Пока нет. Попытка {n}/3. {hint}','student.revealed':'Ответ показан после 3 ошибок. Прочитайте объяснение и продолжайте.','student.answer':'Ответ','student.explanation':'Объяснение','student.showAnswer':'Показать ответ',
+    'score.points':'Очки','score.attempts':'Попытки','score.correctDelta':'+30 очков','score.incorrectDelta':'-10 очков','score.final':'Итоговый счет','score.totalAttempts':'Всего попыток','score.weakNone':'Сильное прохождение: по Student Checks слабое место не найдено.','score.weakDetail':'Слабое место: {skill}. На этот шаг ушло {attempts} попыток, повторите объяснение перед экзаменом.','score.skill.input':'текст в bytes','score.skill.key':'длина ключа AES-256','score.skill.xor':'AddRoundKey XOR','score.skill.sbox':'SubBytes S-Box','score.skill.shift':'ShiftRows','score.skill.mix':'MixColumns','score.skill.rounds':'структура раундов','score.skill.general':'основы AES',
     'alert.enter':'Сначала введите сообщение.','alert.short':'Для этого walkthrough используйте до 15 символов, чтобы один padded AES block был показан полностью.','alert.key':'Для AES-256 нужно ровно 32 символа ключа = 256 бит. Текущая длина: {n}/32.','alert.result.locked':'Сначала завершите AES Practice encryption. Result откроется после финального ciphertext шага.','alert.checks':'Ответьте на каждый Student Check, чтобы двигаться дальше.','alert.autoplay':'Auto play отключен в Practice. Решайте Student Check, чтобы открывать следующий AES step.','alert.encryptFirst':'Сначала выполните шифрование.',
     'result.stage':'Проверка результата','result.title':'Проверьте результат шифрования','result.desc':'На этом этапе можно проверить ciphertext из Practice и выполнить decrypt тем же AES-256 ключом.','result.latest':'Последний AES-256 output','result.sub':'Результат обновится после Practice encryption.','result.none':'Ciphertext пока нет. Сначала запустите Practice.','result.key':'Ключ','result.mode':'Режим','result.format':'Формат','result.external':'Не доверяешь мне - проверь там',
     'flow.title':'Один input -> одна полная схема AES раунда','flow.desc':'Введите сообщение и 32-символьный ключ. Перед каждым следующим шагом нужно вычислить небольшое AES значение.','flow.input':'Ваш input','flow.sub':'Введите один раз. Walkthrough покажет AES схему по шагам.','flow.note.html':'Encryption Key Size: <strong>256 Bits</strong> &nbsp;|&nbsp; Encryption Mode: <strong>ECB</strong> &nbsp;|&nbsp; Output format: <strong>HEX</strong>','flow.message':'Сообщение (max 15 chars)','flow.key':'Ключ (32 chars = 256-bit)','flow.encrypt':'Шифровать','flow.randomWord':'Случайное слово','flow.randomKey':'Случайный ключ','flow.clear':'Очистить','flow.empty.html':'Выполните задания выше, затем введите текст и нажмите <strong>Encrypt</strong>.','flow.cipher':'Ciphertext - AES-256 encrypted','flow.decrypted':'Decrypted:',
@@ -669,6 +709,122 @@ const I18N={
     'instruction.default':'Нажимайте Next, чтобы пройти AES course.','instruction.title':'Инструкция','instruction.scheme':'Как вычислять оставшийся AES path:\nRounds 2-13 повторяют SubBytes, ShiftRows, MixColumns, AddRoundKey.\nПример: после Round 1 зеленый маркер проходит этот four-step block еще 12 раз. Round 14 пропускает MixColumns.','instruction.output':'Как сформировать ciphertext:\nПрочитайте final 4x4 state как одну continuous hexadecimal line.\nПример: возьмите каждый byte в display order, уберите spaces и соедините в HEX string.','instruction.input':'Как вычислять plaintext bytes:\nПереведите каждый character в ASCII, затем в hex, затем поставьте в state.\nПример: "{ch}" -> ASCII {dec} -> hex {hex}.','instruction.key':'Как вычислять key bytes:\nКаждый key character становится одним byte. AES-256 требует 32 key characters, потому что 32 bytes x 8 bits = 256 bits.\nПример: K[0] -> {hex}.','instruction.ark':'Как вычислять AddRoundKey:\nИспользуйте один и тот же byte index: state byte XOR round-key byte = result.\nПример [{idx}]: {before} XOR {key} = {after}. Одинаковые bits дают 0, разные bits дают 1.','instruction.sub':'Как вычислять SubBytes:\nИспользуйте S-Box. Первая hex digit - row, вторая - column.\nПример [{idx}]: input {byte}, row {row}, column {col}, output {after}.','instruction.shift':'Как вычислять ShiftRows:\nВращайте каждую row влево на номер этой row.\nПример: row {row} движется влево на {row}, поэтому before [{src}] попадает в after [{dst}].','instruction.mix':'Как вычислять MixColumns:\nКаждый output byte использует все четыре bytes в same column с GF(2^8) multiplication.\nПример: column {col} берет {bytes} и дает output [{idx}] = {after}.'
   }
 };
+Object.assign(I18N.us,{
+  'score.success':'Success','score.max':'Max points','score.mistakes':'Mistakes','score.correct':'Correct checks',
+  'calc.title':'AES Calculator','calc.standard':'Standard','calc.ready':'Ready for AES byte math','calc.history':'History','calc.noHistory':'No calculations yet.',
+  'calc.info':'Text: {plain} chars | Block: 16 bytes | Key: {key}/32 chars = {bits} bits',
+  'calc.xor':'XOR Calculator','calc.xorA':'Matrix / bytes A','calc.xorB':'Matrix / bytes B','calc.xorRun':'XOR bytes','calc.xorEmpty':'Enter hex bytes like 5C or 5C 16 A3.','calc.xorError':'Use valid hex bytes only.'
+});
+Object.assign(I18N.kz,{
+  'score.success':'Жетістік','score.max':'Макс. ұпай','score.mistakes':'Қате','score.correct':'Дұрыс тексеріс',
+  'calc.title':'AES калькулятор','calc.standard':'Стандарт','calc.ready':'AES byte math дайын','calc.history':'Тарих','calc.noHistory':'Әзірге есеп жоқ.',
+  'calc.info':'Мәтін: {plain} таңба | Block: 16 byte | Кілт: {key}/32 таңба = {bits} bit',
+  'calc.xor':'XOR калькулятор','calc.xorA':'1-матрица / bytes','calc.xorB':'2-матрица / bytes','calc.xorRun':'XOR есептеу','calc.xorEmpty':'5C немесе 5C 16 A3 сияқты hex byte енгізіңіз.','calc.xorError':'Тек дұрыс hex byte қолданыңыз.'
+});
+Object.assign(I18N.ru,{
+  'score.success':'Успех','score.max':'Макс. очки','score.mistakes':'Ошибки','score.correct':'Верные проверки',
+  'calc.title':'AES калькулятор','calc.standard':'Стандартный','calc.ready':'Готов к AES byte math','calc.history':'История','calc.noHistory':'Вычислений пока нет.',
+  'calc.info':'Текст: {plain} символов | Блок: 16 bytes | Ключ: {key}/32 символов = {bits} bits',
+  'calc.xor':'XOR калькулятор','calc.xorA':'1-матрица / bytes','calc.xorB':'2-матрица / bytes','calc.xorRun':'Вычислить XOR','calc.xorEmpty':'Введите hex bytes, например 5C или 5C 16 A3.','calc.xorError':'Используйте только корректные hex bytes.'
+});
+Object.assign(I18N.us,{
+  'about.stage':'Theory 1 - AES-256','about.title':'What is AES-256?','about.desc':'AES-256 is the strongest variant of the Advanced Encryption Standard, standardised by NIST in 2001. It uses a 256-bit key and 14 rounds. Used in government, military, banking, and every HTTPS connection worldwide.',
+  'about.c1.l':'Block cipher','about.c1.t':'128-bit blocks','about.c1.p':'Data is arranged into a 4x4 grid of bytes called the <strong>state matrix</strong>. AES transforms this state through 14 rounds of operations.',
+  'about.c2.l':'256-bit key','about.c2.t':'2^256 keys','about.c2.p':'More possibilities than atoms in the observable universe. Brute force is impossible even for all computers on Earth combined.',
+  'about.c3.l':'14 rounds','about.c3.t':'Nr = Nk + 6','about.c3.p':'AES-256 has Nk=8 key words, so rounds = 8+6 = <strong>14</strong>. Each round applies 4 different operations with a unique round key.',
+  'about.c4.l':'Symmetric','about.c4.t':'Same key both ways','about.c4.p':'The exact same 256-bit key encrypts and decrypts. AES-256 provides 128-bit post-quantum security against Grover algorithm.',
+  'about.table.property':'Property','about.table.key':'Key size','about.table.rounds':'Rounds','about.table.roundkeys':'Round keys','about.table.space':'Key space','about.table.quantum':'Post-quantum','about.note.html':'<strong>Why 256 bits?</strong> AES-128 is already unbreakable today. AES-256 adds an extra 128-bit safety margin for future quantum computers.',
+  'key.stage':'Theory 2 - Key Expansion','key.title':'Key Schedule: 32 bytes -> 15 round keys','key.desc':'AES never uses the same key twice. Your 32-byte secret expands into 15 unique round keys. Click each stage.','key.explain.html':'<strong>Original Key (256 bits):</strong> Your 32-byte secret split into 8 words W[0]-W[7]. These form Round Key 0 directly.',
+  'sbox.stage':'Theory 3 - S-Box','sbox.title':'AES S-Box - Full Lookup Table','sbox.desc':'SubBytes replaces every byte using this 16x16 table. High nibble = row, low nibble = column. Left click marks the intersection; right click shows row and column near the mouse.','sbox.note.html':'<strong>Example:</strong> Byte 0x53 -> row 5, col 3 -> S-Box[5][3] = <strong>0xED</strong>.',
+  'round.stage':'Theory 4 - Round Structure','round.title':'AES-256: 14 Rounds - Why and How','round.desc':'Formula: Rounds = Key words + 6 = 8 + 6 = 14. Each round mixes the data further.','round.all':'All 14 rounds','round.animate':'Animate','round.why.html':'<strong>Why 14?</strong> Rule: Rounds = Key words + 6 = 8+6 = <strong>14</strong>. More key bits -> more rounds -> harder to reverse.',
+  'practice.stage':'Practice - Solve It Yourself','practice.title':'Interactive Tasks','practice.desc':'Complete these tasks before watching the full encryption. You solve the first few bytes manually, then the computer finishes the rest.',
+  'practice.t1.label':'Task 1 of 4 - ASCII Conversion','practice.t1.q':'Convert the first 3 characters of "Hello" to hexadecimal','practice.t1.h':'AES works on bytes, not letters. Every character has an ASCII code. Convert it to hex.',
+  'practice.t2.label':'Task 2 of 4 - XOR Operation','practice.t2.q':'Calculate XOR - the core of AddRoundKey','practice.t2.h':'XOR compares bits one by one: same bits give 0, different bits give 1.',
+  'practice.t3.label':'Task 3 of 4 - S-Box SubBytes','practice.t3.q':'Look up two bytes in the S-Box','practice.t3.h':'Split the byte into two hex digits: first digit is row, second digit is column.',
+  'practice.t4.label':'Task 4 of 4 - ShiftRows','practice.t4.q':'Apply ShiftRows: rotate Row 1 left by 1 position','practice.t4.h':'ShiftRows rotates each row cyclically left. Row 0 stays, row 1 shifts by 1, row 2 by 2, row 3 by 3.',
+  'practice.done':'All 4 tasks done? Now use your own input in Practice. The site will teach one complete AES round scheme.',
+  'team.stage':'Narxoz University - Final Project','team.title':'Project Team','team.desc':'Topic 1: AES-256 Encryption + Key Generation. Final Examination - Cryptographic Primitives, 2025-2026.','team.acad.html':'<strong>Academic Declaration:</strong> Created independently by students of Narxoz University for the Final Examination, Cryptographic Primitives course, 2025-2026. AES-256 follows NIST FIPS-197.','footer.html':'<strong>AES-256 Learning Platform</strong><br>Narxoz University . Cryptographic Primitives . 2025-2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 . Topic 1: AES-256 + Key Generation</span>'
+});
+Object.assign(I18N.kz,{
+  'about.stage':'Теория 1 - AES-256','about.title':'AES-256 деген не?','about.desc':'AES-256 - Advanced Encryption Standard алгоритмінің ең күшті нұсқасы. Ол 256-bit кілт және 14 раунд қолданады.',
+  'about.c1.l':'Block cipher','about.c1.t':'128-bit блоктар','about.c1.p':'Дерек byte-тардан тұратын 4x4 торға, яғни <strong>state matrix</strong> ішіне орналасады.',
+  'about.c2.l':'256-bit кілт','about.c2.t':'2^256 кілт','about.c2.p':'Мүмкін кілт саны өте көп, brute force арқылы бұзу іс жүзінде мүмкін емес.',
+  'about.c3.l':'14 раунд','about.c3.t':'Nr = Nk + 6','about.c3.p':'AES-256 үшін Nk=8, сондықтан раунд саны 8+6 = <strong>14</strong>.',
+  'about.c4.l':'Symmetric','about.c4.t':'Бір кілт екі бағытта','about.c4.p':'Бір 256-bit кілт шифрлауға да, decrypt жасауға да қолданылады.',
+  'about.table.property':'Қасиет','about.table.key':'Кілт өлшемі','about.table.rounds':'Раундтар','about.table.roundkeys':'Раунд кілттері','about.table.space':'Кілт кеңістігі','about.table.quantum':'Post-quantum','about.note.html':'<strong>Неге 256 bit?</strong> AES-256 болашақ quantum шабуылдарына қарсы қосымша қауіпсіздік қорын береді.',
+  'key.stage':'Теория 2 - Key Expansion','key.title':'Key Schedule: 32 byte -> 15 round key','key.desc':'AES бір кілтті тура қайталамайды. 32-byte құпия 15 бөлек round key болып кеңейеді.','key.explain.html':'<strong>Original Key (256 bits):</strong> 32-byte құпия W[0]-W[7] сөздеріне бөлінеді.',
+  'sbox.stage':'Теория 3 - S-Box','sbox.title':'AES S-Box - толық lookup table','sbox.desc':'SubBytes әр byte мәнін 16x16 кесте арқылы ауыстырады. Сол жақ click intersection қояды, оң жақ click row және column көрсетеді.','sbox.note.html':'<strong>Мысал:</strong> Byte 0x53 -> row 5, col 3 -> S-Box[5][3] = <strong>0xED</strong>.',
+  'round.stage':'Теория 4 - Раунд құрылымы','round.title':'AES-256: 14 раунд - неге және қалай','round.desc':'Формула: Rounds = Key words + 6 = 8 + 6 = 14. Әр раунд деректі көбірек араластырады.','round.all':'Барлық 14 раунд','round.animate':'Анимация','round.why.html':'<strong>Неге 14?</strong> Ереже: Rounds = Key words + 6 = 8+6 = <strong>14</strong>.',
+  'practice.stage':'Практика - өзіңіз шешіңіз','practice.title':'Интерактивті тапсырмалар','practice.desc':'Толық шифрлауды көрмей тұрып осы тапсырмаларды орындаңыз. Алдымен бірнеше byte-ты өзіңіз есептейсіз.',
+  'practice.t1.label':'1/4 тапсырма - ASCII conversion','practice.t1.q':'"Hello" сөзінің алғашқы 3 таңбасын hexadecimal түріне ауыстырыңыз','practice.t1.h':'AES әріптермен емес, byte-пен жұмыс істейді. Әр таңбаның ASCII коды бар.',
+  'practice.t2.label':'2/4 тапсырма - XOR operation','practice.t2.q':'XOR есептеңіз - AddRoundKey негізі','practice.t2.h':'XOR bit-терді салыстырады: бірдей болса 0, әртүрлі болса 1.',
+  'practice.t3.label':'3/4 тапсырма - S-Box SubBytes','practice.t3.q':'S-Box ішінен екі byte табыңыз','practice.t3.h':'Byte екі hex digit-ке бөлінеді: біріншісі row, екіншісі column.',
+  'practice.t4.label':'4/4 тапсырма - ShiftRows','practice.t4.q':'ShiftRows орындаңыз: Row 1 мәнін 1 орынға солға жылжытыңыз','practice.t4.h':'ShiftRows әр row-ды циклдік түрде солға жылжытады.',
+  'practice.done':'4 тапсырма бітті ме? Енді Practice ішінде өз input мәніңізді қолданыңыз.',
+  'team.stage':'Narxoz University - Final Project','team.title':'Жоба тобы','team.desc':'Topic 1: AES-256 Encryption + Key Generation. Final Examination - Cryptographic Primitives, 2025-2026.','team.acad.html':'<strong>Academic Declaration:</strong> Narxoz University студенттері Final Examination үшін өздері жасаған. AES-256 NIST FIPS-197 стандартына сүйенеді.','footer.html':'<strong>AES-256 Learning Platform</strong><br>Narxoz University . Cryptographic Primitives . 2025-2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 . Topic 1: AES-256 + Key Generation</span>'
+});
+Object.assign(I18N.ru,{
+  'about.stage':'Теория 1 - AES-256','about.title':'Что такое AES-256?','about.desc':'AES-256 - самый сильный вариант Advanced Encryption Standard. Он использует 256-bit ключ и 14 раундов.',
+  'about.c1.l':'Block cipher','about.c1.t':'128-bit блоки','about.c1.p':'Данные помещаются в сетку 4x4 из bytes, которая называется <strong>state matrix</strong>.',
+  'about.c2.l':'256-bit ключ','about.c2.t':'2^256 ключей','about.c2.p':'Возможных ключей настолько много, что brute force практически невозможен.',
+  'about.c3.l':'14 раундов','about.c3.t':'Nr = Nk + 6','about.c3.p':'Для AES-256 Nk=8, поэтому число раундов равно 8+6 = <strong>14</strong>.',
+  'about.c4.l':'Symmetric','about.c4.t':'Один ключ в обе стороны','about.c4.p':'Один и тот же 256-bit ключ используется для encryption и decrypt.',
+  'about.table.property':'Свойство','about.table.key':'Размер ключа','about.table.rounds':'Раунды','about.table.roundkeys':'Раундовые ключи','about.table.space':'Пространство ключей','about.table.quantum':'Post-quantum','about.note.html':'<strong>Почему 256 bit?</strong> AES-256 дает дополнительный запас безопасности против будущих quantum атак.',
+  'key.stage':'Теория 2 - Key Expansion','key.title':'Key Schedule: 32 bytes -> 15 round keys','key.desc':'AES не использует один и тот же ключ напрямую. 32-byte секрет расширяется в 15 разных round keys.','key.explain.html':'<strong>Original Key (256 bits):</strong> 32-byte секрет делится на слова W[0]-W[7].',
+  'sbox.stage':'Теория 3 - S-Box','sbox.title':'AES S-Box - полная lookup table','sbox.desc':'SubBytes заменяет каждый byte через таблицу 16x16. Левый click ставит intersection, правый click показывает row и column.','sbox.note.html':'<strong>Пример:</strong> Byte 0x53 -> row 5, col 3 -> S-Box[5][3] = <strong>0xED</strong>.',
+  'round.stage':'Теория 4 - Структура раундов','round.title':'AES-256: 14 раундов - почему и как','round.desc':'Формула: Rounds = Key words + 6 = 8 + 6 = 14. Каждый раунд сильнее перемешивает данные.','round.all':'Все 14 раундов','round.animate':'Анимировать','round.why.html':'<strong>Почему 14?</strong> Правило: Rounds = Key words + 6 = 8+6 = <strong>14</strong>.',
+  'practice.stage':'Практика - решите сами','practice.title':'Интерактивные задания','practice.desc':'Выполните задания перед полным шифрованием. Сначала вы вручную считаете несколько bytes.',
+  'practice.t1.label':'Задание 1 из 4 - ASCII conversion','practice.t1.q':'Переведите первые 3 символа "Hello" в hexadecimal','practice.t1.h':'AES работает с bytes, а не с буквами. У каждого символа есть ASCII код.',
+  'practice.t2.label':'Задание 2 из 4 - XOR operation','practice.t2.q':'Вычислите XOR - основу AddRoundKey','practice.t2.h':'XOR сравнивает bits: одинаковые дают 0, разные дают 1.',
+  'practice.t3.label':'Задание 3 из 4 - S-Box SubBytes','practice.t3.q':'Найдите два bytes в S-Box','practice.t3.h':'Разделите byte на две hex digits: первая дает row, вторая column.',
+  'practice.t4.label':'Задание 4 из 4 - ShiftRows','practice.t4.q':'Выполните ShiftRows: сдвиньте Row 1 влево на 1 позицию','practice.t4.h':'ShiftRows циклически сдвигает каждую row влево.',
+  'practice.done':'Все 4 задания выполнены? Теперь используйте свой input в Practice.',
+  'team.stage':'Narxoz University - Final Project','team.title':'Команда проекта','team.desc':'Topic 1: AES-256 Encryption + Key Generation. Final Examination - Cryptographic Primitives, 2025-2026.','team.acad.html':'<strong>Academic Declaration:</strong> Создано студентами Narxoz University для Final Examination. AES-256 следует NIST FIPS-197.','footer.html':'<strong>AES-256 Learning Platform</strong><br>Narxoz University . Cryptographic Primitives . 2025-2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 . Topic 1: AES-256 + Key Generation</span>'
+});
+const KEY_SCHEDULE_TEXT={
+  us:kst,
+  kz:[
+    '<strong>Original Key (256 bits = 32 bytes):</strong> 32-byte құпия W[0]-W[7] болып бөлінеді. Олар Round Key 0 жасайды.',
+    '<strong>W[0..7] - Round Key 0:</strong> Алғашқы 8 word бастапқы кілттен алынады және plaintext-пен XOR жасалады.',
+    '<strong>RotWord:</strong> Соңғы word 1 byte солға айналады: [a0,a1,a2,a3]->[a1,a2,a3,a0].',
+    '<strong>SubWord:</strong> RotWord ішіндегі 4 byte AES S-Box арқылы ауысады. Бұл non-linearity береді.',
+    '<strong>XOR with Rcon:</strong> Бірінші byte round constant-пен XOR жасалады, сондықтан key schedule әр раундта өзгеше болады.',
+    '<strong>Extra SubWord (тек AES-256):</strong> Word index mod 8 = 4 болғанда қосымша SubWord қолданылады.',
+    '<strong>W[8..15] - Round Key 1:</strong> W[8]=W[0] XOR temp, W[9]=W[1] XOR W[8] формуласы жалғасады.',
+    '<strong>W[56..59] - Round Key 14:</strong> Соңғы round key. Барлығы 60 word және 15 round key дайын болады.'
+  ],
+  ru:[
+    '<strong>Original Key (256 bits = 32 bytes):</strong> 32-byte секрет делится на W[0]-W[7]. Они сразу образуют Round Key 0.',
+    '<strong>W[0..7] - Round Key 0:</strong> Первые 8 words берутся из исходного ключа и XOR-ятся с plaintext.',
+    '<strong>RotWord:</strong> Последнее word вращается влево на 1 byte: [a0,a1,a2,a3]->[a1,a2,a3,a0].',
+    '<strong>SubWord:</strong> 4 bytes проходят через AES S-Box. Это добавляет non-linearity.',
+    '<strong>XOR with Rcon:</strong> Первый byte XOR-ится с round constant, чтобы ключи раундов отличались.',
+    '<strong>Extra SubWord (только AES-256):</strong> Когда word index mod 8 = 4, применяется дополнительный SubWord.',
+    '<strong>W[8..15] - Round Key 1:</strong> W[8]=W[0] XOR temp, W[9]=W[1] XOR W[8], и процесс продолжается.',
+    '<strong>W[56..59] - Round Key 14:</strong> Финальный round key. Всего получается 60 words и 15 round keys.'
+  ]
+};
+Object.assign(I18N.us,{
+  'practice.ascii':'Show ASCII Table (hint)','practice.ascii.title':'ASCII Table - Character to Number','practice.ascii.desc':'Each character = decimal number = hex. Example: H = 72 = 0x48',
+  'practice.t1.ok':'Correct! H=0x48, e=0x65, l=0x6C. AES stores every character as its hex byte.','practice.t1.no':'Not quite. H = ASCII 72. 72 in hex is 0x48. Use the table above and look up each character.',
+  'practice.t2.ok':'Correct! 0x48 XOR 0x49 = 0x01, and 0x65 XOR 0xA0 = 0xC5. XOR also undoes itself.','practice.t2.no':'Not quite. For each bit pair: same=0, different=1. 01001000 XOR 01001001 = 00000001.',
+  'practice.t3.ok':'Correct! S-Box[1][9] = 0xD4 and S-Box[A][0] = 0xE0.','practice.t3.no':'Not quite. Find row 1x and column x9 in the S-Box table. That cell is the answer for 0x19.',
+  'practice.t4.ok':'Correct! [27 BF B4 41] shifted left by 1 becomes [BF B4 41 27].','practice.t4.no':'Not quite. Shift left by 1 means [a b c d] -> [b c d a].'
+});
+Object.assign(I18N.kz,{
+  'practice.ascii':'ASCII кестесін көрсету (көмек)','practice.ascii.title':'ASCII кесте - таңбадан санға','practice.ascii.desc':'Әр таңба = decimal сан = hex. Мысал: H = 72 = 0x48',
+  'practice.t1.ok':'Дұрыс! H=0x48, e=0x65, l=0x6C. AES әр таңбаны hex byte ретінде сақтайды.','practice.t1.no':'Әлі дұрыс емес. H = ASCII 72, ал 72 hex түрінде 0x48. Кестені қолданыңыз.',
+  'practice.t2.ok':'Дұрыс! 0x48 XOR 0x49 = 0x01, ал 0x65 XOR 0xA0 = 0xC5. XOR өзін қайта қайтарады.','practice.t2.no':'Әлі дұрыс емес. Бірдей bit -> 0, әртүрлі bit -> 1. 01001000 XOR 01001001 = 00000001.',
+  'practice.t3.ok':'Дұрыс! S-Box[1][9] = 0xD4 және S-Box[A][0] = 0xE0.','practice.t3.no':'Әлі дұрыс емес. S-Box кестесінен row 1x және column x9 табыңыз.',
+  'practice.t4.ok':'Дұрыс! [27 BF B4 41] солға 1 орын жылжыса [BF B4 41 27] болады.','practice.t4.no':'Әлі дұрыс емес. Солға 1 shift: [a b c d] -> [b c d a].'
+});
+Object.assign(I18N.ru,{
+  'practice.ascii':'Показать ASCII таблицу (подсказка)','practice.ascii.title':'ASCII таблица - символ в число','practice.ascii.desc':'Каждый символ = decimal число = hex. Пример: H = 72 = 0x48',
+  'practice.t1.ok':'Верно! H=0x48, e=0x65, l=0x6C. AES хранит каждый символ как hex byte.','practice.t1.no':'Пока нет. H = ASCII 72, а 72 в hex это 0x48. Используйте таблицу.',
+  'practice.t2.ok':'Верно! 0x48 XOR 0x49 = 0x01, а 0x65 XOR 0xA0 = 0xC5. XOR также сам себя отменяет.','practice.t2.no':'Пока нет. Одинаковые bits дают 0, разные bits дают 1. 01001000 XOR 01001001 = 00000001.',
+  'practice.t3.ok':'Верно! S-Box[1][9] = 0xD4 и S-Box[A][0] = 0xE0.','practice.t3.no':'Пока нет. Найдите row 1x и column x9 в таблице S-Box.',
+  'practice.t4.ok':'Верно! [27 BF B4 41] со сдвигом влево на 1 становится [BF B4 41 27].','practice.t4.no':'Пока нет. Сдвиг влево на 1: [a b c d] -> [b c d a].'
+});
 const AES_SIDE_CARDS={
   interesting:[
     'AES is not hiding letters one by one. One changed bit spreads through the state until the ciphertext looks unrelated to the message.',
@@ -748,10 +904,30 @@ const STATIC_I18N=[
   ['#result-sec .result-meta div:nth-child(1) span','result.key'],
   ['#result-sec .result-meta div:nth-child(2) span','result.mode'],
   ['#result-sec .result-meta div:nth-child(3) span','result.format'],
-  ['#result-sec .btn-p','btn.backPractice'],
-  ['#result-sec .btn-o:nth-of-type(1)','btn.decrypt'],
-  ['#result-sec a.btn-o','result.external'],
-  ['#result-sec .btn-o:nth-of-type(2)','btn.map']
+  ['#result-back-btn','btn.backPractice'],
+  ['#result-decrypt-btn','btn.decrypt'],
+  ['#result-external-link','result.external'],
+  ['#result-map-btn','btn.map']
+];
+STATIC_I18N.push(
+  ['#about .stag','about.stage'],['#about .sh','about.title'],['#about .sd','about.desc'],
+  ['#about .ac:nth-child(1) .aclbl','about.c1.l'],['#about .ac:nth-child(1) h3','about.c1.t'],['#about .ac:nth-child(1) p','about.c1.p','html'],
+  ['#about .ac:nth-child(2) .aclbl','about.c2.l'],['#about .ac:nth-child(2) h3','about.c2.t'],['#about .ac:nth-child(2) p','about.c2.p','html'],
+  ['#about .ac:nth-child(3) .aclbl','about.c3.l'],['#about .ac:nth-child(3) h3','about.c3.t'],['#about .ac:nth-child(3) p','about.c3.p','html'],
+  ['#about .ac:nth-child(4) .aclbl','about.c4.l'],['#about .ac:nth-child(4) h3','about.c4.t'],['#about .ac:nth-child(4) p','about.c4.p','html'],
+  ['#about .ctbl thead th:nth-child(1)','about.table.property'],['#about .ctbl tbody tr:nth-child(1) td:nth-child(1)','about.table.key'],['#about .ctbl tbody tr:nth-child(2) td:nth-child(1)','about.table.rounds'],['#about .ctbl tbody tr:nth-child(3) td:nth-child(1)','about.table.roundkeys'],['#about .ctbl tbody tr:nth-child(4) td:nth-child(1)','about.table.space'],['#about .ctbl tbody tr:nth-child(5) td:nth-child(1)','about.table.quantum'],['#about .ibox','about.note.html','html'],
+  ['#keygen .stag','key.stage'],['#keygen .sh','key.title'],['#keygen .sd','key.desc'],['#ksex','key.explain.html','html'],
+  ['#sbox-sec .stag','sbox.stage'],['#sbox-sec .sh','sbox.title'],['#sbox-sec .sd','sbox.desc'],['#sbox-sec .ibox','sbox.note.html','html'],
+  ['#rnd-sec .stag','round.stage'],['#rnd-sec .sh','round.title'],['#rnd-sec .sd','round.desc'],['#rnd-sec .rdbig > div:first-child','round.all'],['#rnd-sec .rdbig button','round.animate'],['#rnd-sec .rdbig > div:last-child','round.why.html','html'],
+  ['#prac-sec .stag','practice.stage'],['#prac-sec .sh','practice.title'],['#prac-sec .sd','practice.desc'],
+  ['#t1 .task-q','practice.t1.q'],['#t1 .task-hint','practice.t1.h'],['#t2 .task-q','practice.t2.q'],['#t2 .task-hint','practice.t2.h'],['#t3 .task-q','practice.t3.q'],['#t3 .task-hint','practice.t3.h'],['#t4 .task-q','practice.t4.q'],['#t4 .task-hint','practice.t4.h'],
+  ['#ah1','practice.ascii'],['#ap1 h4','practice.ascii.title'],['#ap1 p','practice.ascii.desc'],
+  ['#t1ok','practice.t1.ok'],['#t1no','practice.t1.no'],['#t2ok','practice.t2.ok'],['#t2no','practice.t2.no'],['#t3ok','practice.t3.ok'],['#t3no','practice.t3.no'],['#t4ok','practice.t4.ok'],['#t4no','practice.t4.no'],
+  ['#prac-sec .chk-btn','btn.check'],['#prac-sec .rvl-btn','student.showAnswer'],['#prac-sec > .sec > .ibox','practice.done'],
+  ['#team .stag','team.stage'],['#team .sh','team.title'],['#team .sd','team.desc'],['#team .acad','team.acad.html','html'],['footer','footer.html','html']
+);
+const STATIC_ATTR_I18N=[
+  ['#t1','data-label','practice.t1.label'],['#t2','data-label','practice.t2.label'],['#t3','data-label','practice.t3.label'],['#t4','data-label','practice.t4.label']
 ];
 
 function t(key,vars={}){
@@ -765,6 +941,9 @@ function applyStaticTranslations(){
       if(mode==='html')el.innerHTML=t(key);
       else el.textContent=t(key);
     });
+  });
+  STATIC_ATTR_I18N.forEach(([sel,attr,key])=>{
+    document.querySelectorAll(sel).forEach(el=>el.setAttribute(attr,t(key)));
   });
   const pLabel=document.querySelector('#flow-sec .fg:nth-child(1) label');
   const kLabel=document.querySelector('#flow-sec .fg:nth-child(2) label');
@@ -795,7 +974,7 @@ function applyDynamicTranslations(){
   const speedLabel=document.getElementById('player-speed-label');if(speedLabel)speedLabel.textContent=t('settings.speed');
   const playerSpeed=document.getElementById('player-speed');
   if(playerSpeed){
-    const keys=['settings.slow','settings.default','settings.fast','settings.faster'];
+    const keys=['settings.slow','settings.default','settings.fast'];
     [...playerSpeed.options].forEach((opt,i)=>opt.textContent=t(keys[i]||'settings.default'));
   }
   const aiBtn=document.querySelector('.ai-helper-btn span:last-child');if(aiBtn)aiBtn.textContent=t('ai.button');
@@ -807,10 +986,20 @@ function applyDynamicTranslations(){
   if(quick[0])quick[0].textContent=t('ai.quick.step');
   if(quick[1])quick[1].textContent=t('ai.quick.hint');
   if(quick[2])quick[2].textContent=t('ai.quick.key');
+  const dynIds={
+    'calc-title':'calc.title','calc-standard-label':'calc.standard','calc-history-label':'calc.history',
+    'xor-tool-label':'calc.xor','xor-a-label':'calc.xorA','xor-b-label':'calc.xorB','xor-run-btn':'calc.xorRun'
+  };
+  Object.entries(dynIds).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
   const firstBot=document.querySelector('#ai-chat-log .ai-msg.bot:first-child');
   if(firstBot&&firstBot.dataset.seed!=='custom'){firstBot.textContent=t('ai.hello');firstBot.dataset.seed='custom';}
   updateSettingsLabels();
   updateSideInstruction(steps[curIdx]);
+  updateScoreHud();
+  updateCalcDisplay();
+  renderCalcHistory();
+  syncAesCalculator();
+  syncResultPanel();
 }
 function applyTranslations(){
   document.documentElement.lang=siteSettings.lang==='kz'?'kk':siteSettings.lang==='ru'?'ru':'en';
@@ -824,20 +1013,34 @@ function loadSettings(){
   try{
     const saved=JSON.parse(localStorage.getItem('aesLearnSettings')||'{}');
     siteSettings=Object.assign(siteSettings,saved);
+    siteSettings.speed=normalizeSpeed(siteSettings.speed);
   }catch(err){}
+}
+function normalizeSpeed(value){
+  if(value==='slow'||value==='medium'||value==='fast')return value;
+  const n=Number(value);
+  if(!Number.isFinite(n))return 'medium';
+  if(n<=.6)return 'slow';
+  if(n<=1.4)return 'medium';
+  return 'fast';
+}
+function speedDelay(){
+  return {slow:5000,medium:3000,fast:1000}[normalizeSpeed(siteSettings.speed)]||3000;
 }
 function applySettings(){
   document.body.classList.toggle('theme-night',siteSettings.theme==='night');
   document.body.classList.toggle('high-contrast',!!siteSettings.contrast);
+  siteSettings.speed=normalizeSpeed(siteSettings.speed);
+  const delay=speedDelay();
   document.documentElement.style.setProperty('--font-scale',String((siteSettings.font||100)/100));
-  document.documentElement.style.setProperty('--scheme-speed',`${Math.max(1.8,5.6/(siteSettings.speed||1))}s`);
-  document.documentElement.style.setProperty('--flip-speed',`${Math.max(.12,.36/(siteSettings.speed||1))}s`);
+  document.documentElement.style.setProperty('--scheme-speed',`${delay/1000}s`);
+  document.documentElement.style.setProperty('--flip-speed','.28s');
   updateSettingsControls();
   applyTranslations();
 }
 function setSiteSetting(key,value){
   if(key==='font')value=Number(value)||100;
-  if(key==='speed')value=Number(value)||1;
+  if(key==='speed')value=normalizeSpeed(value);
   if(key==='contrast')value=!!value;
   siteSettings[key]=value;
   saveSettings();
@@ -845,7 +1048,7 @@ function setSiteSetting(key,value){
   if(key==='lang'&&steps.length)rebuildLocalizedSteps();
 }
 function animDelay(ms){
-  return Math.max(25,Math.round(ms/(siteSettings.speed||1)));
+  return speedDelay();
 }
 function rebuildLocalizedSteps(){
   const p=document.getElementById('pIn'),k=document.getElementById('kIn');
@@ -867,7 +1070,7 @@ function createSettingsPanel(){
     <label><span id="settings-theme-label"></span><select id="setting-theme" onchange="setSiteSetting('theme',this.value)"><option value="light" id="setting-theme-light"></option><option value="night" id="setting-theme-night"></option></select></label>
     <label><span id="settings-font-label"></span><input id="setting-font" type="range" min="85" max="125" step="5" oninput="setSiteSetting('font',this.value)"><output id="setting-font-value"></output></label>
     <label><span id="settings-contrast-label"></span><input id="setting-contrast" type="checkbox" onchange="setSiteSetting('contrast',this.checked)"></label>
-    <label><span id="settings-speed-label"></span><select id="setting-speed" onchange="setSiteSetting('speed',this.value)"><option value=".6" id="speed-slow"></option><option value="1" id="speed-default"></option><option value="1.6" id="speed-fast"></option><option value="2.4" id="speed-faster"></option></select></label>
+    <label><span id="settings-speed-label"></span><select id="setting-speed" onchange="setSiteSetting('speed',this.value)"><option value="slow" id="speed-slow"></option><option value="medium" id="speed-default"></option><option value="fast" id="speed-fast"></option></select></label>
     <button class="btn-p settings-replay" onclick="replayCurrentAnimation()" id="settings-replay"></button>
   </div>`;
   document.body.appendChild(panel);
@@ -877,7 +1080,7 @@ function updateSettingsLabels(){
     'settings-title':'settings.title','settings-lang-label':'settings.lang','settings-theme-label':'settings.theme','settings-font-label':'settings.font',
     'settings-contrast-label':'settings.contrast','settings-speed-label':'settings.speed','settings-replay':'settings.replay',
     'setting-theme-light':'settings.light','setting-theme-night':'settings.night','speed-slow':'settings.slow','speed-default':'settings.default',
-    'speed-fast':'settings.fast','speed-faster':'settings.faster'
+    'speed-fast':'settings.fast'
   };
   Object.entries(ids).forEach(([id,key])=>{const el=document.getElementById(id);if(el)el.textContent=t(key);});
 }
@@ -899,6 +1102,80 @@ function toggleSettingsPanel(force){
 function replayCurrentAnimation(){
   if(steps.length&&steps[curIdx])renderStep(curIdx);
   else animRounds();
+}
+
+function resetPracticeScore(){
+  practiceScore=0;
+  scoredChallenges.clear();
+  challengeAttempts.clear();
+  updateScoreHud();
+}
+function updateScoreHud(){
+  const score=document.getElementById('practice-score-value');
+  const attempts=document.getElementById('practice-attempts-value');
+  const label=document.getElementById('practice-score-label');
+  const attemptLabel=document.getElementById('practice-attempts-label');
+  const wrong=challengeAttempts.get(curIdx)||0;
+  const currentSolved=solvedChallenges.has(curIdx);
+  const currentCorrect=scoredChallenges.has(curIdx);
+  const currentAttempts=currentSolved?(wrong>=3&&!currentCorrect?3:wrong+1):wrong;
+  if(score)score.textContent=String(practiceScore);
+  if(attempts)attempts.textContent=steps[curIdx]&&steps[curIdx].challenge?`${currentAttempts}/3`:'-';
+  if(label)label.textContent=t('score.points');
+  if(attemptLabel)attemptLabel.textContent=t('score.attempts');
+}
+function challengeSkill(s){
+  if(!s)return t('score.skill.general');
+  if(s.skill)return s.skill;
+  if(s.isINPUT)return t('score.skill.input');
+  if(s.isKEY)return t('score.skill.key');
+  if(s.isARK)return t('score.skill.xor');
+  if(s.isSUB)return t('score.skill.sbox');
+  if(s.isSH)return t('score.skill.shift');
+  if(s.isMX)return t('score.skill.mix');
+  if(s.schemeStep)return t('score.skill.rounds');
+  return t('score.skill.general');
+}
+function scoreSummary(){
+  const challengeSteps=steps.map((s,i)=>({s,i})).filter(x=>x.s.challenge);
+  const maxScore=challengeSteps.length*30;
+  const totalAttempts=challengeSteps.reduce((sum,x)=>{
+    const mistakes=challengeAttempts.get(x.i)||0;
+    const solved=solvedChallenges.has(x.i);
+    const correct=scoredChallenges.has(x.i);
+    return sum+(solved?(mistakes>=3&&!correct?3:mistakes+1):mistakes);
+  },0);
+  const mistakes=challengeSteps.reduce((sum,x)=>sum+(challengeAttempts.get(x.i)||0),0);
+  const correct=challengeSteps.filter(x=>scoredChallenges.has(x.i)).length;
+  const percent=maxScore?Math.max(0,Math.min(100,Math.round((practiceScore/maxScore)*100))):0;
+  const weak=challengeSteps
+    .map(x=>{
+      const wrong=challengeAttempts.get(x.i)||0;
+      const correctHere=scoredChallenges.has(x.i);
+      const solved=solvedChallenges.has(x.i);
+      const attempts=solved?(wrong>=3&&!correctHere?3:wrong+1):wrong;
+      return {idx:x.i,skill:challengeSkill(x.s),attempts,mistakes:wrong};
+    })
+    .sort((a,b)=>b.mistakes-a.mistakes||b.attempts-a.attempts)[0];
+  const weakText=weak&&weak.mistakes>0?t('score.weakDetail',{skill:weak.skill,attempts:weak.attempts}):t('score.weakNone');
+  return {totalAttempts,mistakes,correct,maxScore,percent,weakText};
+}
+function renderPracticeSummary(){
+  const sum=scoreSummary();
+  const tone=sum.percent>=80?'good':sum.percent>=50?'mid':'low';
+  return `<div class="practice-summary ${tone}">
+    <div class="summary-gauge" style="--angle:${sum.percent*1.8}deg">
+      <div class="gauge-center"><strong>${sum.percent}%</strong><span>${t('score.success')}</span></div>
+    </div>
+    <div class="summary-stats">
+      <div><span>${t('score.final')}</span><strong>${practiceScore}</strong></div>
+      <div><span>${t('score.max')}</span><strong>${sum.maxScore}</strong></div>
+      <div><span>${t('score.correct')}</span><strong>${sum.correct}</strong></div>
+      <div><span>${t('score.mistakes')}</span><strong>${sum.mistakes}</strong></div>
+      <div><span>${t('score.totalAttempts')}</span><strong>${sum.totalAttempts}</strong></div>
+      <p>${sum.weakText}</p>
+    </div>
+  </div>`;
 }
 
 function hexCompact(bytes){
@@ -927,10 +1204,10 @@ function createResultSection(){
       </div>
       <div class="out-val" id="result-cipher">${t('result.none')}</div>
       <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn-p" onclick="navigateToStage('encrypt')">${t('btn.backPractice')}</button>
-        <button class="btn-o" onclick="runDec();syncResultPanel()">${t('btn.decrypt')}</button>
-        <a class="btn-o" href="https://anycript.com/crypto" target="_blank" rel="noopener">${t('result.external')}</a>
-        <button class="btn-o" onclick="openAesMap()">${t('btn.map')}</button>
+        <button class="btn-p" id="result-back-btn" onclick="navigateToStage('encrypt')">${t('btn.backPractice')}</button>
+        <button class="btn-o" id="result-decrypt-btn" onclick="runDec();syncResultPanel()">${t('btn.decrypt')}</button>
+        <a class="btn-o" id="result-external-link" href="https://anycript.com/crypto" target="_blank" rel="noopener">${t('result.external')}</a>
+        <button class="btn-o" id="result-map-btn" onclick="openAesMap()">${t('btn.map')}</button>
       </div>
       <div class="dec-box" id="result-dec-box" style="display:none"><strong>${t('flow.decrypted')}</strong> <span id="result-dec-txt">-</span></div>
     </div>
@@ -1060,10 +1337,10 @@ function createSideTools(){
   const left=document.createElement('aside');
   left.className='stage-tools left';
   left.id='tool-left';
-  left.innerHTML=`<button class="tool-pin" onclick="toggleToolPin('tool-left')" aria-label="Pin AES calculator"><span class="pin-icon"></span></button><div class="tool-title">AES Calculator</div>
+  left.innerHTML=`<button class="tool-pin" onclick="toggleToolPin('tool-left')" aria-label="Pin AES calculator"><span class="pin-icon"></span></button><div class="tool-title" id="calc-title">${t('calc.title')}</div>
     <div class="aes-calc">
-      <div class="calc-top"><span>Standard</span><button type="button" onclick="syncAesCalculator()">AES</button></div>
-      <div class="calc-sub" id="calc-mini">Ready for AES byte math</div>
+      <div class="calc-top"><span id="calc-standard-label">${t('calc.standard')}</span><button type="button" onclick="syncAesCalculator()">AES</button></div>
+      <div class="calc-sub" id="calc-mini">${t('calc.ready')}</div>
       <div class="calc-screen" id="calc-result">0</div>
       <div class="calc-memory"><span>MC</span><span>MR</span><span>M+</span><span>M-</span><span>MS</span></div>
       <div class="calc-pad">
@@ -1075,7 +1352,14 @@ function createSideTools(){
         <button onclick="calcToggleSign()">+/-</button><button onclick="calcPress('0')">0</button><button onclick="calcPress('.')">.</button><button class="equals" onclick="runCalculator()">=</button>
       </div>
     </div>
-    <div class="tool-card"><label>History</label><div class="calc-history" id="calc-history"></div></div>`;
+    <div class="tool-note" id="aes-calc-info"></div>
+    <div class="tool-card xor-tool"><label id="xor-tool-label">${t('calc.xor')}</label>
+      <label id="xor-a-label" class="sub-label">${t('calc.xorA')}</label><input id="xor-a" placeholder="5C 16 A3" oninput="runXorCalc(false)">
+      <label id="xor-b-label" class="sub-label">${t('calc.xorB')}</label><input id="xor-b" placeholder="A0 FF 01" oninput="runXorCalc(false)">
+      <button class="btn-p calc-run" id="xor-run-btn" onclick="runXorCalc(true)">${t('calc.xorRun')}</button>
+      <div class="tool-result" id="xor-result">${t('calc.xorEmpty')}</div>
+    </div>
+    <div class="tool-card"><label id="calc-history-label">${t('calc.history')}</label><div class="calc-history" id="calc-history"></div></div>`;
   const right=document.createElement('aside');
   right.className='stage-tools right';
   right.id='tool-right';
@@ -1175,7 +1459,7 @@ function formatCalc(n){
 }
 function updateCalcDisplay(){
   const out=document.getElementById('calc-result');if(out)out.textContent=calcValue;
-  const mini=document.getElementById('calc-mini');if(mini)mini.textContent=calcStored!==null&&calcOp?`${formatCalc(calcStored)} ${calcOp}`:'Ready for AES byte math';
+  const mini=document.getElementById('calc-mini');if(mini)mini.textContent=calcStored!==null&&calcOp?`${formatCalc(calcStored)} ${calcOp}`:t('calc.ready');
 }
 function calcPress(ch){
   if(calcReset){calcValue='0';calcReset=false;}
@@ -1223,12 +1507,44 @@ function syncAesCalculator(){
   const p=document.getElementById('pIn'),k=document.getElementById('kIn'),box=document.getElementById('aes-calc-info');
   if(!box)return;
   const plainLen=p?p.value.length:0,keyLen=k?k.value.length:0;
-  box.textContent=`Text: ${plainLen} chars | Block: 16 bytes | Key: ${keyLen}/32 chars = ${keyLen*8} bits`;
+  box.textContent=t('calc.info',{plain:plainLen,key:keyLen,bits:keyLen*8});
 }
 
 function renderCalcHistory(){
   const box=document.getElementById('calc-history');if(!box)return;
-  box.innerHTML=calcHistory.map(x=>`<div class="history-item">${escHtml(x)}</div>`).join('')||'<div class="history-item">No calculations yet.</div>';
+  box.innerHTML=calcHistory.map(x=>`<div class="history-item">${escHtml(x)}</div>`).join('')||`<div class="history-item">${t('calc.noHistory')}</div>`;
+}
+
+function parseHexByteList(raw){
+  const text=String(raw||'').trim();
+  if(!text)return [];
+  const clean=text.replace(/0x/gi,' ').replace(/[^0-9a-fA-F]+/g,' ').trim();
+  if(!clean)return null;
+  let parts=clean.split(/\s+/).filter(Boolean);
+  if(parts.length===1&&parts[0].length>2)parts=parts[0].match(/.{1,2}/g)||[];
+  const bytes=[];
+  for(const part of parts){
+    if(part.length>2||!/^[0-9a-fA-F]{1,2}$/.test(part))return null;
+    bytes.push(parseInt(part,16)&255);
+  }
+  return bytes;
+}
+function runXorCalc(save=false){
+  const aInput=document.getElementById('xor-a'),bInput=document.getElementById('xor-b'),box=document.getElementById('xor-result');
+  if(!box)return;
+  const a=parseHexByteList(aInput&&aInput.value),b=parseHexByteList(bInput&&bInput.value);
+  if(a===null||b===null){box.textContent=t('calc.xorError');return;}
+  if(!a.length||!b.length){box.textContent=t('calc.xorEmpty');return;}
+  const len=Math.max(a.length,b.length);
+  const out=Array.from({length:len},(_,i)=>a[i%a.length]^b[i%b.length]);
+  const fmt=list=>list.map(x=>H(x)).join(' ');
+  const line=`${fmt(a)} XOR ${fmt(b)} = ${fmt(out)}`;
+  box.innerHTML=`<strong>${fmt(out)}</strong><span>${escHtml(line)}</span>`;
+  if(save){
+    calcHistory.unshift(line);
+    calcHistory.splice(8);
+    renderCalcHistory();
+  }
 }
 
 function buildToolReferenceTables(){
@@ -1379,11 +1695,13 @@ function syncResultPanel(){
   const fmt='HEX';
   const mode='ECB';
   const key=keyInput?keyInput.value:'-';
-  if(out)out.textContent=lastCipher?(fmt==='BASE64'?bytesToBase64(lastCipher):hexCompact(lastCipher)):'No ciphertext yet. Run Practice first.';
+  if(out)out.textContent=lastCipher?(fmt==='BASE64'?bytesToBase64(lastCipher):hexCompact(lastCipher)):t('result.none');
   const keyEl=document.getElementById('result-key'),modeEl=document.getElementById('result-mode-label'),fmtEl=document.getElementById('result-format-label');
   if(keyEl)keyEl.textContent=key||'-';
   if(modeEl)modeEl.textContent=mode==='CBC'?'CBC needs IV; walkthrough output is ECB':'ECB';
   if(fmtEl)fmtEl.textContent=fmt;
+  const summary=document.getElementById('result-practice-summary');
+  if(summary)summary.innerHTML='';
   const src=document.getElementById('dec-txt'),dst=document.getElementById('result-dec-txt'),box=document.getElementById('result-dec-box');
   if(src&&dst&&box&&src.textContent&&src.textContent!=='-'&&src.textContent!=='-'){dst.textContent=src.textContent;box.style.display='block';}
 }
@@ -1404,7 +1722,7 @@ function startEnc(){
   if(key.length!==32){alert(t('alert.key',{n:key.length}));return;}
   const kb=getKey();
   solvedChallenges.clear();
-  challengeAttempts.clear();
+  resetPracticeScore();
   encryptionComplete=false;
   celebrationShown=false;
   steps=buildSteps(plain,kb);
@@ -1433,22 +1751,26 @@ function goTo(i){
 function renderMatrixCompare(s,showByteDetail){
   if(s.isARK){
     return `<div class="sbody matrix-only">
-      <div class="matrix-compare xor-compare">
-        <div class="matrix-panel">
-          <div class="sg-lbl">${s.leftLabel||t('matrix.before')}</div>
-          <div class="sgrid sgrid-before" id="sc-grid-before"></div>
+      <div class="xor-stack">
+        <div class="xor-top">
+          <div class="matrix-panel">
+            <div class="sg-lbl">${s.leftLabel||t('matrix.before')}</div>
+            <div class="sgrid sgrid-before" id="sc-grid-before"></div>
+          </div>
+          <div class="matrix-symbol">${t('matrix.xor')}</div>
+          <div class="matrix-panel">
+            <div class="sg-lbl">${t('matrix.key')}</div>
+            <div class="sgrid sgrid-key" id="sc-grid-key"></div>
+          </div>
         </div>
-        <div class="matrix-symbol">${t('matrix.xor')}</div>
-        <div class="matrix-panel">
-          <div class="sg-lbl">${t('matrix.key')}</div>
-          <div class="sgrid sgrid-key" id="sc-grid-key"></div>
+        <div class="matrix-symbol equals xor-equals">${t('matrix.equals')}</div>
+        <div class="xor-answer">
+          <div class="matrix-panel">
+            <div class="sg-lbl" id="sc-lbl">${s.glbl||t('matrix.result')}</div>
+            <div class="sgrid sgrid-after" id="sc-grid-after"></div>
+          </div>
         </div>
-        <div class="matrix-symbol equals">${t('matrix.equals')}</div>
-        <div class="matrix-panel">
-          <div class="sg-lbl" id="sc-lbl">${s.glbl||t('matrix.result')}</div>
-          <div class="sgrid sgrid-after" id="sc-grid-after"></div>
-        </div>
-      </div>
+       </div>
       <div class="matrix-note wide" id="matrix-change-note">${t('matrix.hover')}</div>
     </div>
     ${showByteDetail?`<div class="sexpl byte-detail"><div class="se-lbl" id="sc-et">${s.et}</div><div class="se-fm" id="sc-fm">${s.fm||''}</div></div>`:''}`;
@@ -1501,6 +1823,7 @@ function renderFinalCipherStep(s){
     <div class="sgrid cipher-grid">${cells}</div>
     <div class="cipher-down"></div>
     <div class="cipher-line">${hexCompact(s.after)}</div>
+    ${renderPracticeSummary()}
   </div>`;
 }
 
@@ -1620,6 +1943,8 @@ function showStepAnswer(){
   if(fb)fb.textContent=t('student.revealed');
   solvedChallenges.add(curIdx);
   writeChallengeExplanation(s,t('student.revealed'));
+  updateScoreHud();
+  syncResultPanel();
 }
 
 function updateRoundDetail(s,idx,rel=relatedCells(s,idx,'after')){
@@ -1659,13 +1984,18 @@ function checkStepAnswer(){
   }
   if(input){input.classList.toggle('ok',ok);input.classList.toggle('no',!ok);}
   if(ok){
-    if(fb)fb.textContent=t('student.correct');
+    if(!scoredChallenges.has(curIdx)){
+      practiceScore+=30;
+      scoredChallenges.add(curIdx);
+    }
+    if(fb)fb.textContent=`${t('student.correct')} ${t('score.correctDelta')}`;
     solvedChallenges.add(curIdx);
     writeChallengeExplanation(s);
   }else{
     const tries=(challengeAttempts.get(curIdx)||0)+1;
     challengeAttempts.set(curIdx,tries);
-    if(fb)fb.textContent=t('student.wrong',{n:tries,hint:s.challenge.hint});
+    practiceScore-=10;
+    if(fb)fb.textContent=`${t('student.wrong',{n:tries,hint:s.challenge.hint})} ${t('score.incorrectDelta')}`;
     if(tries>=3){showStepAnswer();return true;}
     else{
       const btn=document.getElementById('step-answer-btn');
@@ -1674,6 +2004,8 @@ function checkStepAnswer(){
       if(box){box.innerHTML='';box.classList.remove('show');}
     }
   }
+  updateScoreHud();
+  syncResultPanel();
   return ok;
 }
 
@@ -1772,10 +2104,11 @@ function clrAll(){
   document.getElementById('out-blk').classList.remove('show');
   document.getElementById('dec-box').style.display='none';
   document.getElementById('ftrack').innerHTML='';
-  document.getElementById('scard').innerHTML='<div style="text-align:center;padding:38px;color:var(--muted);font-family:\'Fraunces\',serif;font-size:1rem">Enter text and press <strong>Encrypt</strong>.</div>';
-  const result=document.getElementById('result-cipher');if(result)result.textContent='No ciphertext yet. Run Practice first.';
+  document.getElementById('scard').innerHTML=`<div style="text-align:center;padding:38px;color:var(--muted);font-family:'Fraunces',serif;font-size:1rem">${t('flow.empty.html')}</div>`;
+  const result=document.getElementById('result-cipher');if(result)result.textContent=t('result.none');
+  const resultSummary=document.getElementById('result-practice-summary');if(resultSummary)resultSummary.innerHTML='';
   const resultBox=document.getElementById('result-dec-box');if(resultBox)resultBox.style.display='none';
-  lastCipher=null;steps=[];solvedChallenges.clear();challengeAttempts.clear();encryptionComplete=false;celebrationShown=false;syncAesCalculator();
+  lastCipher=null;steps=[];solvedChallenges.clear();resetPracticeScore();encryptionComplete=false;celebrationShown=false;syncAesCalculator();
 }
 
 function buildSteps(plain,kb){

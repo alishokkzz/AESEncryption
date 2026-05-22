@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>AES-256 - Learn & Practice</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,700&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260518-4">
+<link rel="stylesheet" href="css/style.css?v=20260522-2">
 </head>
 <body>
 <div id="prog" style="width:0%"></div>
@@ -314,16 +314,19 @@
     </div>
     <div class="player" id="player" style="display:none">
       <div class="pb-w"><div class="pb-f" id="pbf"></div></div>
+      <div class="score-hud">
+        <div><span id="practice-score-label">Points</span><strong id="practice-score-value">0</strong></div>
+        <div><span id="practice-attempts-label">Attempts</span><strong id="practice-attempts-value">0/3</strong></div>
+      </div>
       <div class="p-ctrl">
         <div class="pctr" id="pctr">Step 1 of ?</div>
         <button class="cbtn" onclick="stepNav(-1)" id="btnprev" disabled>Prev</button>
         <button class="cbtn" onclick="replayCurrentAnimation()" id="btnreplay">Replay animation</button>
         <label class="anim-speed"><span id="player-speed-label">Speed</span>
           <select id="player-speed" onchange="setSiteSetting('speed',this.value)">
-            <option value=".6">Slow</option>
-            <option value="1" selected>Default</option>
-            <option value="1.6">Fast</option>
-            <option value="2.4">Faster</option>
+            <option value="slow">Slow</option>
+            <option value="medium" selected>Medium</option>
+            <option value="fast">Fast</option>
           </select>
         </label>
         <button class="cbtn nxt" onclick="stepNav(1)" id="btnnxt">Next</button>
@@ -419,6 +422,6 @@
 
 <footer><strong>AES-256 Learning Platform</strong><br>Narxoz University . Cryptographic Primitives . 2025-2026<br><span style="font-size:.64rem;opacity:.36;display:block;margin-top:3px">NIST FIPS-197 . Topic 1: AES-256 + Key Generation</span></footer>
 
-<script src="js/app.js?v=20260518-4"></script>
+<script src="js/app.js?v=20260522-2"></script>
 </body>
 </html>
